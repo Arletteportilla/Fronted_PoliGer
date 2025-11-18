@@ -1,0 +1,219 @@
+import api from './api';
+import { Notification } from '@/types';
+
+// Mapeo de tipos del backend al frontend
+const mapNotificationType = (tipo: string): 'info' | 'success' | 'warning' | 'error' => {
+  const tipoMap: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
+    'NUEVA_GERMINACION': 'success',
+    'NUEVA_POLINIZACION': 'success',
+    'ESTADO_ACTUALIZADO': 'info',
+    'ESTADO_POLINIZACION_ACTUALIZADO': 'info',
+    'RECORDATORIO_REVISION': 'warning',
+    'ERROR': 'error',
+    'MENSAJE': 'info',
+    'ACTUALIZACION': 'info',
+  };
+  return tipoMap[tipo] || 'info';
+};
+
+// Mapeo de tipos del backend a iconos
+export const getNotificationIconByType = (tipo: string): string => {
+  const iconMap: Record<string, string> = {
+    'NUEVA_GERMINACION': 'leaf',
+    'NUEVA_POLINIZACION': 'flower',
+    'ESTADO_ACTUALIZADO': 'sync',
+    'ESTADO_POLINIZACION_ACTUALIZADO': 'sync',
+    'RECORDATORIO_REVISION': 'time',
+    'ERROR': 'close-circle',
+    'MENSAJE': 'chatbubble',
+    'ACTUALIZACION': 'arrow-down-circle',
+  };
+  return iconMap[tipo] || 'information-circle';
+};
+
+// Convertir notificación del backend al formato del frontend
+const mapNotification = (data: any): Notification => {
+  return {
+    id: data.id.toString(),
+    title: data.titulo,
+    message: data.mensaje,
+    timestamp: data.fecha_creacion,
+    isRead: data.leida,
+    type: mapNotificationType(data.tipo),
+    favorita: data.favorita || false,
+    archivada: data.archivada || false,
+    detalles: data.detalles_adicionales,
+    tipo: data.tipo,
+    tipoDisplay: data.tipo_display || data.tipo,
+    germinacion_id: data.detalles_adicionales?.germinacion_id,
+    polinizacion_id: data.detalles_adicionales?.polinizacion_id,
+  };
+};
+
+export interface NotificationFilters {
+  tipo?: string;
+  leida?: boolean;
+  favorita?: boolean;
+  archivada?: boolean;
+  search?: string;
+}
+
+export interface NotificationStats {
+  total: number;
+  no_leidas: number;
+  favoritas: number;
+  archivadas: number;
+}
+
+export const notificacionesService = {
+  /**
+   * Obtiene las notificaciones del usuario
+   */
+  getNotificaciones: async (filters?: NotificationFilters): Promise<Notification[]> => {
+    try {
+      const params = new URLSearchParams();
+      
+      // Filtros específicos del backend
+      if (filters?.leida === false) {
+        params.append('solo_no_leidas', 'true');
+      }
+      if (filters?.archivada === true) {
+        params.append('incluir_archivadas', 'true');
+      }
+      if (filters?.tipo) params.append('tipo', filters.tipo);
+      if (filters?.search) params.append('search', filters.search);
+
+      const url = params.toString() 
+        ? `notifications/?${params.toString()}`
+        : 'notifications/';
+      
+      console.log('🔔 Obteniendo notificaciones:', url);
+      
+      const response = await api.get(url);
+      
+      // El backend devuelve un array directo
+      let results = response.data;
+      if (response.data.results) {
+        results = response.data.results;
+      } else if (!Array.isArray(response.data)) {
+        results = [];
+      }
+      
+      const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
+      console.log('✅ Notificaciones obtenidas:', notifications.length);
+      
+      return notifications;
+    } catch (error) {
+      console.error('❌ Error obteniendo notificaciones:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene una notificación específica
+   */
+  getNotificacion: async (id: string): Promise<Notification> => {
+    try {
+      const response = await api.get(`notifications/${id}/`);
+      return mapNotification(response.data);
+    } catch (error) {
+      console.error('❌ Error obteniendo notificación:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Marca una notificación como leída
+   */
+  marcarComoLeida: async (id: string): Promise<void> => {
+    try {
+      await api.post(`notifications/${id}/marcar-leida/`);
+      console.log('✅ Notificación marcada como leída');
+    } catch (error) {
+      console.error('❌ Error marcando notificación como leída:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Marca todas las notificaciones como leídas
+   */
+  marcarTodasComoLeidas: async (): Promise<number> => {
+    try {
+      const response = await api.post('notifications/marcar-todas-leidas/');
+      console.log('✅ Todas las notificaciones marcadas como leídas:', response.data);
+      return response.data.count || 0;
+    } catch (error) {
+      console.error('❌ Error marcando todas como leídas:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Marca/desmarca una notificación como favorita
+   */
+  toggleFavorita: async (id: string): Promise<boolean> => {
+    try {
+      const response = await api.post(`notifications/${id}/toggle-favorita/`);
+      console.log('✅ Estado de favorita cambiado:', response.data.favorita);
+      return response.data.favorita;
+    } catch (error) {
+      console.error('❌ Error cambiando favorita:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Archiva una notificación
+   */
+  archivar: async (id: string): Promise<void> => {
+    try {
+      await api.post(`notifications/${id}/archivar/`);
+      console.log('✅ Notificación archivada');
+    } catch (error) {
+      console.error('❌ Error archivando notificación:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Elimina una notificación
+   */
+  eliminar: async (id: string): Promise<void> => {
+    try {
+      await api.delete(`notifications/${id}/`);
+      console.log('✅ Notificación eliminada');
+    } catch (error) {
+      console.error('❌ Error eliminando notificación:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene estadísticas de notificaciones
+   */
+  getEstadisticas: async (): Promise<NotificationStats> => {
+    try {
+      const response = await api.get('notifications/estadisticas/');
+      console.log('✅ Estadísticas obtenidas:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error obteniendo estadísticas:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene alertas pendientes (germinaciones y polinizaciones próximas a vencer)
+   */
+  getAlertas: async (): Promise<any[]> => {
+    try {
+      const response = await api.get('notifications/alertas/');
+      console.log('✅ Alertas obtenidas:', response.data);
+      return response.data.alertas || [];
+    } catch (error) {
+      console.error('❌ Error obteniendo alertas:', error);
+      throw error;
+    }
+  },
+};

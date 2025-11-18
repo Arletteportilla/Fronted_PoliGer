@@ -1,0 +1,1 @@
+export { PrediccionPolinizacion } from './PrediccionPolinizacion';

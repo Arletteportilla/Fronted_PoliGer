@@ -1,0 +1,1 @@
+export type TabType = 'resumen' | 'polinizaciones' | 'germinaciones' | 'usuarios' | 'alertas' | 'notificaciones' | 'calendario';
