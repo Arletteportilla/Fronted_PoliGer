@@ -425,7 +425,21 @@ export const polinizacionService = {
     }
     
     // Mapear tipo de polinización
-    if (data.tipo_polinizacion) mappedData.tipo_polinizacion = data.tipo_polinizacion;
+    if (data.tipo_polinizacion) {
+      mappedData.tipo_polinizacion = data.tipo_polinizacion;
+      
+      // Mapear campo Tipo para predicción ML
+      let tipoML = data.tipo_polinizacion;
+      if (tipoML === 'SIBLING') tipoML = 'SIBBLING';
+      if (tipoML === 'HIBRIDA') tipoML = 'HYBRID';
+      mappedData.Tipo = tipoML;
+      
+      console.log('🔍 DEBUG - Tipo mapeado:', {
+        original: data.tipo_polinizacion,
+        mapeado: tipoML,
+        campo_Tipo: mappedData.Tipo
+      });
+    }
     
     // Mapear planta madre
     if (data.madre_codigo) mappedData.madre_codigo = data.madre_codigo;
@@ -479,6 +493,18 @@ export const polinizacionService = {
     });
     
     console.log('📤 Enviando datos mapeados al backend:', mappedData);
+    console.log('🔍 DEBUG - Campos de predicción:', {
+      madre_genero: mappedData.madre_genero,
+      madre_especie: mappedData.madre_especie,
+      nueva_genero: mappedData.nueva_genero,
+      nueva_especie: mappedData.nueva_especie,
+      padre_genero: mappedData.padre_genero,
+      padre_especie: mappedData.padre_especie,
+      genero: mappedData.genero,
+      especie: mappedData.especie,
+      Tipo: mappedData.Tipo,
+      tipo_polinizacion: mappedData.tipo_polinizacion
+    });
     
     const response = await api.post('polinizaciones/', mappedData);
     return response.data;
@@ -860,4 +886,55 @@ export const polinizacionService = {
       throw error;
     }
   },
+
+  // NUEVAS FUNCIONES PARA PREDICCIÓN ML DE MADURACIÓN
+  predecirMaduracion: async (data: {
+    genero: string;
+    especie: string;
+    tipo: 'SELF' | 'SIBBLING' | 'HYBRID';
+    fecha_pol: string;
+    cantidad?: number;
+  }) => {
+    try {
+      console.log('🔮 Prediciendo maduración con ML:', data);
+
+      const response = await api.post('polinizaciones/predecir-maduracion/', {
+        genero: data.genero,
+        especie: data.especie,
+        tipo: data.tipo,
+        fecha_pol: data.fecha_pol,
+        cantidad: data.cantidad || 1
+      });
+
+      console.log('✅ Predicción de maduración calculada:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error prediciendo maduración:', error);
+
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+
+      throw new Error('No se pudo calcular la predicción de maduración.');
+    }
+  },
+
+  obtenerInfoModeloML: async () => {
+    try {
+      console.log('📊 Obteniendo información del modelo ML...');
+
+      const response = await api.get('polinizaciones/info-modelo-ml/');
+
+      console.log('✅ Información del modelo obtenida:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error obteniendo info del modelo:', error);
+
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+
+      throw new Error('No se pudo obtener la información del modelo.');
+    }
+  }
 };

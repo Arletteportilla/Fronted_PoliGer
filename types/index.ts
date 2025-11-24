@@ -47,6 +47,12 @@ export interface Germinacion {
   alerta_activada?: boolean;
   estado_seguimiento?: 'PENDIENTE' | 'EN_REVISION' | 'COMPLETADA' | 'VENCIDA';
   
+  // Campos de predicción del backend (nombres del modelo Django)
+  prediccion_fecha_estimada?: string | null;
+  prediccion_dias_estimados?: number | null;
+  prediccion_confianza?: number | null;
+  prediccion_tipo?: string | null;
+  
   // NUEVOS CAMPOS ADICIONALES - Disponibles en backend
   tipo_semilla?: 'MADURA' | 'TIERNA' | 'VANA' | null;
   responsable_polinizacion?: string | null;
@@ -107,7 +113,32 @@ export interface Polinizacion {
   cantidad_semilla?: 'ABUNDANTE' | 'ESCASA' | null;
   clima?: string | null;
 
-  // Campos de predicción
+  // Campos adicionales que faltan
+  nombre?: string;
+  madre_codigo?: string;
+  madre_genero?: string;
+  madre_especie?: string;
+  madre_clima?: string;
+  padre_codigo?: string;
+  padre_genero?: string;
+  padre_especie?: string;
+  padre_clima?: string;
+  nueva_codigo?: string;
+  nueva_genero?: string;
+  nueva_especie?: string;
+  nueva_clima?: string;
+  ubicacion_tipo?: string;
+  ubicacion_nombre?: string;
+  tipo?: string;
+  
+  // Campos de predicción ML (nuevos)
+  Tipo?: 'SELF' | 'SIBBLING' | 'HYBRID';
+  dias_maduracion_predichos?: number;
+  fecha_maduracion_predicha?: string;
+  metodo_prediccion?: 'ML' | 'heuristica';
+  confianza_prediccion?: number;
+  
+  // Campos de predicción legacy (mantener compatibilidad)
   prediccion_dias_estimados?: number;
   prediccion_confianza?: number;
   prediccion_fecha_estimada?: string;

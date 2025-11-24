@@ -22,6 +22,7 @@ export const CANTIDAD_SEMILLA = [
 
 // Estado inicial del formulario
 export const getInitialFormState = (getUserFullName: () => string) => ({
+  id: null as number | null,
   fecha_polinizacion: '',
   fecha_maduracion: '',
   clima: '',
@@ -33,7 +34,23 @@ export const getInitialFormState = (getUserFullName: () => string) => ({
   tipo_polinizacion: '',
   observaciones: '',
   etapa_actual: 'Ingresado',
-  // Campos para plantas
+  estado: 'INGRESADO',
+  // Campos para planta madre
+  madre_codigo: '',
+  madre_genero: '',
+  madre_especie: '',
+  madre_clima: 'I',
+  // Campos para planta padre
+  padre_codigo: '',
+  padre_genero: '',
+  padre_especie: '',
+  padre_clima: 'I',
+  // Campos para nueva planta
+  nueva_codigo: '',
+  nueva_genero: '',
+  nueva_especie: '',
+  nueva_clima: 'I',
+  // Campos legacy (mantener compatibilidad)
   planta_madre_codigo: '',
   planta_madre_genero: '',
   planta_madre_especie: '',
@@ -46,5 +63,10 @@ export const getInitialFormState = (getUserFullName: () => string) => ({
   // Campos de ubicación específica
   vivero: '',
   mesa: '',
-  pared: ''
+  pared: '',
+  ubicacion_tipo: 'vivero',
+  ubicacion_nombre: '',
+  // Campos de cantidad
+  cantidad_capsulas: 1,
+  cantidad: 1
 });

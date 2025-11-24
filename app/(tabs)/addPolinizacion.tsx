@@ -1,27 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, Text, Alert, ScrollView, View, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Text, Alert, ScrollView, View, Modal, Dimensions, ActivityIndicator } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { prediccionService } from '@/services/prediccion.service';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SimpleCalendarPicker } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 
+const TIPOS_POLINIZACION = [
+  { label: 'Self', value: 'SELF' },
+  { label: 'Sibling', value: 'SIBLING' },
+  { label: 'Híbrido', value: 'HIBRIDO' },
+];
+
+const ESTADOS_POLINIZACION = [
+  { label: 'Ingresado', value: 'INGRESADO' },
+  { label: 'En proceso', value: 'EN_PROCESO' },
+  { label: 'Lista', value: 'LISTA' },
+];
+
+const CLIMAS = [
+  { label: 'Intermedio (I)', value: 'I' },
+  { label: 'Intermedio Caliente (IW)', value: 'IW' },
+  { label: 'Intermedio Frío (IC)', value: 'IC' },
+  { label: 'Caliente (W)', value: 'W' },
+  { label: 'Frío (C)', value: 'C' },
+];
+
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
+// Hook para detectar el tamaño de pantalla
+const useResponsive = () => {
+  const [screenData, setScreenData] = useState(Dimensions.get('window'));
+
+  useEffect(() => {
+    const onChange = (result: any) => {
+      setScreenData(result.window);
+    };
+
+    const subscription = Dimensions.addEventListener('change', onChange);
+    return () => subscription?.remove();
+  }, []);
+
+  return {
+    width: screenData.width,
+    height: screenData.height,
+    isTablet: screenData.width >= 768,
+    isLargeScreen: screenData.width >= 1024,
+    isSmallScreen: screenData.width < 400,
+  };
+};
+
 export default function AddPolinizacionScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const responsive = useResponsive();
+  
+  // Campos del formulario
+  const [fechaPolinizacion, setFechaPolinizacion] = useState(todayStr());
   const [ubicacion, setUbicacion] = useState('');
   const [codigo, setCodigo] = useState('');
   const [genero, setGenero] = useState('');
   const [especie, setEspecie] = useState('');
-  const [fechapol, setFechapol] = useState('');
-  const [responsable, setResponsable] = useState('');
-  const [cantidad, setCantidad] = useState('');
-  const [observaciones, setObservaciones] = useState('');
-  const [tipoPolinizacion, setTipoPolinizacion] = useState('');
-  const [estado, setEstado] = useState('INGRESADO');
   const [clima, setClima] = useState('I');
+  const [tipoPolinizacion, setTipoPolinizacion] = useState('SELF');
+  const [estado, setEstado] = useState('INGRESADO');
+  const [cantidad, setCantidad] = useState('');
+  const [responsable, setResponsable] = useState('');
+  const [observaciones, setObservaciones] = useState('');
+  
+  // Estados del componente
   const [isLoading, setIsLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editItemId, setEditItemId] = useState<number | null>(null);
@@ -31,49 +82,29 @@ export default function AddPolinizacionScreen() {
   const [isPredicting, setIsPredicting] = useState(false);
   const [showPrediccion, setShowPrediccion] = useState(false);
 
-  const TIPOS_POLINIZACION = [
-    { label: 'Self', value: 'SELF' },
-    { label: 'Sibling', value: 'SIBLING' },
-    { label: 'Híbrido', value: 'HIBRIDO' },
-  ];
-
-  const ESTADOS_POLINIZACION = [
-    { label: 'Ingresado', value: 'INGRESADO' },
-    { label: 'En proceso', value: 'EN_PROCESO' },
-    { label: 'Lista', value: 'LISTA' },
-  ];
-
-  const CLIMAS_DISPONIBLES = [
-    { label: 'Intermedio (I)', value: 'I' },
-    { label: 'Intermedio Caliente (IW)', value: 'IW' },
-    { label: 'Intermedio Frío (IC)', value: 'IC' },
-    { label: 'Caliente (W)', value: 'W' },
-    { label: 'Frío (C)', value: 'C' },
-    { label: 'Frío (W)', value: 'W' },
-  ];
-
   // Handle edit mode and pre-fill form
   useEffect(() => {
-    if (params.editMode === 'true' && params.editData) {
+    if (params['editMode'] === 'true' && params['editData']) {
       try {
-        const editData = JSON.parse(params.editData as string);
+        const editData = JSON.parse(params['editData'] as string);
         setIsEditMode(true);
         setEditItemId(editData.numero);
         
         // Pre-fill form fields
+        setFechaPolinizacion(editData.fechapol || todayStr());
         setUbicacion(editData.ubicacion || '');
         setCodigo(editData.codigo || '');
         setGenero(editData.genero || '');
         setEspecie(editData.especie || '');
-        setFechapol(editData.fechapol || '');
-        setResponsable(editData.responsable || '');
-        setCantidad(editData.cantidad?.toString() || '');
-        setObservaciones(editData.observaciones || '');
-        setTipoPolinizacion(editData.tipo_polinizacion || '');
+        setClima(editData.clima || 'I');
+        setTipoPolinizacion(editData.tipo_polinizacion || 'SELF');
         setEstado(editData.estado || 'INGRESADO');
+        setCantidad(editData.cantidad?.toString() || '');
+        setResponsable(editData.responsable || '');
+        setObservaciones(editData.observaciones || '');
       } catch (error) {
         console.error('Error parsing edit data:', error);
-        Alert.alert('Error', 'No se pudo cargar los datos para editar.');
+        Alert.alert('Error', 'No se pudieron cargar los datos para editar');
       }
     }
   }, [params]);
@@ -94,7 +125,7 @@ export default function AddPolinizacionScreen() {
         genero: genero.trim(),
         clima: clima || undefined,
         ubicacion: ubicacion || undefined,
-        fecha_polinizacion: fechapol || undefined,
+        fecha_polinizacion: fechaPolinizacion || undefined,
         tipo_polinizacion: tipoPolinizacion || undefined,
       };
 
@@ -103,8 +134,8 @@ export default function AddPolinizacionScreen() {
       // Generar predicción inicial
       const resultado = await prediccionService.predecirPolinizacionInicial({
         especie: especie.trim(),
-        clima: clima || undefined,
-        ubicacion: ubicacion || undefined,
+        ...(clima && { clima }),
+        ...(ubicacion && { ubicacion }),
       });
 
       console.log('✅ Predicción generada:', resultado);
@@ -137,29 +168,36 @@ export default function AddPolinizacionScreen() {
   };
 
   const handleSubmit = async () => {
-    // Validaciones avanzadas
-    if (!ubicacion.trim() || !codigo.trim() || !genero.trim() || !especie.trim() || !fechapol.trim() || !responsable.trim() || !cantidad.trim() || !tipoPolinizacion) {
+    // Validaciones de campos obligatorios
+    if (!ubicacion.trim() || !codigo.trim() || !genero.trim() || !especie.trim() || 
+        !fechaPolinizacion || !responsable.trim() || !cantidad.trim() || !tipoPolinizacion) {
       Alert.alert('Error', 'Por favor completa todos los campos obligatorios.');
       return;
     }
-    if (isNaN(Number(cantidad)) || Number(cantidad) <= 0) {
-      Alert.alert('Error', 'La cantidad solicitada debe ser un número mayor a 0.');
+
+    // Validar que la cantidad sea un número positivo
+    const cantidadNum = parseInt(cantidad);
+    
+    if (isNaN(cantidadNum) || cantidadNum <= 0) {
+      Alert.alert('Error', 'La cantidad debe ser un número positivo.');
       return;
     }
+
     setIsLoading(true);
+
     try {
       const formData = {
-        ubicacion,
-        codigo,
-        genero,
-        especie,
-        fechapol,
-        responsable,
-        cantidad: Number(cantidad),
-        observaciones,
+        ubicacion: ubicacion.trim(),
+        codigo: codigo.trim(),
+        genero: genero.trim(),
+        especie: especie.trim(),
+        fechapol: fechaPolinizacion,
+        responsable: responsable.trim(),
+        cantidad: cantidadNum,
+        observaciones: observaciones.trim(),
         tipo_polinizacion: tipoPolinizacion,
-        estado,
-        clima,
+        estado: estado,
+        clima: clima,
         // Incluir datos de predicción si están disponibles
         ...(prediccion && {
           prediccion_dias_estimados: prediccion.dias_estimados,
@@ -176,22 +214,9 @@ export default function AddPolinizacionScreen() {
         Alert.alert('Éxito', 'Polinización actualizada correctamente.');
       } else {
         await polinizacionService.create(formData);
-        Alert.alert('Éxito', 'Polinización añadida correctamente.');
+        Alert.alert('Éxito', 'Polinización creada correctamente.');
       }
 
-      // Reset form and navigate back
-      setUbicacion(''); 
-      setCodigo(''); 
-      setGenero('');
-      setEspecie('');
-      setFechapol('');
-      setResponsable(''); 
-      setCantidad(''); 
-      setObservaciones(''); 
-      setTipoPolinizacion('');
-      setEstado('INGRESADO');
-      
-      // Navigate back to profile
       router.back();
     } catch (error: any) {
       console.error('Error completo:', error);
@@ -203,13 +228,14 @@ export default function AddPolinizacionScreen() {
         console.log('Error del backend:', errorData);
         
         // Si hay errores específicos del serializer
-        if (typeof errorData === 'object') {
+        if (typeof errorData === 'object' && errorData !== null) {
           const errorFields = Object.keys(errorData);
           if (errorFields.length > 0) {
             const firstError = errorFields[0];
-            const firstErrorMessage = Array.isArray(errorData[firstError]) 
-              ? errorData[firstError][0] 
-              : errorData[firstError];
+            const fieldErrors = errorData[firstError as keyof typeof errorData];
+            const firstErrorMessage = Array.isArray(fieldErrors) 
+              ? fieldErrors[0] 
+              : fieldErrors;
             errorMessage = `${firstError}: ${firstErrorMessage}`;
           }
         } else if (typeof errorData === 'string') {
@@ -225,81 +251,195 @@ export default function AddPolinizacionScreen() {
     }
   };
 
+  const renderFormField = (label: string, children: React.ReactNode, required = false) => (
+    <View style={styles.fieldContainer}>
+      <Text style={styles.label}>
+        {label} {required && <Text style={styles.required}>*</Text>}
+      </Text>
+      {children}
+    </View>
+  );
+
   return (
-    <LinearGradient colors={["#e0e7ff", "#f5f7fa"]} style={styles.gradient}>
-      <ScrollView contentContainerStyle={styles.centered}>
-        <View style={styles.card}>
-          <Text style={styles.title}>{isEditMode ? 'Editar Polinización' : 'Añadir Polinización'}</Text>
-          
-          <Text style={styles.label}>Ubicación*</Text>
-          <TextInput style={styles.input} placeholder="Ubicación" value={ubicacion} onChangeText={setUbicacion} />
-          
-          <Text style={styles.label}>Código*</Text>
-          <TextInput style={styles.input} placeholder="Código" value={codigo} onChangeText={setCodigo} />
-          
-          <Text style={styles.label}>Género*</Text>
-          <TextInput style={styles.input} placeholder="Género" value={genero} onChangeText={setGenero} />
-          
-          <Text style={styles.label}>Especie*</Text>
-          <TextInput style={styles.input} placeholder="Especie" value={especie} onChangeText={setEspecie} />
-          
+    <Modal
+      visible={true}
+      transparent
+      animationType="slide"
+      onRequestClose={() => router.back()}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => router.back()}
+      >
+        <TouchableOpacity
+          style={[
+            styles.modalContainer,
+            responsive.isTablet && styles.modalContainerTablet,
+            responsive.isLargeScreen && styles.modalContainerLarge,
+          ]}
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
+        >
+          {/* Header del modal */}
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="close" size={24} color="#182d49" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>
+              {isEditMode ? 'Editar Polinización' : 'Nueva Polinización'}
+            </Text>
+            <View style={styles.placeholder} />
+          </View>
+
+          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <View style={styles.formContainer}>
+
+          {/* Fecha de Polinización */}
           <SimpleCalendarPicker
             label="Fecha de Polinización"
-            value={fechapol}
-            onDateChange={setFechapol}
-            placeholder="Selecciona fecha de polinización"
+            value={fechaPolinizacion}
+            onDateChange={setFechaPolinizacion}
+            placeholder="Seleccionar fecha de polinización"
             required={true}
           />
-          
-          <Text style={styles.label}>Responsable*</Text>
-          <TextInput style={styles.input} placeholder="Responsable" value={responsable} onChangeText={setResponsable} />
-          
-          <Text style={styles.label}>Cantidad*</Text>
-          <TextInput style={styles.input} placeholder="Cantidad" value={cantidad} onChangeText={setCantidad} keyboardType="numeric" />
-          
-          <Text style={styles.label}>Tipo de polinización*</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={tipoPolinizacion}
-              onValueChange={setTipoPolinizacion}
-            >
-              <Picker.Item label="Selecciona tipo..." value="" />
-              {TIPOS_POLINIZACION.map(opt => (
-                <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
-              ))}
-            </Picker>
-          </View>
-          
-          <Text style={styles.label}>Clima*</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={clima}
-              onValueChange={setClima}
-            >
-              {CLIMAS_DISPONIBLES.map(opt => (
-                <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
-              ))}
-            </Picker>
-          </View>
-          
-          <Text style={styles.label}>Estado*</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={estado}
-              onValueChange={setEstado}
-            >
-              {ESTADOS_POLINIZACION.map(opt => (
-                <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
-              ))}
-            </Picker>
-          </View>
-          
-          <Text style={styles.label}>Observaciones</Text>
-          <TextInput style={[styles.input, {height: 80}]} placeholder="Observaciones" value={observaciones} onChangeText={setObservaciones} multiline />
-          
+
+          {/* Ubicación */}
+          {renderFormField('Ubicación', (
+            <TextInput
+              style={styles.input}
+              value={ubicacion}
+              onChangeText={setUbicacion}
+              placeholder="Ingresa la ubicación"
+            />
+          ), true)}
+
+          {/* Código */}
+          {renderFormField('Código', (
+            <TextInput
+              style={styles.input}
+              value={codigo}
+              onChangeText={setCodigo}
+              placeholder="Ingresa el código"
+            />
+          ), true)}
+
+          {/* Género */}
+          {renderFormField('Género', (
+            <TextInput
+              style={styles.input}
+              value={genero}
+              onChangeText={setGenero}
+              placeholder="Ingresa el género"
+            />
+          ), true)}
+
+          {/* Especie */}
+          {renderFormField('Especie', (
+            <TextInput
+              style={styles.input}
+              value={especie}
+              onChangeText={setEspecie}
+              placeholder="Ingresa la especie"
+            />
+          ), true)}
+
+          {/* Clima */}
+          {renderFormField('Clima', (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={clima}
+                onValueChange={setClima}
+                style={styles.picker}
+              >
+                {CLIMAS.map((climaOption) => (
+                  <Picker.Item
+                    key={climaOption.value}
+                    label={climaOption.label}
+                    value={climaOption.value}
+                  />
+                ))}
+              </Picker>
+            </View>
+          ), true)}
+
+          {/* Tipo de Polinización */}
+          {renderFormField('Tipo de Polinización', (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={tipoPolinizacion}
+                onValueChange={setTipoPolinizacion}
+                style={styles.picker}
+              >
+                {TIPOS_POLINIZACION.map((tipo) => (
+                  <Picker.Item
+                    key={tipo.value}
+                    label={tipo.label}
+                    value={tipo.value}
+                  />
+                ))}
+              </Picker>
+            </View>
+          ), true)}
+
+          {/* Estado */}
+          {renderFormField('Estado', (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={estado}
+                onValueChange={setEstado}
+                style={styles.picker}
+              >
+                {ESTADOS_POLINIZACION.map((est) => (
+                  <Picker.Item
+                    key={est.value}
+                    label={est.label}
+                    value={est.value}
+                  />
+                ))}
+              </Picker>
+            </View>
+          ), true)}
+
+          {/* Cantidad */}
+          {renderFormField('Cantidad', (
+            <TextInput
+              style={styles.input}
+              value={cantidad}
+              onChangeText={setCantidad}
+              placeholder="Ingresa la cantidad"
+              keyboardType="numeric"
+            />
+          ), true)}
+
+          {/* Responsable */}
+          {renderFormField('Responsable', (
+            <TextInput
+              style={styles.input}
+              value={responsable}
+              onChangeText={setResponsable}
+              placeholder="Ingresa el responsable"
+            />
+          ), true)}
+
+          {/* Observaciones */}
+          {renderFormField('Observaciones', (
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={observaciones}
+              onChangeText={setObservaciones}
+              placeholder="Ingresa observaciones adicionales"
+              multiline
+              numberOfLines={3}
+            />
+          ))}
+
           {/* Botón de Predicción */}
           <TouchableOpacity 
-            style={[styles.predictionButton, isPredicting && styles.predictionButtonDisabled]} 
+            style={[styles.predictionButton, (isPredicting || !especie.trim() || !genero.trim()) && styles.predictionButtonDisabled]} 
             onPress={handlePrediccion} 
             disabled={isPredicting || !especie.trim() || !genero.trim()}
           >
@@ -309,7 +449,7 @@ export default function AddPolinizacionScreen() {
               <Ionicons name="analytics" size={20} color="#fff" />
             )}
             <Text style={styles.predictionButtonText}>
-              {isPredicting ? 'Generando Predicción...' : 'Generar Predicción'}
+              {isPredicting ? 'Generando...' : 'Generar Predicción'}
             </Text>
           </TouchableOpacity>
 
@@ -341,92 +481,152 @@ export default function AddPolinizacionScreen() {
               </TouchableOpacity>
             </View>
           )}
-          
-          <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={isLoading}>
-            <Text style={styles.buttonText}>{isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar')}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </LinearGradient>
+
+          {/* Botones */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={() => router.back()}
+              disabled={isLoading}
+            >
+              <Text style={styles.cancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, styles.submitButton]}
+              onPress={handleSubmit}
+              disabled={isLoading}
+            >
+              <Text style={styles.submitButtonText}>
+                {isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear')}
+              </Text>
+            </TouchableOpacity>
+            </View>
+            </View>
+          </ScrollView>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: {
+  // Estilos del modal
+  modalOverlay: {
     flex: 1,
-  },
-  centered: {
-    flexGrow: 1,
+    backgroundColor: 'rgba(71, 85, 105, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 8,
+    padding: 20,
   },
-  card: {
+  modalContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
     width: '100%',
-    maxWidth: 420,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 28,
-    shadowColor: '#4a6cf7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#e0e7ff',
+    maxWidth: 500,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 2,
+    borderColor: '#e9ad14',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#4a6cf7',
-    marginBottom: 24,
-    textAlign: 'center',
+  modalContainerTablet: {
+    maxWidth: 700,
+    maxHeight: '85%',
   },
-  label: {
-    fontSize: 14,
+  modalContainerLarge: {
+    maxWidth: 900,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#f8f9fa',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#182d49',
-    marginBottom: 4,
+    textAlign: 'center',
+    flex: 1,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholder: {
+    width: 40,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  formContainer: {
+    padding: 20,
+  },
+  fieldContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#182d49',
+    marginBottom: 8,
+  },
+  required: {
+    color: '#ef4444',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#e0e7ff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 14,
     fontSize: 16,
-    backgroundColor: '#f7f9fc',
-    color: '#222',
+    color: '#374151',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
   },
   pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#e0e7ff',
-    borderRadius: 8,
-    marginBottom: 16,
-    backgroundColor: '#f7f9fc',
-  },
-  button: {
-    backgroundColor: '#4a6cf7',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#4a6cf7',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 1,
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+  picker: {
+    height: 50,
+    color: '#374151',
   },
   predictionButton: {
     backgroundColor: '#10b981',
-    padding: 16,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 16,
@@ -434,18 +634,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     shadowColor: '#10b981',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
   },
   predictionButtonDisabled: {
-    backgroundColor: '#6b7280',
-    shadowColor: '#6b7280',
+    backgroundColor: '#9ca3af',
+    shadowColor: '#9ca3af',
   },
   predictionButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '600',
+    fontSize: 15,
     marginLeft: 8,
   },
   prediccionContainer: {
@@ -453,11 +653,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#0ea5e9',
   },
   prediccionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#0c4a6e',
     marginBottom: 12,
@@ -469,20 +669,57 @@ const styles = StyleSheet.create({
   prediccionText: {
     fontSize: 14,
     color: '#0c4a6e',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   prediccionLabel: {
     fontWeight: 'bold',
   },
   closePrediccionButton: {
     backgroundColor: '#0ea5e9',
-    padding: 8,
-    borderRadius: 6,
+    padding: 10,
+    borderRadius: 8,
     alignItems: 'center',
   },
   closePrediccionText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: 14,
   },
-}); 
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 30,
+    gap: 15,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cancelButton: {
+    backgroundColor: '#f3f4f6',
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+  },
+  cancelButtonText: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  submitButton: {
+    backgroundColor: '#e9ad14',
+    borderWidth: 2,
+    borderColor: '#182d49',
+  },
+  submitButtonText: {
+    color: '#182d49',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

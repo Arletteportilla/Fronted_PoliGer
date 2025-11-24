@@ -72,6 +72,7 @@ export const useGerminaciones = (user: any) => {
       
       console.log('✅ Códigos con especies cargados:', codesWithSpecies.length);
       console.log('✅ Especies únicas extraídas:', especiesUnicas.length);
+      console.log('📋 Primeras 5 especies:', especiesUnicas.slice(0, 5));
     } catch (error) {
       console.error('❌ Error cargando códigos con especies:', error);
       setCodigosConEspecies([]);

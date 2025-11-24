@@ -2374,18 +2374,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 600,
-    maxHeight: '90%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -2399,28 +2387,15 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
   },
-  modalBody: {
-    maxHeight: 500,
-  },
   modalFooter: {
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
-  modalCloseButton: {
-    backgroundColor: Colors.light.tint,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
   modalCloseButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  detailsContainer: {
-    padding: 20,
   },
   detailSection: {
     marginBottom: 24,
@@ -2434,24 +2409,43 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: Colors.light.tint,
   },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+  // Estilos adicionales para modal simplificado
+  fieldGroup: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
   },
-  detailLabel: {
+  fieldLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
-    flex: 1,
+    color: '#374151',
+    marginBottom: 8,
   },
-  detailValue: {
+  fieldValue: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  secondaryButton: {
+    backgroundColor: '#6B7280',
+  },
+  secondaryButtonText: {
+    color: '#fff',
     fontSize: 14,
-    color: '#111827',
-    flex: 2,
-    textAlign: 'right',
+    fontWeight: '600',
   },
 });

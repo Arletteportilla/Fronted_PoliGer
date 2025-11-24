@@ -45,14 +45,17 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   const [showCantidadSemilla, setShowCantidadSemilla] = useState(false);
   const [showNivel, setShowNivel] = useState(false);
 
-  // DEBUG: Log códigos disponibles cuando cambian o cuando el modal se abre
+  // DEBUG: Log códigos y especies disponibles cuando cambian o cuando el modal se abre
   useEffect(() => {
     if (visible) {
       console.log('🔍 DEBUG - GerminacionForm: Modal opened');
       console.log('🔍 DEBUG - GerminacionForm: codigosDisponibles recibidos:', codigosDisponibles.length);
       console.log('🔍 DEBUG - GerminacionForm: Primeros 5 códigos:', codigosDisponibles.slice(0, 5));
+      console.log('🔍 DEBUG - GerminacionForm: especiesDisponibles recibidas:', especiesDisponibles.length);
+      console.log('🔍 DEBUG - GerminacionForm: Primeras 5 especies:', especiesDisponibles.slice(0, 5));
+      console.log('🔍 DEBUG - GerminacionForm: handleEspecieSelection definido:', typeof handleEspecieSelection);
     }
-  }, [visible, codigosDisponibles]);
+  }, [visible, codigosDisponibles, especiesDisponibles, handleEspecieSelection]);
 
   // Estado para validación de código único en tiempo real
   const [codigoValidation, setCodigoValidation] = useState<{
@@ -674,7 +677,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
 const styles = StyleSheet.create({
   popupOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(156, 163, 175, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },

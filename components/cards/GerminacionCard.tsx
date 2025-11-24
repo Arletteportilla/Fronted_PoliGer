@@ -22,8 +22,8 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
 }) => {
   const responsive = useResponsive();
 
-  const diasRestantes = item.fecha_germinacion_estimada
-    ? calcularDiasRestantes(item.fecha_germinacion_estimada)
+  const diasRestantes = item.prediccion_fecha_estimada || item.fecha_germinacion_estimada
+    ? calcularDiasRestantes(item.prediccion_fecha_estimada || item.fecha_germinacion_estimada)
     : null;
 
   const estadoPrediccion = getEstadoPrediccion(diasRestantes);
@@ -89,21 +89,21 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
   const responsiveStyles = {
     card: {
       ...styles.card,
-      padding: responsive.isTablet ? 12 : responsive.isLargeScreen ? 14 : 10,
-      marginBottom: responsive.isTablet ? 10 : responsive.isLargeScreen ? 12 : 8,
+      padding: responsive.isTablet ? 12 : responsive.isDesktop ? 14 : 10,
+      marginBottom: responsive.isTablet ? 10 : responsive.isDesktop ? 12 : 8,
     },
     rowText: {
       ...styles.rowText,
-      fontSize: responsive.isTablet ? 14 : responsive.isLargeScreen ? 15 : 13,
+      fontSize: responsive.isTablet ? 14 : responsive.isDesktop ? 15 : 13,
     },
     badge: {
       ...styles.badge,
-      paddingHorizontal: responsive.isTablet ? 10 : responsive.isLargeScreen ? 12 : 8,
-      paddingVertical: responsive.isTablet ? 5 : responsive.isLargeScreen ? 6 : 4,
+      paddingHorizontal: responsive.isTablet ? 10 : responsive.isDesktop ? 12 : 8,
+      paddingVertical: responsive.isTablet ? 5 : responsive.isDesktop ? 6 : 4,
     },
     badgeText: {
       ...styles.badgeText,
-      fontSize: responsive.isTablet ? 11 : responsive.isLargeScreen ? 12 : 10,
+      fontSize: responsive.isTablet ? 11 : responsive.isDesktop ? 12 : 10,
     },
   };
 
@@ -237,6 +237,42 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
           />
         </View>
       </View>
+
+      {/* Fecha estimada de germinación */}
+      {(item.prediccion_fecha_estimada || item.fecha_germinacion_estimada) && (
+        <View style={styles.prediccionSection}>
+          <View style={styles.prediccionHeader}>
+            <Ionicons 
+              name={diasRestantes !== null && diasRestantes < 0 ? "alert-circle" : 
+                    diasRestantes !== null && diasRestantes <= 7 ? "time" : "calendar"} 
+              size={16} 
+              color={diasRestantes !== null && diasRestantes < 0 ? "#EF4444" : 
+                     diasRestantes !== null && diasRestantes <= 7 ? "#F59E0B" : "#10B981"} 
+            />
+            <Text style={styles.prediccionLabel}>Germinación Estimada</Text>
+          </View>
+          <View style={styles.prediccionContent}>
+            <Text style={styles.prediccionFecha}>
+              {formatDate(item.prediccion_fecha_estimada || item.fecha_germinacion_estimada)}
+            </Text>
+            {diasRestantes !== null && (
+              <Text style={[
+                styles.prediccionDias,
+                {
+                  color: diasRestantes < 0 ? "#EF4444" : 
+                         diasRestantes <= 7 ? "#F59E0B" : "#10B981"
+                }
+              ]}>
+                {diasRestantes < 0 
+                  ? `Vencida hace ${Math.abs(diasRestantes)} días` 
+                  : diasRestantes === 0 
+                    ? "Hoy" 
+                    : `En ${diasRestantes} días`}
+              </Text>
+            )}
+          </View>
+        </View>
+      )}
 
       {/* Advertencia de vencimiento */}
       {isOverdue && (
@@ -447,6 +483,43 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 3,
+  },
+  prediccionSection: {
+    marginTop: 10,
+    paddingTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#10B981',
+  },
+  prediccionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 6,
+  },
+  prediccionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  prediccionContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  prediccionFecha: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#182d49',
+  },
+  prediccionDias: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   actionsRow: {
     flexDirection: 'row',

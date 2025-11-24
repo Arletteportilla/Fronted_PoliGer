@@ -48,16 +48,59 @@ export default function PolinizacionesScreen() {
   const [detalle, setDetalle] = useState(null);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Funciones para manejar el formulario
   const handleSave = async () => {
-    const success = await hookHandleSave(form);
+    const success = await hookHandleSave(form, isEditMode);
     if (success) {
       setShowForm(false);
       setForm(getInitialFormState(getUserFullName));
       setPrediccion(null);
+      setIsEditMode(false);
       refresh(); // Refrescar la lista después de guardar
     }
+  };
+
+  const handleEdit = (item: any) => {
+    // Mapear los datos de la polinización al formato del formulario
+    setForm({
+      ...getInitialFormState(getUserFullName),
+      id: item.id || item.numero,
+      fecha_polinizacion: item.fechapol,
+      fecha_maduracion: item.fechamad || '',
+      tipo_polinizacion: item.tipo_polinizacion || item.Tipo || 'SELF',
+      madre_codigo: item.madre_codigo || '',
+      madre_genero: item.madre_genero || item.genero || '',
+      madre_especie: item.madre_especie || item.especie || '',
+      madre_clima: item.madre_clima || 'I',
+      padre_codigo: item.padre_codigo || '',
+      padre_genero: item.padre_genero || '',
+      padre_especie: item.padre_especie || '',
+      padre_clima: item.padre_clima || 'I',
+      nueva_codigo: item.nueva_codigo || '',
+      nueva_genero: item.nueva_genero || '',
+      nueva_especie: item.nueva_especie || '',
+      nueva_clima: item.nueva_clima || 'I',
+      vivero: item.vivero || '',
+      mesa: item.mesa || '',
+      pared: item.pared || '',
+      ubicacion_tipo: item.ubicacion_tipo || 'vivero',
+      ubicacion_nombre: item.ubicacion_nombre || '',
+      cantidad_capsulas: item.cantidad_capsulas || 1,
+      cantidad: item.cantidad || 1,
+      responsable: item.responsable || getUserFullName(),
+      observaciones: item.observaciones || '',
+      estado: item.estado || 'INGRESADO',
+    });
+    setIsEditMode(true);
+    setShowForm(true);
+  };
+
+  const handleNew = () => {
+    setForm(getInitialFormState(getUserFullName));
+    setIsEditMode(false);
+    setShowForm(true);
   };
 
   const handlePrediccionLocal = async () => {
@@ -74,7 +117,12 @@ export default function PolinizacionesScreen() {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <PolinizacionCard item={item} onPress={setDetalle} />
+    <PolinizacionCard 
+      item={item} 
+      onPress={setDetalle}
+      onEdit={handleEdit}
+      onViewDetails={setDetalle}
+    />
   );
 
   if (loading && !refreshing) {
@@ -120,7 +168,7 @@ export default function PolinizacionesScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => setShowForm(true)}
+              onPress={handleNew}
             >
               <Ionicons name="add" size={20} color="#fff" />
               <Text style={styles.addButtonText}>Nueva Polinización</Text>

@@ -122,40 +122,65 @@ export const usePolinizaciones = () => {
 
   // Función para generar predicción
   const handlePrediccion = async (form: any): Promise<any> => {
+    // Validar campos requeridos
     if (!form.tipo_polinizacion) {
       Alert.alert('Error', 'Para generar una predicción necesitas seleccionar el tipo de polinización.');
       return null;
     }
 
-    // Usar los nombres correctos de los campos del formulario
+    // Obtener género y especie
+    let generoParaPrediccion = '';
     let especieParaPrediccion = '';
-    if (form.madre_especie?.trim()) {
+    
+    if (form.madre_genero?.trim() && form.madre_especie?.trim()) {
+      generoParaPrediccion = form.madre_genero.trim();
       especieParaPrediccion = form.madre_especie.trim();
-    } else if (form.nueva_especie?.trim()) {
+    } else if (form.nueva_genero?.trim() && form.nueva_especie?.trim()) {
+      generoParaPrediccion = form.nueva_genero.trim();
       especieParaPrediccion = form.nueva_especie.trim();
-    } else if (form.padre_especie?.trim()) {
+    } else if (form.padre_genero?.trim() && form.padre_especie?.trim()) {
+      generoParaPrediccion = form.padre_genero.trim();
       especieParaPrediccion = form.padre_especie.trim();
     }
 
-    if (!especieParaPrediccion) {
-      Alert.alert('Error', 'Para generar una predicción necesitas especificar al menos una especie de planta.');
+    if (!generoParaPrediccion || !especieParaPrediccion) {
+      Alert.alert('Error', 'Para generar una predicción necesitas especificar género y especie de al menos una planta.');
       return null;
     }
 
     setIsPredicting(true);
     try {
-      // Preparar datos para la predicción
+      // Preparar datos para la predicción ML
       const fechaPolinizacion = form.fecha_polinizacion || new Date().toISOString().split('T')[0];
+      
+      // Mapear tipo de polinización al formato del backend
+      let tipoML = form.tipo_polinizacion;
+      if (tipoML === 'SIBLING') tipoML = 'SIBBLING'; // Corregir ortografía
+      if (tipoML === 'HIBRIDA') tipoML = 'HYBRID'; // Traducir
 
-      const resultado = await prediccionService.predecirPolinizacionInicial({
+      console.log('🔮 Solicitando predicción ML con:', {
+        genero: generoParaPrediccion,
         especie: especieParaPrediccion,
-        clima: form.madre_clima || form.nueva_clima || form.padre_clima,
-        ubicacion: form.vivero || form.ubicacion,
-        fecha_polinizacion: fechaPolinizacion,
+        tipo: tipoML,
+        fecha_pol: fechaPolinizacion,
+        cantidad: form.cantidad_capsulas || 1
       });
 
-      // El backend ya devuelve fecha_estimada_semillas calculada correctamente
-      const fechaEstimada = new Date(resultado.fecha_estimada_semillas);
+      // Usar el nuevo endpoint de predicción ML
+      const resultado = await polinizacionService.predecirMaduracion({
+        genero: generoParaPrediccion,
+        especie: especieParaPrediccion,
+        tipo: tipoML,
+        fecha_pol: fechaPolinizacion,
+        cantidad: form.cantidad_capsulas || 1
+      });
+
+      if (!resultado.success || !resultado.prediccion) {
+        throw new Error('No se recibió predicción del servidor');
+      }
+
+      const pred = resultado.prediccion;
+      const fechaEstimada = new Date(pred.fecha_estimada);
 
       // Calcular días restantes desde hoy hasta la fecha estimada
       const hoy = new Date();
@@ -164,26 +189,61 @@ export const usePolinizaciones = () => {
       const diasRestantes = Math.ceil((fechaEstimada.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
 
       const prediccionConFecha = {
-        ...resultado,
+        dias_estimados: pred.dias_estimados,
+        fecha_estimada_semillas: pred.fecha_estimada,
         fecha_estimada_formateada: fechaEstimada.toLocaleDateString('es-ES', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
         }),
-        dias_restantes: diasRestantes
+        dias_restantes: diasRestantes,
+        confianza: pred.confianza,
+        nivel_confianza: pred.nivel_confianza,
+        metodo: pred.metodo,
+        modelo: pred.modelo,
+        rango_probable: pred.rango_probable,
+        // Formato para el modal
+        tipo_prediccion: 'ML',
+        especie_info: {
+          especie: `${generoParaPrediccion} ${especieParaPrediccion}`,
+          tipo: tipoML,
+          metodo: pred.metodo,
+          modelo: pred.modelo,
+          factores_considerados: [
+            `Género: ${generoParaPrediccion}`,
+            `Especie: ${especieParaPrediccion}`,
+            `Tipo de polinización: ${tipoML}`,
+            `Modelo: ${pred.modelo}`,
+            `Confianza: ${pred.confianza.toFixed(1)}%`
+          ]
+        },
+        parametros_usados: {
+          especie: `${generoParaPrediccion} ${especieParaPrediccion}`,
+          genero: generoParaPrediccion,
+          tipo: tipoML
+        }
       };
 
       setPrediccion(prediccionConFecha);
       
+      // Mensaje mejorado con información del modelo
+      const nivelTexto = pred.nivel_confianza === 'alta' ? '🟢 Alta' : 
+                        pred.nivel_confianza === 'media' ? '🟡 Media' : '🔴 Baja';
+      
       Alert.alert(
-        'Predicción Generada', 
-        `La polinización de ${especieParaPrediccion} debería madurar en aproximadamente ${resultado.dias_estimados} días.\n\nFecha estimada: ${prediccionConFecha.fecha_estimada_formateada}\nConfianza: ${resultado.confianza}%`,
+        '🔮 Predicción ML Generada', 
+        `${generoParaPrediccion} ${especieParaPrediccion} (${tipoML})\n\n` +
+        `📅 Días estimados: ${pred.dias_estimados} días\n` +
+        `📆 Fecha estimada: ${prediccionConFecha.fecha_estimada_formateada}\n` +
+        `📊 Rango: ${pred.rango_probable.min}-${pred.rango_probable.max} días\n` +
+        `✅ Confianza: ${pred.confianza.toFixed(1)}% (${nivelTexto})\n` +
+        `🤖 Modelo: ${pred.modelo}`,
         [{ text: 'OK' }]
       );
       
       return prediccionConFecha;
     } catch (error: any) {
-      console.error('❌ Error generando predicción:', error);
+      console.error('❌ Error generando predicción ML:', error);
       
       let errorMessage = 'No se pudo generar la predicción.';
       if (error.message?.includes('timeout')) {
@@ -202,7 +262,7 @@ export const usePolinizaciones = () => {
   };
 
   // Función para guardar polinización
-  const handleSave = async (form: any) => {
+  const handleSave = async (form: any, isEdit: boolean = false) => {
     try {
       setSaving(true);
       
@@ -256,14 +316,21 @@ export const usePolinizaciones = () => {
 
       console.log('📝 Datos a guardar:', polinizacionData);
 
-      await polinizacionService.create(polinizacionData);
+      if (isEdit && form.id) {
+        // Actualizar polinización existente
+        await polinizacionService.update(form.id, polinizacionData);
+        Alert.alert('Éxito', 'Polinización actualizada correctamente');
+      } else {
+        // Crear nueva polinización
+        await polinizacionService.create(polinizacionData);
+        Alert.alert('Éxito', 'Polinización creada correctamente');
+      }
       
-      Alert.alert('Éxito', 'Polinización creada correctamente');
       loadPolinizaciones();
       return true;
     } catch (error) {
       console.error('Error saving polinización:', error);
-      Alert.alert('Error', 'No se pudo guardar la polinización');
+      Alert.alert('Error', `No se pudo ${isEdit ? 'actualizar' : 'guardar'} la polinización`);
       return false;
     } finally {
       setSaving(false);

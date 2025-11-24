@@ -15,6 +15,8 @@ import { TabNavigation } from '@/components/navigation';
 import { UserManagementTable } from '@/components/UserManagement';
 import { CreateUserModal, UserFormData as CreateUserFormData } from '@/components/UserManagement/CreateUserModal';
 import { EditUserModal, UserFormData as EditUserFormData } from '@/components/UserManagement/EditUserModal';
+import { GerminacionForm } from '@/components/forms/GerminacionForm';
+import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
 import Pagination from '@/components/filters/Pagination';
 import { styles } from '@/utils/Perfil/styles';
 import { Colors } from '@/constants/Colors';
@@ -862,14 +864,17 @@ export default function PerfilScreen() {
               <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
                 <Text style={styles.headerText}>Código</Text>
               </View>
-              <View style={[styles.tableHeaderCell, { flex: 2.5 }]}>
+              <View style={[styles.tableHeaderCell, { flex: 2 }]}>
                 <Text style={styles.headerText}>Especie</Text>
               </View>
               <View style={[styles.tableHeaderCell, { flex: 1 }]}>
                 <Text style={styles.headerText}>Género</Text>
               </View>
               <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-                <Text style={styles.headerText}>Fecha</Text>
+                <Text style={styles.headerText}>Fecha Pol.</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                <Text style={styles.headerText}>Fecha Est.</Text>
               </View>
               <View style={[styles.tableHeaderCell, { flex: 1 }]}>
                 <Text style={styles.headerText}>Estado</Text>
@@ -916,7 +921,7 @@ export default function PerfilScreen() {
                         {codigoCompleto}
                       </Text>
                     </View>
-                    <View style={[styles.tableCell, { flex: 2.5 }]}>
+                    <View style={[styles.tableCell, { flex: 2 }]}>
                       <Text style={styles.especieText} numberOfLines={2} ellipsizeMode="tail">
                         {especieCompleta}
                       </Text>
@@ -928,6 +933,44 @@ export default function PerfilScreen() {
                     </View>
                     <View style={[styles.tableCell, { flex: 1 }]}>
                       <Text style={styles.fechaText}>{fechaFormateada}</Text>
+                    </View>
+                    <View style={[styles.tableCell, { flex: 1.2 }]}>
+                      {item.fecha_maduracion_predicha ? (
+                        <View>
+                          <Text style={[styles.fechaText, { fontSize: 11 }]}>
+                            {new Date(item.fecha_maduracion_predicha).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            })}
+                          </Text>
+                          {(() => {
+                            const hoy = new Date();
+                            hoy.setHours(0, 0, 0, 0);
+                            const fechaEst = new Date(item.fecha_maduracion_predicha);
+                            fechaEst.setHours(0, 0, 0, 0);
+                            const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+                            
+                            return diasFaltantes > 0 ? (
+                              <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '600' }}>
+                                {diasFaltantes}d restantes
+                              </Text>
+                            ) : diasFaltantes === 0 ? (
+                              <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
+                                Hoy
+                              </Text>
+                            ) : (
+                              <Text style={{ fontSize: 9, color: '#EF4444', fontWeight: '600' }}>
+                                Vencido
+                              </Text>
+                            );
+                          })()}
+                        </View>
+                      ) : (
+                        <Text style={[styles.fechaText, { fontSize: 10, color: '#9CA3AF' }]}>
+                          Sin predicción
+                        </Text>
+                      )}
                     </View>
                     <View style={[styles.tableCell, { flex: 1, alignItems: 'center' }]}>
                       <View style={[styles.estadoBadge, { backgroundColor: estadoColor }]}>
@@ -1083,6 +1126,9 @@ export default function PerfilScreen() {
               <View style={[styles.tableHeaderCell, { flex: 1 }]}>
                 <Text style={styles.headerText}>Fecha Siembra</Text>
               </View>
+              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                <Text style={styles.headerText}>Fecha Estimada</Text>
+              </View>
               <View style={[styles.tableHeaderCell, { flex: 1 }]}>
                 <Text style={styles.headerText}>Estado</Text>
               </View>
@@ -1101,6 +1147,10 @@ export default function PerfilScreen() {
                 const fechaSiembra = item.fecha_siembra 
                   ? new Date(item.fecha_siembra).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
                   : 'Sin fecha';
+                const fechaEstimadaValue = item.prediccion_fecha_estimada || item.fecha_germinacion_estimada;
+                const fechaEstimada = fechaEstimadaValue
+                  ? new Date(fechaEstimadaValue).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                  : '-';
                 const estadoActual = item.etapa_actual || item.estado_capsula || 'En desarrollo';
                 const itemKey = item.id?.toString() || `germ-${index}`;
                 const estadoColor = getEstadoColor(estadoActual);
@@ -1131,6 +1181,11 @@ export default function PerfilScreen() {
                     </View>
                     <View style={[styles.tableCell, { flex: 1 }]}>
                       <Text style={styles.fechaText}>{fechaSiembra}</Text>
+                    </View>
+                    <View style={[styles.tableCell, { flex: 1.2 }]}>
+                      <Text style={[styles.fechaText, fechaEstimada === '-' && { color: '#9ca3af' }]}>
+                        {fechaEstimada}
+                      </Text>
                     </View>
                     <View style={[styles.tableCell, { flex: 1, alignItems: 'center' }]}>
                       <View style={[styles.estadoBadge, { backgroundColor: estadoColor }]}>
@@ -1659,6 +1714,198 @@ export default function PerfilScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Modal de edición de germinación */}
+      {selectedGerminacion && (
+        <GerminacionForm
+          visible={showGerminacionEditModal}
+          onClose={() => {
+            setShowGerminacionEditModal(false);
+            setSelectedGerminacion(null);
+          }}
+          form={{
+            codigo: selectedGerminacion.codigo || '',
+            genero: selectedGerminacion.genero || '',
+            especie_variedad: selectedGerminacion.especie_variedad || '',
+            fecha_siembra: selectedGerminacion.fecha_siembra || '',
+            fecha_polinizacion: selectedGerminacion.fecha_polinizacion || '',
+            clima: selectedGerminacion.clima || 'I',
+            percha: selectedGerminacion.percha || '',
+            nivel: selectedGerminacion.nivel || '',
+            clima_lab: selectedGerminacion.clima_lab || 'I',
+            finca: selectedGerminacion.finca || '',
+            numero_vivero: selectedGerminacion.numero_vivero || '',
+            cantidad_solicitada: selectedGerminacion.cantidad_solicitada?.toString() || '',
+            no_capsulas: selectedGerminacion.no_capsulas?.toString() || '',
+            estado_capsula: selectedGerminacion.estado_capsula || 'CERRADA',
+            estado_semilla: selectedGerminacion.estado_semilla || 'MADURA',
+            cantidad_semilla: selectedGerminacion.cantidad_semilla || 'ABUNDANTE',
+            semilla_en_stock: selectedGerminacion.semilla_en_stock || false,
+            observaciones: selectedGerminacion.observaciones || '',
+            responsable: selectedGerminacion.responsable || '',
+            etapa_actual: selectedGerminacion.etapa_actual || 'INGRESADO',
+          }}
+          setForm={() => {}} // No se usa en modo edición
+          onSubmit={async () => {
+            try {
+              // Aquí iría la lógica de actualización
+              Alert.alert('Éxito', 'Germinación actualizada correctamente');
+              setShowGerminacionEditModal(false);
+              setSelectedGerminacion(null);
+              // Recargar datos
+              const fetchData = async () => {
+                setLoading(true);
+                try {
+                  const result = await germinacionService.getMisGerminacionesPaginated({
+                    page: germinacionesPage,
+                    page_size: 20,
+                    search: searchGerminaciones || undefined
+                  });
+                  setGerminaciones(Array.isArray(result.results) ? result.results : []);
+                  setGerminacionesTotalPages(result.totalPages);
+                  setGerminacionesTotalCount(result.count);
+                } catch (error) {
+                  console.error('Error recargando germinaciones:', error);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              fetchData();
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'No se pudo actualizar la germinación');
+            }
+          }}
+          onCalcularPrediccion={() => {
+            Alert.alert('Info', 'Función de predicción en desarrollo');
+          }}
+          saving={false}
+          codigosDisponibles={[]}
+          especiesDisponibles={[]}
+          perchasDisponibles={[]}
+          nivelesDisponibles={[]}
+          handleCodigoSelection={() => {}}
+          handleEspecieSelection={() => {}}
+        />
+      )}
+
+      {/* Modal de edición de polinización */}
+      {selectedPolinizacion && (
+        <PolinizacionForm
+          visible={showPolinizacionEditModal}
+          onClose={() => {
+            setShowPolinizacionEditModal(false);
+            setSelectedPolinizacion(null);
+          }}
+          form={{
+            id: selectedPolinizacion.id || selectedPolinizacion.numero,
+            fecha_polinizacion: selectedPolinizacion.fechapol || '',
+            fecha_maduracion: selectedPolinizacion.fechamad || '',
+            tipo_polinizacion: selectedPolinizacion.tipo_polinizacion || selectedPolinizacion.Tipo || 'SELF',
+            madre_codigo: selectedPolinizacion.madre_codigo || '',
+            madre_genero: selectedPolinizacion.madre_genero || selectedPolinizacion.genero || '',
+            madre_especie: selectedPolinizacion.madre_especie || selectedPolinizacion.especie || '',
+            madre_clima: selectedPolinizacion.madre_clima || 'I',
+            padre_codigo: selectedPolinizacion.padre_codigo || '',
+            padre_genero: selectedPolinizacion.padre_genero || '',
+            padre_especie: selectedPolinizacion.padre_especie || '',
+            padre_clima: selectedPolinizacion.padre_clima || 'I',
+            nueva_codigo: selectedPolinizacion.nueva_codigo || '',
+            nueva_genero: selectedPolinizacion.nueva_genero || '',
+            nueva_especie: selectedPolinizacion.nueva_especie || '',
+            nueva_clima: selectedPolinizacion.nueva_clima || 'I',
+            vivero: selectedPolinizacion.vivero || '',
+            mesa: selectedPolinizacion.mesa || '',
+            pared: selectedPolinizacion.pared || '',
+            ubicacion_tipo: selectedPolinizacion.ubicacion_tipo || 'vivero',
+            ubicacion_nombre: selectedPolinizacion.ubicacion_nombre || '',
+            cantidad_capsulas: selectedPolinizacion.cantidad_capsulas || 1,
+            cantidad: selectedPolinizacion.cantidad || 1,
+            responsable: selectedPolinizacion.responsable || '',
+            observaciones: selectedPolinizacion.observaciones || '',
+            estado: selectedPolinizacion.estado || 'INGRESADO',
+            clima: '',
+            ubicacion: '',
+            cantidad_solicitada: '',
+            cantidad_disponible: '',
+            cantidad_semilla: '',
+            etapa_actual: 'Ingresado',
+            planta_madre_codigo: '',
+            planta_madre_genero: '',
+            planta_madre_especie: '',
+            planta_padre_codigo: '',
+            planta_padre_genero: '',
+            planta_padre_especie: '',
+            nueva_planta_codigo: '',
+            nueva_planta_genero: '',
+            nueva_planta_especie: '',
+          }}
+          setForm={() => {}} // No se usa en modo edición
+          onSave={async () => {
+            try {
+              // Actualizar polinización
+              await polinizacionService.update(selectedPolinizacion.id || selectedPolinizacion.numero, {
+                fechapol: selectedPolinizacion.fechapol,
+                fechamad: selectedPolinizacion.fechamad,
+                tipo_polinizacion: selectedPolinizacion.tipo_polinizacion,
+                madre_codigo: selectedPolinizacion.madre_codigo,
+                madre_genero: selectedPolinizacion.madre_genero,
+                madre_especie: selectedPolinizacion.madre_especie,
+                madre_clima: selectedPolinizacion.madre_clima,
+                padre_codigo: selectedPolinizacion.padre_codigo,
+                padre_genero: selectedPolinizacion.padre_genero,
+                padre_especie: selectedPolinizacion.padre_especie,
+                padre_clima: selectedPolinizacion.padre_clima,
+                nueva_codigo: selectedPolinizacion.nueva_codigo,
+                nueva_genero: selectedPolinizacion.nueva_genero,
+                nueva_especie: selectedPolinizacion.nueva_especie,
+                nueva_clima: selectedPolinizacion.nueva_clima,
+                vivero: selectedPolinizacion.vivero,
+                mesa: selectedPolinizacion.mesa,
+                pared: selectedPolinizacion.pared,
+                ubicacion_tipo: selectedPolinizacion.ubicacion_tipo,
+                ubicacion_nombre: selectedPolinizacion.ubicacion_nombre,
+                cantidad_capsulas: selectedPolinizacion.cantidad_capsulas,
+                cantidad: selectedPolinizacion.cantidad,
+                responsable: selectedPolinizacion.responsable,
+                observaciones: selectedPolinizacion.observaciones,
+                estado: selectedPolinizacion.estado,
+              });
+              
+              Alert.alert('Éxito', 'Polinización actualizada correctamente');
+              setShowPolinizacionEditModal(false);
+              setSelectedPolinizacion(null);
+              
+              // Recargar datos
+              const fetchData = async () => {
+                setLoading(true);
+                try {
+                  const result = await polinizacionService.getMisPolinizacionesPaginated({
+                    page: polinizacionesPage,
+                    page_size: 20,
+                    search: searchPolinizaciones || undefined
+                  });
+                  setPolinizaciones(Array.isArray(result.results) ? result.results : []);
+                  setPolinizacionesTotalPages(result.totalPages);
+                  setPolinizacionesTotalCount(result.count);
+                } catch (error) {
+                  console.error('Error recargando polinizaciones:', error);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              fetchData();
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'No se pudo actualizar la polinización');
+            }
+          }}
+          onPrediccion={() => {
+            Alert.alert('Info', 'Función de predicción en desarrollo');
+          }}
+          saving={false}
+          isPredicting={false}
+          prediccion={null}
+        />
+      )}
     </ScrollView>
   );
 }

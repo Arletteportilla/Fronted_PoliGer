@@ -1120,7 +1120,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
 const styles = StyleSheet.create({
   popupOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(156, 163, 175, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },

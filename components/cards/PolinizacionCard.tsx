@@ -73,21 +73,21 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
   const responsiveStyles = {
     card: {
       ...styles.card,
-      padding: responsive.isTablet ? 12 : responsive.isLargeScreen ? 14 : 10,
-      marginBottom: responsive.isTablet ? 10 : responsive.isLargeScreen ? 12 : 8,
+      padding: responsive.isTablet ? 12 : responsive.isDesktop ? 14 : 10,
+      marginBottom: responsive.isTablet ? 10 : responsive.isDesktop ? 12 : 8,
     },
     rowText: {
       ...styles.rowText,
-      fontSize: responsive.isTablet ? 14 : responsive.isLargeScreen ? 15 : 13,
+      fontSize: responsive.isTablet ? 14 : responsive.isDesktop ? 15 : 13,
     },
     badge: {
       ...styles.badge,
-      paddingHorizontal: responsive.isTablet ? 10 : responsive.isLargeScreen ? 12 : 8,
-      paddingVertical: responsive.isTablet ? 5 : responsive.isLargeScreen ? 6 : 4,
+      paddingHorizontal: responsive.isTablet ? 10 : responsive.isDesktop ? 12 : 8,
+      paddingVertical: responsive.isTablet ? 5 : responsive.isDesktop ? 6 : 4,
     },
     badgeText: {
       ...styles.badgeText,
-      fontSize: responsive.isTablet ? 11 : responsive.isLargeScreen ? 12 : 10,
+      fontSize: responsive.isTablet ? 11 : responsive.isDesktop ? 12 : 10,
     },
   };
 
@@ -175,6 +175,102 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
               </Text>
             </View>
           )}
+        </View>
+      )}
+
+      {/* Predicción de Maduración */}
+      {(item.dias_maduracion_predichos || item.fecha_maduracion_predicha) && !item.fechamad && (
+        <View style={styles.prediccionSection}>
+          <View style={styles.prediccionHeader}>
+            <Ionicons name="analytics-outline" size={14} color="#3B82F6" />
+            <Text style={styles.prediccionTitle}>Predicción de Maduración</Text>
+            {item.metodo_prediccion && (
+              <View style={[styles.metodoBadge, {
+                backgroundColor: item.metodo_prediccion === 'ML' ? '#10B981' : '#6B7280'
+              }]}>
+                <Text style={styles.metodoText}>
+                  {item.metodo_prediccion === 'ML' ? 'ML' : 'Heurístico'}
+                </Text>
+              </View>
+            )}
+          </View>
+          
+          <View style={styles.prediccionContent}>
+            {item.fecha_maduracion_predicha && (
+              <View style={styles.prediccionRow}>
+                <Ionicons name="calendar-outline" size={12} color="#6B7280" />
+                <Text style={styles.prediccionLabel}>Fecha estimada:</Text>
+                <Text style={styles.prediccionValue}>
+                  {new Date(item.fecha_maduracion_predicha).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                  })}
+                </Text>
+              </View>
+            )}
+            
+            {item.dias_maduracion_predichos && (
+              <View style={styles.prediccionRow}>
+                <Ionicons name="time-outline" size={12} color="#6B7280" />
+                <Text style={styles.prediccionLabel}>Días estimados:</Text>
+                <Text style={styles.prediccionValue}>{item.dias_maduracion_predichos} días</Text>
+              </View>
+            )}
+            
+            {item.fecha_maduracion_predicha && (() => {
+              const hoy = new Date();
+              hoy.setHours(0, 0, 0, 0);
+              const fechaEstimada = new Date(item.fecha_maduracion_predicha);
+              fechaEstimada.setHours(0, 0, 0, 0);
+              const diasFaltantes = Math.ceil((fechaEstimada.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+              
+              return diasFaltantes > 0 ? (
+                <View style={styles.prediccionRow}>
+                  <Ionicons name="hourglass-outline" size={12} color="#F59E0B" />
+                  <Text style={styles.prediccionLabel}>Días faltantes:</Text>
+                  <Text style={[styles.prediccionValue, styles.diasFaltantes]}>
+                    {diasFaltantes} días
+                  </Text>
+                </View>
+              ) : diasFaltantes === 0 ? (
+                <View style={styles.prediccionRow}>
+                  <Ionicons name="checkmark-circle" size={12} color="#10B981" />
+                  <Text style={[styles.prediccionValue, styles.diasHoy]}>
+                    ¡Hoy es el día estimado!
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.prediccionRow}>
+                  <Ionicons name="alert-circle" size={12} color="#EF4444" />
+                  <Text style={[styles.prediccionValue, styles.diasVencido]}>
+                    Vencido hace {Math.abs(diasFaltantes)} días
+                  </Text>
+                </View>
+              );
+            })()}
+            
+            {item.confianza_prediccion && (() => {
+              const confianza = typeof item.confianza_prediccion === 'number' 
+                ? item.confianza_prediccion 
+                : parseFloat(item.confianza_prediccion);
+              
+              if (isNaN(confianza)) return null;
+              
+              return (
+                <View style={styles.prediccionRow}>
+                  <Ionicons name="shield-checkmark-outline" size={12} color="#6B7280" />
+                  <Text style={styles.prediccionLabel}>Confianza:</Text>
+                  <Text style={[styles.prediccionValue, {
+                    color: confianza >= 80 ? '#10B981' : 
+                           confianza >= 60 ? '#F59E0B' : '#EF4444'
+                  }]}>
+                    {confianza.toFixed(0)}%
+                  </Text>
+                </View>
+              );
+            })()}
+          </View>
         </View>
       )}
 
@@ -373,6 +469,68 @@ const styles = StyleSheet.create({
   overdueText: {
     color: '#EF4444',
     fontSize: 11,
+    fontWeight: '700',
+  },
+  prediccionSection: {
+    marginTop: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    backgroundColor: '#F0F9FF',
+    borderRadius: 8,
+    padding: 10,
+  },
+  prediccionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 6,
+  },
+  prediccionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1E40AF',
+    flex: 1,
+  },
+  metodoBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  metodoText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  prediccionContent: {
+    gap: 6,
+  },
+  prediccionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  prediccionLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  prediccionValue: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  diasFaltantes: {
+    color: '#F59E0B',
+    fontWeight: '700',
+  },
+  diasHoy: {
+    color: '#10B981',
+    fontWeight: '700',
+  },
+  diasVencido: {
+    color: '#EF4444',
     fontWeight: '700',
   },
   progressSection: {
