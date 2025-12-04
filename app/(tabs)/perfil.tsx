@@ -26,6 +26,8 @@ import {
   PerfilHeader,
   PerfilTabSelector,
   PerfilNotificacionesTab,
+  PerfilPolinizacionesTab,
+  PerfilGerminacionesTab,
   type TabType
 } from '@/components/Perfil';
 import { styles } from '@/utils/Perfil/styles';
@@ -978,634 +980,11 @@ export default function PerfilScreen() {
     }
   };
 
-  // Funciones auxiliares para colores - Funciones puras, no necesitan memoización
-  const getTipoColor = (tipo: string): string => {
-    const tipoLower = tipo?.toLowerCase() || '';
-    if (tipoLower === 'self') return '#3B82F6';
-    if (tipoLower === 'sibling') return '#8B5CF6';
-    if (tipoLower === 'híbrida' || tipoLower === 'hibrida') return '#F59E0B';
-    if (tipoLower === 'replante') return '#3b82f6';
-    return '#3B82F6';
-  };
-
-  const getEstadoColor = (estado: string): string => {
-    const estadoLower = estado?.toLowerCase() || '';
-    if (estadoLower === 'completado') return '#10B981';
-    if (estadoLower === 'en proceso') return '#F59E0B';
-    if (estadoLower === 'ingresado') return '#6B7280';
-    if (estadoLower === 'en desarrollo') return '#fbbf24';
-    if (estadoLower === 'maduro') return '#60a5fa';
-    if (estadoLower === 'pendiente') return '#f59e0b';
-    return '#6B7280';
-  };
-
   // Componentes de renderizado optimizados
   const renderResumen = () => {
     return <PerfilResumen estadisticas={estadisticas} loading={loading} />;
   };
 
-  const renderPolinizaciones = () => {
-    if (loading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.light.tint} />
-          <Text style={styles.loadingText}>Cargando polinizaciones...</Text>
-        </View>
-      );
-    }
-
-    const polinizacionesArray = Array.isArray(polinizaciones) ? polinizaciones : [];
-    
-    // Ya no necesitamos filtrar localmente porque la búsqueda se hace en el backend
-    const filteredPolinizaciones = polinizacionesArray;
-
-    return (
-      <View style={styles.professionalTableContainer}>
-        {/* Encabezado */}
-        <View style={styles.tableHeaderSection}>
-          <View style={styles.tableTitleContainer}>
-            <Text style={styles.professionalTableTitle}>Mis Polinizaciones</Text>
-            <Text style={styles.professionalTableSubtitle}>
-              Registro y seguimiento de polinizaciones
-            </Text>
-          </View>
-          <View style={styles.tableActionsContainer}>
-            <TouchableOpacity
-              style={styles.newItemButton}
-              onPress={() => router.push('/(tabs)/addPolinizacion')}
-            >
-              <Ionicons name="add-circle" size={20} color={Colors.light.background} />
-              <Text style={styles.newItemButtonText}>Nueva Polinización</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.exportButton}
-              onPress={() => {
-                console.log('🔔 Botón Descargar PDF clickeado - Polinizaciones');
-                handleDescargarPDF('polinizaciones');
-              }}
-            >
-              <Ionicons name="download-outline" size={20} color={Colors.light.tint} />
-              <Text style={styles.exportButtonText}>Descargar PDF</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Barra de búsqueda */}
-        <View style={styles.searchAndFiltersContainer}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="#6b7280" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar por código, género, especie..."
-              value={searchPolinizaciones}
-              onChangeText={setSearchPolinizaciones}
-              onSubmitEditing={handleBuscarPolinizaciones}
-            />
-            {searchPolinizaciones.length > 0 && (
-              <>
-                <TouchableOpacity onPress={handleBuscarPolinizaciones} style={{ marginRight: 8 }}>
-                  <Ionicons name="search" size={20} color={Colors.light.tint} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => {
-                  setSearchPolinizaciones('');
-                  setPolinizacionesPage(1);
-                  fetchData();
-                }}>
-                  <Ionicons name="close-circle" size={20} color="#6b7280" />
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-
-        {/* Tabla de polinizaciones */}
-        {filteredPolinizaciones.length === 0 ? (
-          <View style={styles.listEmptyContainer}>
-            <Ionicons name="leaf-outline" size={48} color="#6b7280" />
-            <Text style={styles.listEmptyText}>
-              {searchPolinizaciones ? 'No se encontraron polinizaciones' : 'No hay polinizaciones registradas'}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {searchPolinizaciones ? 'Intenta con otros términos de búsqueda' : 'Las polinizaciones que registres aparecerán aquí'}
-            </Text>
-          </View>
-        ) : (
-          <View style={[styles.tableContainer, { marginHorizontal: 0, marginBottom: 0 }]}>
-            {/* Header de la tabla */}
-            <View style={styles.tableHeader}>
-              <View style={[styles.tableHeaderCell, { flex: 0.8 }]}>
-                <Text style={styles.headerText}>Tipo</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-                <Text style={styles.headerText}>Código</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 2 }]}>
-                <Text style={styles.headerText}>Especie</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-                <Text style={styles.headerText}>Género</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-                <Text style={styles.headerText}>Fecha Pol.</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-                <Text style={styles.headerText}>Fecha Est.</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-                <Text style={styles.headerText}>Estado</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-                <Text style={styles.headerText}>Acciones</Text>
-              </View>
-            </View>
-
-            {/* Filas de datos */}
-            <ScrollView style={{ maxHeight: 500 }}>
-              {filteredPolinizaciones.map((item, index) => {
-                // Construir especie completa
-                const especieCompleta = item.nueva_planta_especie || item.especie || item.madre_especie || 'Sin especie';
-                const generoCompleto = item.nueva_planta_genero || item.genero || item.madre_genero || 'Sin género';
-                const codigoCompleto = item.codigo || item.nombre || item.nueva_codigo || item.madre_codigo || 'Sin código';
-                const fechaFormateada = item.fechapol
-                  ? new Date(item.fechapol).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                  : 'Sin fecha';
-                const estadoActual = item.fechamad ? 'Completado' :
-                                   (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) ? 'En Proceso' :
-                                   'Ingresado';
-
-                // Calcular progreso de la polinización
-                const calculateProgress = () => {
-                  if (item.fechamad) return 100; // Completado
-                  if (item.fechapol) return 70; // En proceso
-                  return 30; // Ingresado
-                };
-                const progress = calculateProgress();
-
-                const tipo = item.tipo_polinizacion || item.tipo || 'SELF';
-                const itemKey = item.numero?.toString() || item.id?.toString() || `pol-${index}`;
-                const tipoColor = getTipoColor(tipo);
-                const estadoColor = getEstadoColor(estadoActual);
-                const isLastRow = index === filteredPolinizaciones.length - 1;
-
-                return (
-                  <View
-                    key={itemKey}
-                    style={[
-                      styles.tableRowContainer,
-                      isLastRow && styles.tableRowContainerLast
-                    ]}
-                  >
-                    {/* Fila principal con datos */}
-                    <View style={styles.tableRow}>
-                      <View style={[styles.tableCell, { flex: 0.8, alignItems: 'center' }]}>
-                        <View style={[styles.tipoBadge, { backgroundColor: tipoColor }]}>
-                          <Text style={styles.tipoBadgeText}>{tipo}</Text>
-                        </View>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1.2 }]}>
-                        <Text style={styles.codigoText} numberOfLines={1} ellipsizeMode="tail">
-                          {codigoCompleto}
-                        </Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 2 }]}>
-                        <Text style={styles.especieText} numberOfLines={2} ellipsizeMode="tail">
-                          {especieCompleta}
-                        </Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text style={styles.generoText} numberOfLines={1} ellipsizeMode="tail">
-                          {generoCompleto}
-                        </Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text style={styles.fechaText}>{fechaFormateada}</Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1.2 }]}>
-                        {item.fecha_maduracion_predicha ? (
-                          <View>
-                            <Text style={[styles.fechaText, { fontSize: 11 }]}>
-                              {new Date(item.fecha_maduracion_predicha).toLocaleDateString('es-ES', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric'
-                              })}
-                            </Text>
-                            {(() => {
-                              const hoy = new Date();
-                              hoy.setHours(0, 0, 0, 0);
-                              const fechaEst = new Date(item.fecha_maduracion_predicha);
-                              fechaEst.setHours(0, 0, 0, 0);
-                              const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-
-                              return diasFaltantes > 0 ? (
-                                <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '600' }}>
-                                  {diasFaltantes}d restantes
-                                </Text>
-                              ) : diasFaltantes === 0 ? (
-                                <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
-                                  Hoy
-                                </Text>
-                              ) : (
-                                <Text style={{ fontSize: 9, color: '#EF4444', fontWeight: '600' }}>
-                                  Vencido
-                                </Text>
-                              );
-                            })()}
-                          </View>
-                        ) : (
-                          <Text style={[styles.fechaText, { fontSize: 10, color: '#9CA3AF' }]}>
-                            Sin predicción
-                          </Text>
-                        )}
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1, alignItems: 'center' }]}>
-                        <View style={[styles.estadoBadge, { backgroundColor: estadoColor }]}>
-                          <Text style={styles.estadoBadgeText}>{estadoActual}</Text>
-                        </View>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1.2 }]}>
-                        <View style={styles.actionsCell}>
-                          <TouchableOpacity
-                            onPress={() => handleViewPolinizacion(item)}
-                            style={styles.actionIconButton}
-                          >
-                            <Ionicons name="eye-outline" size={20} color="#3B82F6" />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => handleEditPolinizacion(item)}
-                            style={styles.actionIconButton}
-                          >
-                            <Ionicons name="create-outline" size={20} color="#F59E0B" />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => handleDeletePolinizacion(item)}
-                            style={styles.actionIconButton}
-                          >
-                            <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* Barra de progreso */}
-                    <View style={styles.progressRow}>
-                      <View style={styles.progressInfo}>
-                        <Ionicons
-                          name="stats-chart-outline"
-                          size={12}
-                          color={estadoColor}
-                          style={{ marginRight: 4 }}
-                        />
-                        <Text style={styles.progressLabel}>Progreso:</Text>
-                        <Text style={[styles.progressPercentage, { color: estadoColor }]}>{progress}%</Text>
-                      </View>
-                      <View style={styles.progressBarContainer}>
-                        <View
-                          style={[
-                            styles.progressBarFill,
-                            {
-                              width: `${progress}%`,
-                              backgroundColor: estadoColor
-                            }
-                          ]}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Paginación */}
-        {polinizacionesTotalPages > 1 && (
-          <View style={{ paddingVertical: 16, paddingHorizontal: 16 }}>
-            <Text style={{ marginBottom: 8, textAlign: 'center', color: '#6b7280' }}>
-              Mostrando {polinizaciones.length} de {polinizacionesTotalCount} polinizaciones
-            </Text>
-            <Pagination
-              currentPage={polinizacionesPage}
-              totalPages={polinizacionesTotalPages}
-              goToPage={handlePolinizacionesPageChange}
-              nextPage={handlePolinizacionesNextPage}
-              prevPage={handlePolinizacionesPrevPage}
-            />
-          </View>
-        )}
-      </View>
-    );
-  };
-
-  const renderGerminaciones = () => {
-    if (loading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.light.tint} />
-          <Text style={styles.loadingText}>Cargando germinaciones...</Text>
-        </View>
-      );
-    }
-
-    const germinacionesArray = Array.isArray(germinaciones) ? germinaciones : [];
-    
-    // Ya no necesitamos filtrar localmente porque la búsqueda se hace en el backend
-    const filteredGerminaciones = germinacionesArray;
-
-    return (
-      <View style={styles.professionalTableContainer}>
-        {/* Encabezado */}
-        <View style={styles.tableHeaderSection}>
-          <View style={styles.tableTitleContainer}>
-            <Text style={styles.professionalTableTitle}>Mis Germinaciones</Text>
-            <Text style={styles.professionalTableSubtitle}>
-              Registro y seguimiento de germinaciones
-            </Text>
-          </View>
-          <View style={styles.tableActionsContainer}>
-            <TouchableOpacity
-              style={styles.newItemButton}
-              onPress={() => router.push('/(tabs)/addGerminacion')}
-            >
-              <Ionicons name="add-circle" size={20} color={Colors.light.background} />
-              <Text style={styles.newItemButtonText}>Nueva Germinación</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.exportButton}
-              onPress={() => {
-                console.log('🔔 Botón Descargar PDF clickeado - Germinaciones');
-                handleDescargarPDF('germinaciones');
-              }}
-            >
-              <Ionicons name="download-outline" size={20} color={Colors.light.tint} />
-              <Text style={styles.exportButtonText}>Descargar PDF</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Barra de búsqueda */}
-        <View style={styles.searchAndFiltersContainer}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="#6b7280" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar por código, género, especie..."
-              value={searchGerminaciones}
-              onChangeText={setSearchGerminaciones}
-              onSubmitEditing={handleBuscarGerminaciones}
-            />
-            {searchGerminaciones.length > 0 && (
-              <>
-                <TouchableOpacity onPress={handleBuscarGerminaciones} style={{ marginRight: 8 }}>
-                  <Ionicons name="search" size={20} color={Colors.light.tint} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => {
-                  setSearchGerminaciones('');
-                  setGerminacionesPage(1);
-                  fetchData();
-                }}>
-                  <Ionicons name="close-circle" size={20} color="#6b7280" />
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-
-        {/* Tabla de germinaciones */}
-        {filteredGerminaciones.length === 0 ? (
-          <View style={styles.listEmptyContainer}>
-            <Ionicons name="leaf-outline" size={48} color="#6b7280" />
-            <Text style={styles.listEmptyText}>
-              {searchGerminaciones ? 'No se encontraron germinaciones' : 'No hay germinaciones registradas'}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {searchGerminaciones ? 'Intenta con otros términos de búsqueda' : 'Las germinaciones que registres aparecerán aquí'}
-            </Text>
-          </View>
-        ) : (
-          <View style={[styles.tableContainer, { marginHorizontal: 0, marginBottom: 0 }]}>
-            {/* Header de la tabla */}
-            <View style={styles.tableHeader}>
-              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-                <Text style={styles.headerText}>Código</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 2.5 }]}>
-                <Text style={styles.headerText}>Especie/Variedad</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-                <Text style={styles.headerText}>Género</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-                <Text style={styles.headerText}>Fecha Siembra</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-                <Text style={styles.headerText}>Fecha Estimada</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-                <Text style={styles.headerText}>Estado</Text>
-              </View>
-              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-                <Text style={styles.headerText}>Acciones</Text>
-              </View>
-            </View>
-
-            {/* Filas de datos */}
-            <ScrollView style={{ maxHeight: 500 }}>
-              {filteredGerminaciones.map((item, index) => {
-                // Construir datos de la germinación
-                const especieCompleta = item.especie_variedad || item.especie || 'Sin especie';
-                const generoCompleto = item.genero || 'Sin género';
-                const codigoCompleto = item.codigo || item.nombre || 'Sin código';
-                const fechaSiembra = item.fecha_siembra
-                  ? new Date(item.fecha_siembra).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                  : 'Sin fecha';
-                const fechaEstimadaValue = item.prediccion_fecha_estimada || item.fecha_germinacion_estimada;
-                const fechaEstimada = fechaEstimadaValue
-                  ? new Date(fechaEstimadaValue).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                  : '-';
-                const estadoActual = item.etapa_actual || item.estado_capsula || 'En desarrollo';
-
-                // Calcular progreso de la germinación basado en días transcurridos
-                const calculateProgress = () => {
-                  // Si está marcada como completada, 100%
-                  const etapa = item.etapa_actual || item.estado || 'INGRESADO';
-                  if (etapa === 'LISTA' || etapa === 'LISTO') return 100;
-                  if (etapa === 'CANCELADO') return 0;
-
-                  // Si no hay fecha de siembra, usar progreso basado en estado
-                  if (!item.fecha_siembra) {
-                    return etapa === 'EN_PROCESO' ? 65 : 30;
-                  }
-
-                  // Calcular días transcurridos desde la siembra
-                  const hoy = new Date();
-                  hoy.setHours(0, 0, 0, 0);
-                  const fechaSiembra = new Date(item.fecha_siembra);
-                  fechaSiembra.setHours(0, 0, 0, 0);
-                  const diasTranscurridos = Math.ceil((hoy.getTime() - fechaSiembra.getTime()) / (1000 * 60 * 60 * 24));
-
-                  // Obtener días totales estimados (de la predicción o por defecto 30)
-                  const diasTotales = item.prediccion_dias_estimados || 30;
-
-                  // Calcular progreso (mínimo 0%, máximo 100%)
-                  const progreso = Math.min(Math.max((diasTranscurridos / diasTotales) * 100, 0), 100);
-
-                  return Math.round(progreso);
-                };
-                const progress = calculateProgress();
-
-                const itemKey = item.id?.toString() || `germ-${index}`;
-                const estadoColor = getEstadoColor(estadoActual);
-                const isLastRow = index === filteredGerminaciones.length - 1;
-
-                return (
-                  <View
-                    key={itemKey}
-                    style={[
-                      styles.tableRowContainer,
-                      isLastRow && styles.tableRowContainerLast
-                    ]}
-                  >
-                    {/* Fila principal con datos */}
-                    <View style={styles.tableRow}>
-                      <View style={[styles.tableCell, { flex: 1.2 }]}>
-                        <Text style={styles.codigoText} numberOfLines={1} ellipsizeMode="tail">
-                          {codigoCompleto}
-                        </Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 2.5 }]}>
-                        <Text style={styles.especieText} numberOfLines={2} ellipsizeMode="tail">
-                          {especieCompleta}
-                        </Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text style={styles.generoText} numberOfLines={1} ellipsizeMode="tail">
-                          {generoCompleto}
-                        </Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1 }]}>
-                        <Text style={styles.fechaText}>{fechaSiembra}</Text>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1.2 }]}>
-                        {fechaEstimadaValue ? (
-                          <View>
-                            <Text style={[styles.fechaText, { fontSize: 11 }]}>
-                              {fechaEstimada}
-                            </Text>
-                            {(() => {
-                              const hoy = new Date();
-                              hoy.setHours(0, 0, 0, 0);
-                              const fechaEst = new Date(fechaEstimadaValue);
-                              fechaEst.setHours(0, 0, 0, 0);
-                              const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-
-                              return diasFaltantes > 0 ? (
-                                <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '600' }}>
-                                  {diasFaltantes}d restantes
-                                </Text>
-                              ) : diasFaltantes === 0 ? (
-                                <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
-                                  Hoy
-                                </Text>
-                              ) : (
-                                <Text style={{ fontSize: 9, color: '#EF4444', fontWeight: '600' }}>
-                                  Vencido
-                                </Text>
-                              );
-                            })()}
-                          </View>
-                        ) : (
-                          <Text style={[styles.fechaText, { fontSize: 10, color: '#9CA3AF' }]}>
-                            Sin predicción
-                          </Text>
-                        )}
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1, alignItems: 'center' }]}>
-                        <View style={[styles.estadoBadge, { backgroundColor: estadoColor }]}>
-                          <Text style={styles.estadoBadgeText}>{estadoActual}</Text>
-                        </View>
-                      </View>
-                      <View style={[styles.tableCell, { flex: 1.2 }]}>
-                        <View style={styles.actionsCell}>
-                          <TouchableOpacity
-                            onPress={() => handleViewGerminacion(item)}
-                            style={styles.actionIconButton}
-                          >
-                            <Ionicons name="eye-outline" size={20} color="#3B82F6" />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => handleEditGerminacion(item)}
-                            style={styles.actionIconButton}
-                          >
-                            <Ionicons name="create-outline" size={20} color="#F59E0B" />
-                          </TouchableOpacity>
-                          {item.etapa_actual !== 'FINALIZADO' && (
-                            <TouchableOpacity
-                              onPress={() => handleOpenChangeStatus(item)}
-                              style={styles.actionIconButton}
-                            >
-                              <Ionicons name="swap-horizontal-outline" size={20} color="#8B5CF6" />
-                            </TouchableOpacity>
-                          )}
-                          <TouchableOpacity
-                            onPress={() => handleDeleteGerminacion(item)}
-                            style={styles.actionIconButton}
-                          >
-                            <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* Barra de progreso */}
-                    <View style={styles.progressRow}>
-                      <View style={styles.progressInfo}>
-                        <Ionicons
-                          name="stats-chart-outline"
-                          size={12}
-                          color={estadoColor}
-                          style={{ marginRight: 4 }}
-                        />
-                        <Text style={styles.progressLabel}>Progreso:</Text>
-                        <Text style={[styles.progressPercentage, { color: estadoColor }]}>{progress}%</Text>
-                      </View>
-                      <View style={styles.progressBarContainer}>
-                        <View
-                          style={[
-                            styles.progressBarFill,
-                            {
-                              width: `${progress}%`,
-                              backgroundColor: estadoColor
-                            }
-                          ]}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Paginación */}
-        {germinacionesTotalPages > 1 && (
-          <View style={{ paddingVertical: 16, paddingHorizontal: 16 }}>
-            <Text style={{ marginBottom: 8, textAlign: 'center', color: '#6b7280' }}>
-              Mostrando {germinaciones.length} de {germinacionesTotalCount} germinaciones
-            </Text>
-            <Pagination
-              currentPage={germinacionesPage}
-              totalPages={germinacionesTotalPages}
-              goToPage={handleGerminacionesPageChange}
-              nextPage={handleGerminacionesNextPage}
-              prevPage={handleGerminacionesPrevPage}
-            />
-          </View>
-        )}
-      </View>
-    );
-  };
 
 
   const renderUsuarios = () => {
@@ -1648,8 +1027,49 @@ export default function PerfilScreen() {
       {/* Contenido principal */}
       <View style={styles.contentContainer}>
         {tab === 'resumen' && renderResumen()}
-        {tab === 'polinizaciones' && canViewPolinizaciones() && renderPolinizaciones()}
-        {tab === 'germinaciones' && canViewGerminaciones() && renderGerminaciones()}
+        {tab === 'polinizaciones' && canViewPolinizaciones() && (
+          <PerfilPolinizacionesTab
+            loading={loading}
+            polinizaciones={polinizaciones}
+            searchPolinizaciones={searchPolinizaciones}
+            setSearchPolinizaciones={setSearchPolinizaciones}
+            setPolinizacionesPage={setPolinizacionesPage}
+            fetchData={fetchData}
+            handleBuscarPolinizaciones={handleBuscarPolinizaciones}
+            polinizacionesTotalPages={polinizacionesTotalPages}
+            polinizacionesTotalCount={polinizacionesTotalCount}
+            polinizacionesPage={polinizacionesPage}
+            handlePolinizacionesPageChange={handlePolinizacionesPageChange}
+            handlePolinizacionesNextPage={handlePolinizacionesNextPage}
+            handlePolinizacionesPrevPage={handlePolinizacionesPrevPage}
+            handleViewPolinizacion={handleViewPolinizacion}
+            handleEditPolinizacion={handleEditPolinizacion}
+            handleDeletePolinizacion={handleDeletePolinizacion}
+            onDescargarPDF={() => handleDescargarPDF('polinizaciones')}
+          />
+        )}
+        {tab === 'germinaciones' && canViewGerminaciones() && (
+          <PerfilGerminacionesTab
+            loading={loading}
+            germinaciones={germinaciones}
+            searchGerminaciones={searchGerminaciones}
+            setSearchGerminaciones={setSearchGerminaciones}
+            setGerminacionesPage={setGerminacionesPage}
+            fetchData={fetchData}
+            handleBuscarGerminaciones={handleBuscarGerminaciones}
+            germinacionesTotalPages={germinacionesTotalPages}
+            germinacionesTotalCount={germinacionesTotalCount}
+            germinacionesPage={germinacionesPage}
+            handleGerminacionesPageChange={handleGerminacionesPageChange}
+            handleGerminacionesNextPage={handleGerminacionesNextPage}
+            handleGerminacionesPrevPage={handleGerminacionesPrevPage}
+            handleViewGerminacion={handleViewGerminacion}
+            handleEditGerminacion={handleEditGerminacion}
+            handleDeleteGerminacion={handleDeleteGerminacion}
+            handleOpenChangeStatus={handleOpenChangeStatus}
+            onDescargarPDF={() => handleDescargarPDF('germinaciones')}
+          />
+        )}
         {tab === 'notificaciones' && canViewGerminaciones() && (
           <PerfilNotificacionesTab
             polinizaciones={polinizaciones}
