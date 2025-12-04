@@ -46,7 +46,7 @@ export default function GerminacionesScreen() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [detalle, setDetalle] = useState(null);
 
-  // Prediction states
+  // Prediction states (solo para mantener compatibilidad con el modal antiguo)
   const [showPrediccionModal, setShowPrediccionModal] = useState(false);
   const [prediccionData, setPrediccionData] = useState<any>(null);
   const [loadingPrediccion, setLoadingPrediccion] = useState(false);
@@ -93,55 +93,6 @@ export default function GerminacionesScreen() {
     }
   };
 
-  // Handle prediction calculation
-  const handleCalcularPrediccion = async () => {
-    // Validar campos requeridos antes de calcular predicción
-    const camposFaltantes: string[] = [];
-
-    if (!germinacionesHook.form.genero || germinacionesHook.form.genero.trim() === '') {
-      camposFaltantes.push('• Género');
-    }
-    if (!germinacionesHook.form.especie_variedad || germinacionesHook.form.especie_variedad.trim() === '') {
-      camposFaltantes.push('• Especie/Variedad');
-    }
-    if (!germinacionesHook.form.fecha_siembra || germinacionesHook.form.fecha_siembra.trim() === '') {
-      camposFaltantes.push('• Fecha de Siembra');
-    }
-    if (!germinacionesHook.form.clima || germinacionesHook.form.clima.trim() === '') {
-      camposFaltantes.push('• Clima');
-    }
-
-    if (camposFaltantes.length > 0) {
-      Alert.alert(
-        'Campos Requeridos',
-        `Por favor complete los siguientes campos antes de generar la predicción:\n${camposFaltantes.join('\n')}`
-      );
-      return;
-    }
-
-    setLoadingPrediccion(true);
-    setPrediccionError(null);
-    setShowPrediccionModal(true);
-
-    try {
-      const formDataPrediccion = {
-        especie: germinacionesHook.form.especie_variedad,
-        genero: germinacionesHook.form.genero,
-        fecha_siembra: germinacionesHook.form.fecha_siembra,
-        clima: germinacionesHook.form.clima as 'I' | 'IW' | 'IC' | 'W' | 'C',
-      };
-
-      console.log('🔮 germinaciones.tsx - Calculando predicción mejorada con:', formDataPrediccion);
-
-      const resultado = await germinacionService.calcularPrediccionMejorada(formDataPrediccion);
-      setPrediccionData(resultado);
-    } catch (error: any) {
-      console.error('❌ Error calculando predicción:', error);
-      setPrediccionError(error.message || 'No se pudo calcular la predicción');
-    } finally {
-      setLoadingPrediccion(false);
-    }
-  };
 
   return (
     <ProtectedRoute requiredModule="germinaciones" requiredAction="ver">
@@ -188,7 +139,6 @@ export default function GerminacionesScreen() {
           form={germinacionesHook.form}
           setForm={germinacionesHook.setForm}
           onSubmit={handleSubmit}
-          onCalcularPrediccion={handleCalcularPrediccion}
           saving={saving}
           codigosDisponibles={germinacionesHook.codigosDisponibles}
           especiesDisponibles={germinacionesHook.especiesDisponibles}

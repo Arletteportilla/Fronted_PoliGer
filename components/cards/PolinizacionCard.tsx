@@ -9,6 +9,7 @@ interface PolinizacionCardProps {
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
   onViewDetails?: (item: any) => void;
+  onChangeStatus?: (item: any) => void;
 }
 
 export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({ 
@@ -16,7 +17,8 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
   onPress,
   onEdit,
   onDelete,
-  onViewDetails 
+  onViewDetails,
+  onChangeStatus
 }) => {
   const responsive = useResponsive();
 
@@ -320,6 +322,22 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
           </TouchableOpacity>
         )}
 
+        {onChangeStatus && item.estado_polinizacion !== 'FINALIZADO' && !item.fechamad && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.actionButtonStatus]}
+            onPress={(e) => {
+              e.stopPropagation();
+              onChangeStatus(item);
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="swap-horizontal-outline" size={18} color="#8B5CF6" />
+            <Text style={[styles.actionButtonText, styles.actionButtonTextStatus]}>
+              Estado
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {onEdit && (
           <TouchableOpacity
             style={[styles.actionButton, styles.actionButtonEdit]}
@@ -599,6 +617,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF2F2',
     borderColor: '#FECACA',
   },
+  actionButtonStatus: {
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+  },
   actionButtonText: {
     fontSize: 12,
     fontWeight: '600',
@@ -611,5 +633,8 @@ const styles = StyleSheet.create({
   },
   actionButtonTextDelete: {
     color: '#EF4444',
+  },
+  actionButtonTextStatus: {
+    color: '#8B5CF6',
   },
 });

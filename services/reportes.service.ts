@@ -5,33 +5,34 @@ import * as SecureStore from '@/services/secureStore';
 import { API_CONFIG, buildApiUrl, getDownloadHeaders } from '@/config/api';
 
 export const reportesService = {
-  generarReporteGerminaciones: async (formato: string = 'excel', filtros: any = {}) => {
+  /**
+   * Descarga PDF simple de germinaciones del usuario (sin filtros de fecha)
+   * Usa el endpoint optimizado mis-germinaciones-pdf
+   */
+  descargarPDFGerminaciones: async (search?: string) => {
     try {
+      console.log('📄 Descargando PDF de germinaciones...');
+
       // Obtener el token de autenticación
       const token = await SecureStore.secureStore.getItem('authToken');
       if (!token) {
         throw new Error('No hay token de autenticación');
       }
-      
+
       // Construir URL con parámetros
       const params = new URLSearchParams();
-      params.append('formato', formato);
-      
-      // Añadir filtros si existen
-      Object.keys(filtros).forEach(key => {
-        if (filtros[key]) {
-          params.append(key, filtros[key]);
-        }
-      });
-      
-      const url = buildApiUrl(`${API_CONFIG.ENDPOINTS.REPORTES.GERMINACIONES}?${params.toString()}`);
-      
+      if (search) {
+        params.append('search', search);
+      }
+
+      const url = buildApiUrl(`germinaciones/mis-germinaciones-pdf/${params.toString() ? '?' + params.toString() : ''}`);
+      console.log('🔗 URL:', url);
+
       // Crear nombre de archivo con timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-      const extension = formato === 'pdf' ? 'pdf' : 'xlsx';
-      const fileName = `reporte_germinaciones_${timestamp}.${extension}`;
+      const fileName = `mis_germinaciones_${timestamp}.pdf`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      
+
       // Descargar archivo directamente usando FileSystem
       const downloadResult = await FileSystem.downloadAsync(
         url,
@@ -40,14 +41,77 @@ export const reportesService = {
           headers: getDownloadHeaders(token),
         }
       );
-      
+
+      console.log('📥 Estado de descarga:', downloadResult.status);
+
+      if (downloadResult.status === 200) {
+        console.log('✅ PDF descargado exitosamente en:', fileUri);
+
+        // Compartir archivo
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Descargar Reporte de Germinaciones (PDF)',
+          });
+        }
+        return { success: true, fileUri };
+      } else {
+        throw new Error(`Error descargando archivo: ${downloadResult.status}`);
+      }
+    } catch (error) {
+      console.error('❌ Error generando PDF de germinaciones:', error);
+      throw error;
+    }
+  },
+
+  generarReporteGerminaciones: async (formato: string = 'excel', filtros: any = {}) => {
+    try {
+      // Si es PDF sin filtros complejos, usar el endpoint optimizado
+      if (formato === 'pdf' && !filtros.fecha_inicio && !filtros.fecha_fin) {
+        return reportesService.descargarPDFGerminaciones(filtros.search);
+      }
+
+      // Obtener el token de autenticación
+      const token = await SecureStore.secureStore.getItem('authToken');
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      // Construir URL con parámetros
+      const params = new URLSearchParams();
+      params.append('formato', formato);
+
+      // Añadir filtros si existen
+      Object.keys(filtros).forEach(key => {
+        if (filtros[key]) {
+          params.append(key, filtros[key]);
+        }
+      });
+
+      const url = buildApiUrl(`${API_CONFIG.ENDPOINTS.REPORTES.GERMINACIONES}?${params.toString()}`);
+
+      // Crear nombre de archivo con timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const extension = formato === 'pdf' ? 'pdf' : 'xlsx';
+      const fileName = `reporte_germinaciones_${timestamp}.${extension}`;
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+      // Descargar archivo directamente usando FileSystem
+      const downloadResult = await FileSystem.downloadAsync(
+        url,
+        fileUri,
+        {
+          headers: getDownloadHeaders(token),
+        }
+      );
+
       if (downloadResult.status === 200) {
         // Compartir archivo
         if (await Sharing.isAvailableAsync()) {
-          const mimeType = formato === 'pdf' 
-            ? 'application/pdf' 
+          const mimeType = formato === 'pdf'
+            ? 'application/pdf'
             : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-          
+
           await Sharing.shareAsync(fileUri, {
             mimeType,
             dialogTitle: `Descargar Reporte de Germinaciones (${formato.toUpperCase()})`,

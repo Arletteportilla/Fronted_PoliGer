@@ -33,6 +33,10 @@ export interface Germinacion {
   semillas_stock?: number;
   disponibles?: number;
   
+  // Estado de germinación (INICIAL, EN_PROCESO, FINALIZADO)
+  estado_germinacion?: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO';
+  progreso_germinacion?: number; // 0-100%
+  
   // NUEVOS CAMPOS DE PREDICCIÓN MEJORADA - Disponibles en backend pero faltantes en frontend
   fecha_germinacion_estimada?: string | null;
   fecha_germinacion_estimada_min?: string | null;
@@ -146,6 +150,10 @@ export interface Polinizacion {
   prediccion_condiciones_climaticas?: string;
   prediccion_especie_info?: string;
   prediccion_parametros_usados?: string;
+  
+  // Estado y progreso de polinización
+  estado_polinizacion?: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO';
+  progreso_polinizacion?: number;
 }
 
 export interface User {

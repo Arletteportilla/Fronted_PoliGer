@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, Text, Alert, ScrollView, View, Modal, Dimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Text, ScrollView, View, Modal, Dimensions, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { prediccionService } from '@/services/prediccion.service';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useToast } from '@/contexts/ToastContext';
 import { SimpleCalendarPicker } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -57,8 +58,9 @@ const useResponsive = () => {
 export default function AddPolinizacionScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const toast = useToast();
   const responsive = useResponsive();
-  
+
   // Campos del formulario
   const [fechaPolinizacion, setFechaPolinizacion] = useState(todayStr());
   const [ubicacion, setUbicacion] = useState('');
@@ -104,7 +106,7 @@ export default function AddPolinizacionScreen() {
         setObservaciones(editData.observaciones || '');
       } catch (error) {
         console.error('Error parsing edit data:', error);
-        Alert.alert('Error', 'No se pudieron cargar los datos para editar');
+        toast.error('No se pudieron cargar los datos para editar');
       }
     }
   }, [params]);
@@ -112,7 +114,7 @@ export default function AddPolinizacionScreen() {
   const handlePrediccion = async () => {
     // Validar campos mínimos para predicción
     if (!especie.trim() || !genero.trim()) {
-      Alert.alert('Error', 'Para generar una predicción necesitas al menos el género y la especie.');
+      toast.error('Para generar una predicción necesitas al menos el género y la especie.');
       return;
     }
 
@@ -141,18 +143,14 @@ export default function AddPolinizacionScreen() {
       console.log('✅ Predicción generada:', resultado);
       setPrediccion(resultado);
       setShowPrediccion(true);
-      
-      Alert.alert(
-        'Predicción Generada', 
-        `La polinización de ${especie} debería madurar en aproximadamente ${resultado.dias_estimados} días.\n\nConfianza: ${resultado.confianza}%`,
-        [{ text: 'OK' }]
-      );
-      
+
+      toast.success(`Predicción generada: ${resultado.dias_estimados} días hasta maduración`);
+
     } catch (error: any) {
       console.error('❌ Error generando predicción:', error);
-      
+
       let errorMessage = 'No se pudo generar la predicción.';
-      
+
       if (error.message?.includes('timeout')) {
         errorMessage = 'La predicción tardó demasiado tiempo. Intenta nuevamente.';
       } else if (error.message?.includes('Network Error')) {
@@ -160,8 +158,8 @@ export default function AddPolinizacionScreen() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      Alert.alert('Error en Predicción', errorMessage);
+
+      toast.error(errorMessage);
     } finally {
       setIsPredicting(false);
     }
@@ -169,17 +167,17 @@ export default function AddPolinizacionScreen() {
 
   const handleSubmit = async () => {
     // Validaciones de campos obligatorios
-    if (!ubicacion.trim() || !codigo.trim() || !genero.trim() || !especie.trim() || 
+    if (!ubicacion.trim() || !codigo.trim() || !genero.trim() || !especie.trim() ||
         !fechaPolinizacion || !responsable.trim() || !cantidad.trim() || !tipoPolinizacion) {
-      Alert.alert('Error', 'Por favor completa todos los campos obligatorios.');
+      toast.error('Por favor completa todos los campos obligatorios.');
       return;
     }
 
     // Validar que la cantidad sea un número positivo
     const cantidadNum = parseInt(cantidad);
-    
+
     if (isNaN(cantidadNum) || cantidadNum <= 0) {
-      Alert.alert('Error', 'La cantidad debe ser un número positivo.');
+      toast.error('La cantidad debe ser un número positivo.');
       return;
     }
 
@@ -211,30 +209,30 @@ export default function AddPolinizacionScreen() {
 
       if (isEditMode && editItemId) {
         await polinizacionService.update(editItemId, formData);
-        Alert.alert('Éxito', 'Polinización actualizada correctamente.');
+        toast.success('Polinización actualizada correctamente');
       } else {
         await polinizacionService.create(formData);
-        Alert.alert('Éxito', 'Polinización creada correctamente.');
+        toast.success('Polinización creada correctamente');
       }
 
       router.back();
     } catch (error: any) {
       console.error('Error completo:', error);
-      
+
       let errorMessage = 'No se pudo guardar la polinización.';
-      
+
       if (error?.response?.data) {
         const errorData = error.response.data;
         console.log('Error del backend:', errorData);
-        
+
         // Si hay errores específicos del serializer
         if (typeof errorData === 'object' && errorData !== null) {
           const errorFields = Object.keys(errorData);
           if (errorFields.length > 0) {
             const firstError = errorFields[0];
             const fieldErrors = errorData[firstError as keyof typeof errorData];
-            const firstErrorMessage = Array.isArray(fieldErrors) 
-              ? fieldErrors[0] 
+            const firstErrorMessage = Array.isArray(fieldErrors)
+              ? fieldErrors[0]
               : fieldErrors;
             errorMessage = `${firstError}: ${firstErrorMessage}`;
           }
@@ -244,8 +242,8 @@ export default function AddPolinizacionScreen() {
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
-      Alert.alert('Error', errorMessage);
+
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

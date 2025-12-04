@@ -431,8 +431,15 @@ export const styles = StyleSheet.create({
     elevation: 1,
   },
   modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     maxHeight: 400,
     paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
   detailsContainer: {
     paddingVertical: 12,
@@ -2447,5 +2454,134 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+
+  // Estilos para contenedor de filas con progreso
+  tableRowContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  tableRowContainerLast: {
+    borderBottomWidth: 0,
+  },
+
+  // Estilos para barra de progreso
+  progressRow: {
+    paddingTop: 12,
+    paddingHorizontal: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 120,
+  },
+  progressLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginRight: 4,
+  },
+  progressPercentage: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  progressBarContainer: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+
+  // Estilos para gestión de etapa
+  estadoBadgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  estadoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    gap: 8,
+  },
+  estadoBadgeText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  etapaButtonsContainer: {
+    gap: 12,
+  },
+  etapaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  etapaButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  etapaCompletadaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#D1FAE5',
+    borderRadius: 10,
+    gap: 12,
+  },
+  etapaCompletadaText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#059669',
+  },
+  infoCard: {
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  infoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#1F2937',
+  },
+  etapasTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  etapasContainer: {
+    gap: 12,
   },
 });

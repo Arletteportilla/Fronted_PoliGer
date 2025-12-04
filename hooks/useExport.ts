@@ -34,7 +34,7 @@ export const useExport = (options: UseExportOptions = {}) => {
    * Valida las fechas de exportación
    */
   const validateDates = (): boolean => {
-    if (new Date(fechaInicio) > new Date(fechaFin)) {
+    if (fechaInicio && fechaFin && new Date(fechaInicio) > new Date(fechaFin)) {
       alert('La fecha de inicio no puede ser posterior a la fecha de fin');
       return false;
     }
@@ -47,8 +47,8 @@ export const useExport = (options: UseExportOptions = {}) => {
   const buildFilters = (): ExportFilters => {
     return {
       tipo: tipoEntidad,
-      fecha_inicio: fechaInicio,
-      fecha_fin: fechaFin,
+      fecha_inicio: fechaInicio || '',
+      fecha_fin: fechaFin || '',
       formato: formatoReporte,
       estadisticas: incluirEstadisticas === 'si' ? 'true' : 'false',
     };
@@ -88,6 +88,14 @@ export const useExport = (options: UseExportOptions = {}) => {
    * Exporta para plataforma móvil
    */
   const exportForMobile = async (filtros: ExportFilters): Promise<void> => {
+    // Si es PDF de germinaciones sin estadísticas, usar endpoint optimizado
+    if (tipoEntidad === 'germinaciones' && formatoReporte === 'pdf' && incluirEstadisticas === 'no') {
+      console.log('📄 Usando endpoint optimizado para PDF de germinaciones...');
+      await reportesService.descargarPDFGerminaciones(filtros['search']);
+      return;
+    }
+
+    // Para otros casos, usar el endpoint con estadísticas
     await reportesService.generarReporteConEstadisticas(
       tipoEntidad,
       formatoReporte,

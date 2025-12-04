@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, Text, Alert, ScrollView, View, Modal, Dimensions } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Text, ScrollView, View, Modal, Dimensions } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { germinacionService } from '@/services/germinacion.service';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { SimpleCalendarPicker } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -53,8 +54,9 @@ export default function AddGerminacionScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { user } = useAuth();
+  const toast = useToast();
   const responsive = useResponsive();
-  
+
   // Campos del formulario según especificación
   const [fechaPolinizacion, setFechaPolinizacion] = useState(todayStr());
   const [fechaSiembra, setFechaSiembra] = useState(todayStr());
@@ -99,30 +101,30 @@ export default function AddGerminacionScreen() {
         setResponsablePolinizacion(editData.responsable_polinizacion || '');
       } catch (error) {
         console.error('Error parsing edit data:', error);
-        Alert.alert('Error', 'No se pudieron cargar los datos para editar');
+        toast.error('No se pudieron cargar los datos para editar');
       }
     }
   }, [params]);
 
   const handleSubmit = async () => {
     // Validaciones de campos obligatorios
-    if (!codigo.trim() || !genero.trim() || !especie.trim() || !fechaPolinizacion || !fechaSiembra || 
+    if (!codigo.trim() || !genero.trim() || !especie.trim() || !fechaPolinizacion || !fechaSiembra ||
         !cantidadSolicitada.trim() || !numeroCapsulas.trim()) {
-      Alert.alert('Error', 'Por favor completa todos los campos obligatorios.');
+      toast.error('Por favor completa todos los campos obligatorios.');
       return;
     }
 
     // Validar que las cantidades sean números positivos
     const cantidad = parseInt(cantidadSolicitada);
     const capsulas = parseInt(numeroCapsulas);
-    
+
     if (isNaN(cantidad) || cantidad <= 0) {
-      Alert.alert('Error', 'La cantidad solicitada debe ser un número positivo.');
+      toast.error('La cantidad solicitada debe ser un número positivo.');
       return;
     }
-    
+
     if (isNaN(capsulas) || capsulas <= 0) {
-      Alert.alert('Error', 'El número de cápsulas debe ser un número positivo.');
+      toast.error('El número de cápsulas debe ser un número positivo.');
       return;
     }
 
@@ -149,16 +151,16 @@ export default function AddGerminacionScreen() {
 
       if (isEditMode && editItemId) {
         await germinacionService.update(editItemId, formData);
-        Alert.alert('Éxito', 'Germinación actualizada correctamente.');
+        toast.success('Germinación actualizada correctamente');
       } else {
         await germinacionService.create(formData);
-        Alert.alert('Éxito', 'Germinación creada correctamente.');
+        toast.success('Germinación creada correctamente');
       }
 
       router.back();
     } catch (error) {
       console.error('Error:', error);
-      Alert.alert('Error', 'No se pudo guardar la germinación. Por favor, inténtalo de nuevo.');
+      toast.error('No se pudo guardar la germinación. Por favor, inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }

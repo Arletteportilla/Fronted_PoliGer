@@ -936,5 +936,59 @@ export const polinizacionService = {
 
       throw new Error('No se pudo obtener la información del modelo.');
     }
+  },
+
+  // Cambiar estado de polinización
+  cambiarEstadoPolinizacion: async (
+    id: number,
+    estado: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO',
+    fechaMaduracion?: string
+  ) => {
+    try {
+      console.log(`🔄 Cambiando estado de polinización ${id} a ${estado}...`);
+      
+      const response = await api.post(`polinizaciones/${id}/cambiar-estado/`, {
+        estado,
+        fecha_maduracion: fechaMaduracion,
+      });
+      
+      console.log('✅ Estado de polinización actualizado:', response.data);
+      return response.data.polinizacion;
+    } catch (error: any) {
+      console.error('❌ Error cambiando estado de polinización:', error);
+      
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      
+      throw new Error('No se pudo cambiar el estado de la polinización.');
+    }
+  },
+
+  // Actualizar progreso de polinización
+  actualizarProgresoPolinizacion: async (
+    id: number,
+    progreso: number,
+    fechaMaduracion?: string
+  ) => {
+    try {
+      console.log(`📊 Actualizando progreso de polinización ${id} a ${progreso}%...`);
+      
+      const response = await api.post(`polinizaciones/${id}/cambiar-estado/`, {
+        progreso,
+        fecha_maduracion: fechaMaduracion,
+      });
+      
+      console.log('✅ Progreso de polinización actualizado:', response.data);
+      return response.data.polinizacion;
+    } catch (error: any) {
+      console.error('❌ Error actualizando progreso de polinización:', error);
+      
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      
+      throw new Error('No se pudo actualizar el progreso de la polinización.');
+    }
   }
 };

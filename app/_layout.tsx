@@ -4,6 +4,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 
 const RootLayoutNav = memo(() => {
   const { token, isLoading } = useAuth();
@@ -99,9 +100,11 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={DefaultTheme}>
-      <AuthProvider>
-        <RootLayoutNav />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <RootLayoutNav />
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

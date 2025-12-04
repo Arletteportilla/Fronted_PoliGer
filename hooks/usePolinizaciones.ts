@@ -3,12 +3,14 @@ import { Alert } from 'react-native';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { prediccionService } from '@/services/prediccion.service';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { useRouter } from 'expo-router';
 
 export const usePolinizaciones = () => {
   const { user } = useAuth();
+  const toast = useToast();
   const router = useRouter();
-  
+
   // Estados principales
   const [polinizaciones, setPolinizaciones] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,23 +86,16 @@ export const usePolinizaciones = () => {
       }
     } catch (error) {
       console.error('❌ Error loading polinizaciones', error);
-      
+
       if ((error as any).response?.status === 401) {
-        Alert.alert(
-          'Sesión Expirada', 
-          'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
-          [{ text: 'Ir a Login', onPress: () => router.replace('/login') }]
-        );
+        toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        router.replace('/login');
       } else if ((error as any).response?.status === 403) {
-        Alert.alert(
-          'Sin Permisos', 
-          'No tienes permisos para acceder a estas polinizaciones.',
-          [{ text: 'Cambiar Vista', onPress: () => setShowOnlyMine(!showOnlyMine) }]
-        );
+        toast.error('No tienes permisos para acceder a estas polinizaciones.');
       } else {
-        Alert.alert('Error', 'No se pudieron cargar las polinizaciones. Verifica tu conexión.');
+        toast.error('No se pudieron cargar las polinizaciones. Verifica tu conexión.');
       }
-      
+
       setPolinizaciones([]);
     } finally {
       setLoading(false);
@@ -124,7 +119,7 @@ export const usePolinizaciones = () => {
   const handlePrediccion = async (form: any): Promise<any> => {
     // Validar campos requeridos
     if (!form.tipo_polinizacion) {
-      Alert.alert('Error', 'Para generar una predicción necesitas seleccionar el tipo de polinización.');
+      toast.error('Para generar una predicción necesitas seleccionar el tipo de polinización.');
       return null;
     }
 
@@ -144,7 +139,7 @@ export const usePolinizaciones = () => {
     }
 
     if (!generoParaPrediccion || !especieParaPrediccion) {
-      Alert.alert('Error', 'Para generar una predicción necesitas especificar género y especie de al menos una planta.');
+      toast.error('Para generar una predicción necesitas especificar género y especie de al menos una planta.');
       return null;
     }
 
@@ -225,26 +220,13 @@ export const usePolinizaciones = () => {
       };
 
       setPrediccion(prediccionConFecha);
-      
-      // Mensaje mejorado con información del modelo
-      const nivelTexto = pred.nivel_confianza === 'alta' ? '🟢 Alta' : 
-                        pred.nivel_confianza === 'media' ? '🟡 Media' : '🔴 Baja';
-      
-      Alert.alert(
-        '🔮 Predicción ML Generada', 
-        `${generoParaPrediccion} ${especieParaPrediccion} (${tipoML})\n\n` +
-        `📅 Días estimados: ${pred.dias_estimados} días\n` +
-        `📆 Fecha estimada: ${prediccionConFecha.fecha_estimada_formateada}\n` +
-        `📊 Rango: ${pred.rango_probable.min}-${pred.rango_probable.max} días\n` +
-        `✅ Confianza: ${pred.confianza.toFixed(1)}% (${nivelTexto})\n` +
-        `🤖 Modelo: ${pred.modelo}`,
-        [{ text: 'OK' }]
-      );
-      
+
+      toast.success(`Predicción generada: ${pred.dias_estimados} días hasta maduración`);
+
       return prediccionConFecha;
     } catch (error: any) {
       console.error('❌ Error generando predicción ML:', error);
-      
+
       let errorMessage = 'No se pudo generar la predicción.';
       if (error.message?.includes('timeout')) {
         errorMessage = 'La predicción tardó demasiado tiempo. Intenta nuevamente.';
@@ -253,8 +235,8 @@ export const usePolinizaciones = () => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      Alert.alert('Error en Predicción', errorMessage);
+
+      toast.error(errorMessage);
       return null;
     } finally {
       setIsPredicting(false);
@@ -265,33 +247,33 @@ export const usePolinizaciones = () => {
   const handleSave = async (form: any, isEdit: boolean = false) => {
     try {
       setSaving(true);
-      
+
       if (!form.fecha_polinizacion || !form.tipo_polinizacion) {
-        Alert.alert('Error', 'Por favor completa todos los campos requeridos');
+        toast.error('Por favor completa todos los campos requeridos');
         return false;
       }
 
       // Validaciones específicas según el tipo de polinización
       if (form.tipo_polinizacion === 'SELF') {
         if (!form.madre_codigo || !form.madre_genero || !form.madre_especie) {
-          Alert.alert('Error', 'Para polinización SELF, la información de la planta madre es requerida');
+          toast.error('Para polinización SELF, la información de la planta madre es requerida');
           return false;
         }
         if (!form.nueva_codigo || !form.nueva_genero || !form.nueva_especie) {
-          Alert.alert('Error', 'Para polinización SELF, la información de la nueva planta es requerida');
+          toast.error('Para polinización SELF, la información de la nueva planta es requerida');
           return false;
         }
       } else if (form.tipo_polinizacion === 'SIBLING' || form.tipo_polinizacion === 'HIBRIDO') {
         if (!form.madre_codigo || !form.madre_genero || !form.madre_especie) {
-          Alert.alert('Error', `Para polinización ${form.tipo_polinizacion}, la información de la planta madre es requerida`);
+          toast.error(`Para polinización ${form.tipo_polinizacion}, la información de la planta madre es requerida`);
           return false;
         }
         if (!form.padre_codigo || !form.padre_genero || !form.padre_especie) {
-          Alert.alert('Error', `Para polinización ${form.tipo_polinizacion}, la información de la planta padre es requerida`);
+          toast.error(`Para polinización ${form.tipo_polinizacion}, la información de la planta padre es requerida`);
           return false;
         }
         if (!form.nueva_codigo || !form.nueva_genero || !form.nueva_especie) {
-          Alert.alert('Error', `Para polinización ${form.tipo_polinizacion}, la información de la nueva planta es requerida`);
+          toast.error(`Para polinización ${form.tipo_polinizacion}, la información de la nueva planta es requerida`);
           return false;
         }
       }
@@ -319,18 +301,18 @@ export const usePolinizaciones = () => {
       if (isEdit && form.id) {
         // Actualizar polinización existente
         await polinizacionService.update(form.id, polinizacionData);
-        Alert.alert('Éxito', 'Polinización actualizada correctamente');
+        toast.success('Polinización actualizada correctamente');
       } else {
         // Crear nueva polinización
         await polinizacionService.create(polinizacionData);
-        Alert.alert('Éxito', 'Polinización creada correctamente');
+        toast.success('Polinización creada correctamente');
       }
-      
+
       loadPolinizaciones();
       return true;
     } catch (error) {
       console.error('Error saving polinización:', error);
-      Alert.alert('Error', `No se pudo ${isEdit ? 'actualizar' : 'guardar'} la polinización`);
+      toast.error(`No se pudo ${isEdit ? 'actualizar' : 'guardar'} la polinización`);
       return false;
     } finally {
       setSaving(false);

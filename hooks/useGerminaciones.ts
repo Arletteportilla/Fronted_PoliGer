@@ -4,8 +4,10 @@ import { Alert } from 'react-native';
 import { germinacionService } from '../services/germinacion.service';
 import { validateRequiredFields, getResponsableName } from '../utils/formValidation';
 import { usePagination } from './usePagination';
+import { useToast } from '../contexts/ToastContext';
 
 export const useGerminaciones = (user: any) => {
+  const toast = useToast();
   const [germinaciones, setGerminaciones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -235,17 +237,11 @@ export const useGerminaciones = (user: any) => {
       }
 
       if (error.response?.status === 401) {
-        Alert.alert(
-          'Sesión Expirada',
-          'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.'
-        );
+        toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
       } else if (error.response?.status === 403) {
-        Alert.alert(
-          'Sin Permisos',
-          'No tienes permisos para acceder a estas germinaciones.'
-        );
+        toast.error('No tienes permisos para acceder a estas germinaciones.');
       } else {
-        Alert.alert('Error', 'No se pudieron cargar las germinaciones. Verifica tu conexión.');
+        toast.error('No se pudieron cargar las germinaciones. Verifica tu conexión.');
       }
 
       setGerminaciones([]);
@@ -321,26 +317,23 @@ export const useGerminaciones = (user: any) => {
       console.log('📤 Enviando datos al backend:', germinacionData);
 
       const result = await germinacionService.create(germinacionData);
-      
+
       console.log('✅ Germinación creada exitosamente:', result);
 
-      Alert.alert(
-        'Éxito', 
-        `Germinación "${germinacionData.codigo}" creada exitosamente`
-      );
-      
+      toast.success(`Germinación "${germinacionData.codigo}" creada exitosamente`);
+
       // Reset form
       setForm({ ...initialFormState, responsable: getResponsableName(user) });
-      
+
       // Reload list
       await loadGerminaciones();
-      
+
       return true;
     } catch (error: any) {
       console.error('❌ Error creating germinacion:', error);
-      
+
       let errorMessage = 'No se pudo crear la germinación';
-      
+
       if (error.message && error.message.includes(':')) {
         errorMessage = error.message;
       } else if (error.response?.data?.message) {
@@ -348,11 +341,11 @@ export const useGerminaciones = (user: any) => {
       } else if (typeof error.message === 'string') {
         errorMessage = error.message;
       }
-      
-      Alert.alert('Error al Crear Germinación', errorMessage);
+
+      toast.error(errorMessage);
       return false;
     }
-  }, [form, user, loadGerminaciones, initialFormState]);
+  }, [form, user, loadGerminaciones, initialFormState, toast]);
 
   // Refresh data
   const onRefresh = useCallback(() => {

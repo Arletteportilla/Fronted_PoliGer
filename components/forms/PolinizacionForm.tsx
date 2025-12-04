@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { SimpleCalendarPicker } from '@/components/common';
-// import { FormField } from '@/components/forms/FormField'; // No se usa, se implementa inline
+import { PredictionDisplay } from '@/components/prediction';
 import { TIPOS_POLINIZACION, CLIMAS, CANTIDAD_SEMILLA } from '@/utils/polinizacionConstants';
 import { polinizacionService } from '@/services/polinizacion.service';
-import { PrediccionPolinizacionModal } from '@/components/modals';
+import { polinizacionPrediccionService } from '@/services/polinizacion-prediccion.service';
 
 interface PolinizacionFormProps {
   visible: boolean;
@@ -34,7 +34,11 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   const [showTipoPicker, setShowTipoPicker] = useState(false);
   const [showCantidadSemillaPicker, setShowCantidadSemillaPicker] = useState(false);
   const [buscandoPlanta, setBuscandoPlanta] = useState<string | null>(null);
-  const [showPrediccionModal, setShowPrediccionModal] = useState(false);
+
+  // Estados para predicción automática
+  const [prediccionData, setPrediccionData] = useState<any>(null);
+  const [loadingPrediccion, setLoadingPrediccion] = useState(false);
+  const prediccionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Estados para autocompletado de códigos
   const [codigosDisponibles, setCodigosDisponibles] = useState<Array<{codigo: string, genero: string, especie: string, clima: string}>>([]);
@@ -298,12 +302,69 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
     form.padre_clima
   ]);
 
-  // Mostrar modal cuando se genere una predicción
+  // Calcular predicción automáticamente cuando los campos necesarios estén completos
   useEffect(() => {
-    if (prediccion && !isPredicting) {
-      setShowPrediccionModal(true);
+    // Limpiar timeout anterior
+    if (prediccionTimeoutRef.current) {
+      clearTimeout(prediccionTimeoutRef.current);
     }
-  }, [prediccion, isPredicting]);
+
+    // Verificar si todos los campos necesarios están completos
+    const camposCompletos =
+      form.madre_especie && form.madre_especie.trim() !== '' &&
+      form.fecha_polinizacion && form.fecha_polinizacion.trim() !== '' &&
+      form.madre_clima && form.madre_clima.trim() !== '';
+
+    // Si no están completos, resetear predicción
+    if (!camposCompletos) {
+      setPrediccionData(null);
+      return;
+    }
+
+    // Mostrar estado de carga
+    setLoadingPrediccion(true);
+
+    // Calcular predicción después de 1 segundo de inactividad
+    prediccionTimeoutRef.current = setTimeout(async () => {
+      try {
+        const formDataPrediccion = {
+          especie: form.madre_especie,
+          clima: form.madre_clima,
+          ubicacion: form.vivero || form.mesa || undefined,
+          fecha_polinizacion: form.fecha_polinizacion,
+        };
+
+        console.log('🌸 PolinizacionForm - Calculando predicción automática con:', formDataPrediccion);
+
+        const resultado = await polinizacionPrediccionService.generarPrediccionInicial(formDataPrediccion);
+
+        // Adaptar formato de respuesta para el componente PredictionDisplay
+        const resultadoAdaptado = {
+          prediccion: {
+            fecha_estimada: resultado.fecha_estimada_semillas,
+            dias_estimados: resultado.dias_estimados,
+            confianza: resultado.confianza,
+            metodo: resultado.especie_info?.metodo === 'prediccion heuristica' ? 'Heurístico' : 'ML',
+          }
+        };
+
+        setPrediccionData(resultadoAdaptado);
+        console.log('✅ Predicción calculada:', resultadoAdaptado);
+      } catch (error: any) {
+        console.error('❌ Error calculando predicción automática:', error);
+        setPrediccionData(null);
+      } finally {
+        setLoadingPrediccion(false);
+      }
+    }, 1000);
+
+    // Cleanup
+    return () => {
+      if (prediccionTimeoutRef.current) {
+        clearTimeout(prediccionTimeoutRef.current);
+      }
+    };
+  }, [form.madre_especie, form.madre_clima, form.fecha_polinizacion, form.vivero, form.mesa]);
 
   const renderFormField = (label: string, component: React.ReactNode, required: boolean = false) => (
     <View style={styles.fieldContainer}>
@@ -1075,19 +1136,16 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Botones de acción */}
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.prediccionButton]}
-                  onPress={onPrediccion}
-                  disabled={isPredicting}
-                >
-                  <Ionicons name="analytics" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>
-                    {isPredicting ? 'Generando...' : 'Generar Predicción'}
-                  </Text>
-                </TouchableOpacity>
+              {/* Sección de Predicción Automática */}
+              <PredictionDisplay
+                prediccionData={prediccionData}
+                loadingPrediccion={loadingPrediccion}
+                fechaInicio={form.fecha_polinizacion}
+                tipo="polinizacion"
+              />
 
+              {/* Botón de acción */}
+              <View style={styles.actionButtons}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.saveButton]}
                   onPress={onSave}
@@ -1104,15 +1162,6 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         </View>
       </View>
 
-      {/* Modal de Predicción */}
-      <PrediccionPolinizacionModal
-        visible={showPrediccionModal}
-        onClose={() => setShowPrediccionModal(false)}
-        onAceptar={() => setShowPrediccionModal(false)}
-        prediccionData={prediccion}
-        loading={isPredicting}
-        error={null}
-      />
     </Modal>
   );
 };
@@ -1341,9 +1390,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     gap: 8,
-  },
-  prediccionButton: {
-    backgroundColor: '#3B82F6',
   },
   saveButton: {
     backgroundColor: '#182d49',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity, Text, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, StyleSheet, TextInput, TouchableOpacity, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useToast } from '@/contexts/ToastContext';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -11,16 +12,17 @@ const RegisterScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const toast = useToast();
   const colorScheme = useColorScheme();
 
   const handleRegister = async () => {
     if (!username || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Por favor complete todos los campos');
+      toast.error('Por favor complete todos los campos');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      toast.error('Las contraseñas no coinciden');
       return;
     }
 
@@ -46,20 +48,12 @@ const RegisterScreen = () => {
         throw new Error(data.error || 'Error al registrar el usuario');
       }
 
-      Alert.alert(
-        'Registro exitoso',
-        'Tu cuenta ha sido creada exitosamente. Por favor inicia sesión.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('./login'),
-          },
-        ]
-      );
+      toast.success('Tu cuenta ha sido creada exitosamente. Por favor inicia sesión.');
+      router.replace('./login');
     } catch (error) {
       console.error('Register error:', error);
       // Mostrar el mensaje de error específico
-      Alert.alert('Error', error instanceof Error ? error.message : 'An unexpected error occurred');
+      toast.error(error instanceof Error ? error.message : 'Ocurrió un error inesperado');
     } finally {
       setIsLoading(false);
     }

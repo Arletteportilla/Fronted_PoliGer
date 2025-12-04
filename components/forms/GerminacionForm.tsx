@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { SimpleCalendarPicker } from '@/components/common';
 import { AutocompleteInput } from '@/components/common';
+import { PredictionDisplay } from '@/components/prediction';
 import { CLIMAS, ESTADOS_CAPSULA, ESTADOS_SEMILLA, CANTIDADES_SEMILLA, NIVELES } from '@/utils/constants';
 import { validateNumericInput } from '@/utils/formValidation';
 import { germinacionService } from '@/services/germinacion.service';
@@ -14,7 +15,6 @@ interface GerminacionFormProps {
   form: any;
   setForm: (form: any) => void;
   onSubmit: () => void;
-  onCalcularPrediccion: () => void;
   saving: boolean;
   codigosDisponibles: string[];
   especiesDisponibles: string[];
@@ -30,7 +30,6 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   form,
   setForm,
   onSubmit,
-  onCalcularPrediccion,
   saving,
   codigosDisponibles,
   especiesDisponibles,
@@ -44,6 +43,11 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   const [showEstadoSemilla, setShowEstadoSemilla] = useState(false);
   const [showCantidadSemilla, setShowCantidadSemilla] = useState(false);
   const [showNivel, setShowNivel] = useState(false);
+
+  // Estados para predicción automática
+  const [prediccionData, setPrediccionData] = useState<any>(null);
+  const [loadingPrediccion, setLoadingPrediccion] = useState(false);
+  const prediccionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // DEBUG: Log códigos y especies disponibles cuando cambian o cuando el modal se abre
   useEffect(() => {
@@ -120,6 +124,60 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
       }
     };
   }, [form.codigo]);
+
+  // Calcular predicción automáticamente cuando los campos necesarios estén completos
+  useEffect(() => {
+    // Limpiar timeout anterior
+    if (prediccionTimeoutRef.current) {
+      clearTimeout(prediccionTimeoutRef.current);
+    }
+
+    // Verificar si todos los campos necesarios están completos
+    const camposCompletos =
+      form.especie_variedad && form.especie_variedad.trim() !== '' &&
+      form.genero && form.genero.trim() !== '' &&
+      form.fecha_siembra && form.fecha_siembra.trim() !== '' &&
+      form.clima && form.clima.trim() !== '';
+
+    // Si no están completos, resetear predicción
+    if (!camposCompletos) {
+      setPrediccionData(null);
+      return;
+    }
+
+    // Mostrar estado de carga
+    setLoadingPrediccion(true);
+
+    // Calcular predicción después de 1 segundo de inactividad
+    prediccionTimeoutRef.current = setTimeout(async () => {
+      try {
+        const formDataPrediccion = {
+          especie: form.especie_variedad,
+          genero: form.genero,
+          fecha_siembra: form.fecha_siembra,
+          clima: form.clima as 'I' | 'IW' | 'IC' | 'W' | 'C',
+        };
+
+        console.log('🔮 GerminacionForm - Calculando predicción automática con:', formDataPrediccion);
+
+        const resultado = await germinacionService.calcularPrediccionMejorada(formDataPrediccion);
+        setPrediccionData(resultado);
+        console.log('✅ Predicción calculada:', resultado);
+      } catch (error: any) {
+        console.error('❌ Error calculando predicción automática:', error);
+        setPrediccionData(null);
+      } finally {
+        setLoadingPrediccion(false);
+      }
+    }, 1000);
+
+    // Cleanup
+    return () => {
+      if (prediccionTimeoutRef.current) {
+        clearTimeout(prediccionTimeoutRef.current);
+      }
+    };
+  }, [form.especie_variedad, form.genero, form.fecha_siembra, form.clima]);
 
   const renderFormField = (label: string, component: React.ReactNode, required: boolean = false) => (
     <View style={styles.fieldContainer}>
@@ -645,16 +703,16 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Botones de acción */}
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.prediccionButton]}
-                  onPress={onCalcularPrediccion}
-                >
-                  <Ionicons name="analytics" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>Generar Predicción</Text>
-                </TouchableOpacity>
+              {/* Sección de Predicción Automática */}
+              <PredictionDisplay
+                prediccionData={prediccionData}
+                loadingPrediccion={loadingPrediccion}
+                fechaInicio={form.fecha_siembra}
+                tipo="germinacion"
+              />
 
+              {/* Botón de acción */}
+              <View style={styles.actionButtons}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.saveButton]}
                   onPress={onSubmit}
@@ -855,9 +913,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     gap: 8,
-  },
-  prediccionButton: {
-    backgroundColor: '#3B82F6',
   },
   saveButton: {
     backgroundColor: '#182d49',

@@ -18,19 +18,16 @@ import { CreateUserModal, UserFormData as CreateUserFormData } from '@/component
 import { EditUserModal, UserFormData as EditUserFormData } from '@/components/UserManagement/EditUserModal';
 import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
+import { GerminacionCard } from '@/components/cards/GerminacionCard';
+import { PolinizacionCard } from '@/components/cards/PolinizacionCard';
 import { CambiarEstadoModal } from '@/components/modals/CambiarEstadoModal';
 import { FinalizarModal } from '@/components/modals/FinalizarModal';
 import Pagination from '@/components/filters/Pagination';
-import {
-  PerfilResumen,
-  PerfilHeader,
-  PerfilTabSelector,
-  PerfilNotificacionesTab,
-  type TabType
-} from '@/components/Perfil';
 import { styles } from '@/utils/Perfil/styles';
 import { Colors } from '@/constants/Colors';
 import type { Polinizacion, Germinacion, EstadisticasUsuario, UserWithProfile } from '@/types/index';
+
+type TabType = 'resumen' | 'polinizaciones' | 'germinaciones' | 'usuarios' | 'notificaciones';
 
 export default function PerfilScreen() {
   const { user, forceLogout } = useAuth();
@@ -1001,7 +998,29 @@ export default function PerfilScreen() {
 
   // Componentes de renderizado optimizados
   const renderResumen = () => {
-    return <PerfilResumen estadisticas={estadisticas} loading={loading} />;
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.light.tint} />
+          <Text style={styles.loadingText}>Cargando información...</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.resumenContainer}>
+        <View style={styles.statsGrid}>
+          <View style={[styles.statsCard, { borderLeftColor: '#10B981' }]}>
+            <Text style={styles.statLabel}>Polinizaciones</Text>
+            <Text style={styles.statsValue}>{estadisticas?.total_polinizaciones ?? 0}</Text>
+          </View>
+          <View style={[styles.statsCard, { borderLeftColor: '#3B82F6' }]}>
+            <Text style={styles.statLabel}>Germinaciones</Text>
+            <Text style={styles.statsValue}>{estadisticas?.total_germinaciones ?? 0}</Text>
+          </View>
+        </View>
+      </View>
+    );
   };
 
   const renderPolinizaciones = () => {
@@ -1607,6 +1626,116 @@ export default function PerfilScreen() {
     );
   };
 
+  const renderNotificaciones = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.light.tint} />
+          <Text style={styles.loadingText}>Cargando notificaciones...</Text>
+        </View>
+      );
+    }
+
+    // Usar las germinaciones y polinizaciones actuales
+    const germinacionesArray = Array.isArray(germinaciones) ? germinaciones : [];
+    const polinizacionesArray = Array.isArray(polinizaciones) ? polinizaciones : [];
+
+    // Filtrar germinaciones que no están finalizadas
+    const germinacionesPendientes = germinacionesArray.filter(
+      g => g.estado_germinacion !== 'FINALIZADO' && g.etapa_actual !== 'FINALIZADO' && g.etapa_actual !== 'LISTA' && g.etapa_actual !== 'LISTO'
+    );
+
+    // Filtrar polinizaciones que no están finalizadas
+    const polinizacionesPendientes = polinizacionesArray.filter(
+      p => (p.estado_polinizacion !== 'FINALIZADO' || p.estado !== 'LISTA') && !p.fechamad
+    );
+
+    const totalPendientes = germinacionesPendientes.length + polinizacionesPendientes.length;
+
+    return (
+      <View style={styles.professionalTableContainer}>
+        {/* Encabezado */}
+        <View style={styles.tableHeaderSection}>
+          <View style={styles.tableTitleContainer}>
+            <Text style={styles.professionalTableTitle}>Mis Notificaciones</Text>
+            <Text style={styles.professionalTableSubtitle}>
+              {totalPendientes} {totalPendientes === 1 ? 'elemento pendiente' : 'elementos pendientes'} que requieren atención
+            </Text>
+          </View>
+        </View>
+
+        {/* Lista de elementos pendientes */}
+        {totalPendientes === 0 ? (
+          <View style={styles.listEmptyContainer}>
+            <Ionicons name="checkmark-done-circle-outline" size={48} color="#10B981" />
+            <Text style={styles.listEmptyText}>
+              No hay elementos pendientes
+            </Text>
+            <Text style={styles.emptySubtext}>
+              Todas tus germinaciones y polinizaciones están finalizadas o no hay ninguna en proceso
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            style={{ flex: 1 }}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
+            <View style={{ padding: 16, gap: 16 }}>
+              {/* Sección de Polinizaciones Pendientes */}
+              {polinizacionesPendientes.length > 0 && (
+                <View style={{ marginBottom: 16 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, paddingHorizontal: 4 }}>
+                    <Ionicons name="flower-outline" size={20} color="#F59E0B" />
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#1F2937', marginLeft: 8 }}>
+                      Polinizaciones Pendientes ({polinizacionesPendientes.length})
+                    </Text>
+                  </View>
+                  {polinizacionesPendientes.map((item) => (
+                    <View key={`pol-${item.numero}`} style={{ marginBottom: 12 }}>
+                      <PolinizacionCard
+                        item={item}
+                        onPress={handleViewPolinizacion}
+                        onViewDetails={handleViewPolinizacion}
+                        onEdit={handleEditPolinizacion}
+                        onDelete={handleDeletePolinizacion}
+                        onChangeStatus={handleOpenChangeStatusPolinizacion}
+                      />
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Sección de Germinaciones Pendientes */}
+              {germinacionesPendientes.length > 0 && (
+                <View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, paddingHorizontal: 4 }}>
+                    <Ionicons name="leaf-outline" size={20} color="#10B981" />
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#1F2937', marginLeft: 8 }}>
+                      Germinaciones Pendientes ({germinacionesPendientes.length})
+                    </Text>
+                  </View>
+                  {germinacionesPendientes.map((item) => (
+                    <View key={`germ-${item.id}`} style={{ marginBottom: 12 }}>
+                      <GerminacionCard
+                        item={item}
+                        onPress={handleViewGerminacion}
+                        onViewDetails={handleViewGerminacion}
+                        onEdit={handleEditGerminacion}
+                        onDelete={handleDeleteGerminacion}
+                        onChangeStatus={handleOpenChangeStatus}
+                      />
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        )}
+      </View>
+    );
+  };
 
   const renderUsuarios = () => {
     const usuariosArray = Array.isArray(usuarios) ? usuarios : [];
@@ -1634,39 +1763,90 @@ export default function PerfilScreen() {
       <TabNavigation currentTab="perfil" />
 
       {/* Cabecera del usuario */}
-      <PerfilHeader user={user} onLogout={handleLogout} />
+      <View style={styles.topUserInfoSection}>
+        <View style={styles.profileImageContainer}>
+          <View style={styles.userAvatar}>
+            <Text style={styles.userAvatarText}>
+              {user?.first_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.userInfoContainer}>
+          <Text style={styles.userName}>
+            {user?.first_name && user?.last_name 
+              ? `${user.first_name} ${user.last_name}` 
+              : user?.username || 'Usuario'}
+          </Text>
+          <Text style={styles.userEmail}>{user?.email || 'correo@ejemplo.com'}</Text>
+        </View>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color={Colors.light.background} />
+          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Navegación por pestañas */}
-      <PerfilTabSelector
-        currentTab={tab}
-        onTabChange={setTab}
-        canViewPolinizaciones={canViewPolinizaciones()}
-        canViewGerminaciones={canViewGerminaciones()}
-        isAdmin={isAdmin()}
-      />
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tab, tab === 'resumen' && styles.activeTab]}
+          onPress={() => setTab('resumen')}
+        >
+          <Text style={[styles.tabText, tab === 'resumen' && styles.activeTabText]}>
+            Resumen
+          </Text>
+        </TouchableOpacity>
+
+        {canViewPolinizaciones() && (
+          <TouchableOpacity
+            style={[styles.tab, tab === 'polinizaciones' && styles.activeTab]}
+            onPress={() => setTab('polinizaciones')}
+          >
+            <Text style={[styles.tabText, tab === 'polinizaciones' && styles.activeTabText]}>
+              Polinizaciones
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {canViewGerminaciones() && (
+          <TouchableOpacity
+            style={[styles.tab, tab === 'germinaciones' && styles.activeTab]}
+            onPress={() => setTab('germinaciones')}
+          >
+            <Text style={[styles.tabText, tab === 'germinaciones' && styles.activeTabText]}>
+              Germinaciones
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {canViewGerminaciones() && (
+          <TouchableOpacity
+            style={[styles.tab, tab === 'notificaciones' && styles.activeTab]}
+            onPress={() => setTab('notificaciones')}
+          >
+            <Text style={[styles.tabText, tab === 'notificaciones' && styles.activeTabText]}>
+              Notificaciones
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {isAdmin() && (
+          <TouchableOpacity
+            style={[styles.tab, tab === 'usuarios' && styles.activeTab]}
+            onPress={() => setTab('usuarios')}
+          >
+            <Text style={[styles.tabText, tab === 'usuarios' && styles.activeTabText]}>
+              Usuarios
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Contenido principal */}
       <View style={styles.contentContainer}>
         {tab === 'resumen' && renderResumen()}
         {tab === 'polinizaciones' && canViewPolinizaciones() && renderPolinizaciones()}
         {tab === 'germinaciones' && canViewGerminaciones() && renderGerminaciones()}
-        {tab === 'notificaciones' && canViewGerminaciones() && (
-          <PerfilNotificacionesTab
-            polinizaciones={polinizaciones}
-            germinaciones={germinaciones}
-            loading={loading}
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            onViewPolinizacion={handleViewPolinizacion}
-            onEditPolinizacion={handleEditPolinizacion}
-            onDeletePolinizacion={handleDeletePolinizacion}
-            onChangeStatusPolinizacion={handleOpenChangeStatusPolinizacion}
-            onViewGerminacion={handleViewGerminacion}
-            onEditGerminacion={handleEditGerminacion}
-            onDeleteGerminacion={handleDeleteGerminacion}
-            onChangeStatusGerminacion={handleOpenChangeStatus}
-          />
-        )}
+        {tab === 'notificaciones' && canViewGerminaciones() && renderNotificaciones()}
         {tab === 'usuarios' && isAdmin() && renderUsuarios()}
       </View>
 

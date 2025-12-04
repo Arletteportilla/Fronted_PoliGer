@@ -11,6 +11,7 @@ interface GerminacionCardProps {
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
   onViewDetails?: (item: any) => void;
+  onChangeStatus?: (item: any) => void;
 }
 
 export const GerminacionCard: React.FC<GerminacionCardProps> = ({
@@ -19,6 +20,7 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
   onEdit,
   onDelete,
   onViewDetails,
+  onChangeStatus,
 }) => {
   const responsive = useResponsive();
 
@@ -39,22 +41,32 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
 
   const currentStatus = getCurrentStatus();
 
-  // Calcular el progreso de la germinación
+  // Calcular el progreso de la germinación basado en días transcurridos
   const calculateProgress = () => {
+    // Si está marcada como completada, 100%
     const etapa = item.etapa_actual || item.estado || 'INGRESADO';
-    switch (etapa) {
-      case 'LISTA':
-      case 'LISTO':
-        return 100; // Completado
-      case 'EN_PROCESO':
-        return 65; // En proceso
-      case 'INGRESADO':
-        return 30; // Ingresado
-      case 'CANCELADO':
-        return 0; // Cancelado
-      default:
-        return 30; // Por defecto ingresado
+    if (etapa === 'LISTA' || etapa === 'LISTO') return 100;
+    if (etapa === 'CANCELADO') return 0;
+
+    // Si no hay fecha de siembra, usar progreso basado en estado
+    if (!item.fecha_siembra) {
+      return etapa === 'EN_PROCESO' ? 65 : 30;
     }
+
+    // Calcular días transcurridos desde la siembra
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fechaSiembra = new Date(item.fecha_siembra);
+    fechaSiembra.setHours(0, 0, 0, 0);
+    const diasTranscurridos = Math.ceil((hoy.getTime() - fechaSiembra.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Obtener días totales estimados (de la predicción o por defecto 30)
+    const diasTotales = item.prediccion_dias_estimados || 30;
+
+    // Calcular progreso (mínimo 0%, máximo 100%)
+    const progreso = Math.min(Math.max((diasTranscurridos / diasTotales) * 100, 0), 100);
+
+    return Math.round(progreso);
   };
 
   const progress = calculateProgress();
@@ -316,6 +328,22 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
           </TouchableOpacity>
         )}
 
+        {onChangeStatus && item.etapa_actual !== 'FINALIZADO' && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.actionButtonStatus]}
+            onPress={(e) => {
+              e.stopPropagation();
+              onChangeStatus(item);
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="swap-horizontal-outline" size={18} color="#8B5CF6" />
+            <Text style={[styles.actionButtonText, styles.actionButtonTextStatus]}>
+              Estado
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {onDelete && (
           <TouchableOpacity
             style={[styles.actionButton, styles.actionButtonDelete]}
@@ -550,6 +578,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFBEB',
     borderColor: '#FDE68A',
   },
+  actionButtonStatus: {
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+  },
   actionButtonDelete: {
     backgroundColor: '#FEF2F2',
     borderColor: '#FECACA',
@@ -563,6 +595,9 @@ const styles = StyleSheet.create({
   },
   actionButtonTextEdit: {
     color: '#F59E0B',
+  },
+  actionButtonTextStatus: {
+    color: '#8B5CF6',
   },
   actionButtonTextDelete: {
     color: '#EF4444',

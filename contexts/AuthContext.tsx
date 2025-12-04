@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import { useRouter } from 'expo-router';
 import type { UserWithProfile, UserPermissions } from '@/types/index';
+import { useToast } from '@/contexts/ToastContext';
 
 // Lazy imports to improve startup time
 const getTokenManager = () => import('@/services/tokenManager').then(m => m.tokenManager);
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const toast = useToast();
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<UserWithProfile | null>(null);
@@ -111,8 +113,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('✅ Logout completado exitosamente');
+      toast.success('Sesión cerrada exitosamente');
     } catch (error) {
       console.error('❌ Error durante logout:', error);
+      toast.error('Error al cerrar sesión');
       
       // Limpiar estado local en caso de error
       setToken(null);
@@ -276,26 +280,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         
         await loadUserPermissions();
+        toast.success('Sesión iniciada exitosamente');
       } else {
         throw new Error('Respuesta de login inválida');
       }
-    } catch (error) {
+    } catch (error: any) {
       // Limpiar estado en caso de error
       setToken(null);
       setUser(null);
       setPermissions(null);
+
+      const errorMessage = error?.response?.data?.detail ||
+                          error?.message ||
+                          'Error al iniciar sesión';
+      toast.error(errorMessage);
       throw error;
     }
-  }, [loadUserData, loadUserPermissions]);
+  }, [loadUserData, loadUserPermissions, toast]);
   
   const register = useCallback(async (userData: { username: string, email: string, password: string }) => {
     try {
       const authService = await getAuthService();
       await authService.register(userData);
-    } catch (error) {
+      toast.success('Usuario registrado exitosamente');
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.detail ||
+                          error?.message ||
+                          'Error al registrar usuario';
+      toast.error(errorMessage);
       throw error;
     }
-  }, []);
+  }, [toast]);
 
   const hasPermission = useCallback((module: string, action: string): boolean => {
     if (!permissions) return false;

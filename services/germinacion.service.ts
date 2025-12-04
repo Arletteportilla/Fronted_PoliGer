@@ -594,11 +594,11 @@ export const germinacionService = {
     }
   },
 
-  // Nuevo método para descargar PDF de mis germinaciones usando el endpoint específico
+  // Descargar PDF de mis germinaciones
   descargarMisGerminacionesPDF: async (search?: string) => {
     console.log('📄 germinacionService.descargarMisGerminacionesPDF() - Iniciando descarga...');
     console.log('🔍 Búsqueda:', search);
-    
+
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
       if (!token) {
@@ -607,23 +607,28 @@ export const germinacionService = {
 
       // Construir URL con parámetros
       const params = new URLSearchParams();
-      params.append('formato', 'pdf');
       if (search) {
         params.append('search', search);
       }
 
-      const response = await api.get(`germinaciones/reporte/?${params.toString()}`, {
+      const url = `germinaciones/mis-germinaciones-pdf/${params.toString() ? '?' + params.toString() : ''}`;
+      console.log('🔗 URL de descarga:', url);
+
+      const response = await api.get(url, {
         responseType: 'blob',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/pdf'
-        }
+        },
+        timeout: 60000 // 60 segundos para PDFs grandes
       });
 
       console.log('✅ PDF de mis germinaciones descargado exitosamente');
+      console.log('📊 Tamaño del PDF:', response.data.size, 'bytes');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error descargando PDF de mis germinaciones:', error);
+      console.error('❌ Detalles:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -1002,25 +1007,111 @@ export const germinacionService = {
   cambiarEstadoCapsula: async (id: number, nuevoEstado: 'CERRADA' | 'ABIERTA' | 'SEMIABIERTA') => {
     try {
       console.log(`🔄 Cambiando estado de cápsula de germinación ${id} a ${nuevoEstado}`);
-      
+
       // Preparar datos para actualizar
       const updateData: any = {
         estado_capsula: nuevoEstado
       };
-      
+
       // Si el estado es ABIERTA, agregar la fecha actual como fecha de germinación
       if (nuevoEstado === 'ABIERTA') {
         const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
         updateData.fecha_germinacion = fechaActual;
         console.log(`📅 Actualizando fecha de germinación a: ${fechaActual}`);
       }
-      
+
       const response = await api.patch(`germinaciones/${id}/`, updateData);
       console.log('✅ Estado de cápsula cambiado exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error cambiando estado de cápsula:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Cambia la etapa actual de una germinación
+   * Estados: INGRESADO -> EN_PROCESO -> FINALIZADO
+   * Si la etapa cambia a FINALIZADO, actualiza la fecha de germinación con la fecha actual
+   */
+  cambiarEtapa: async (id: number, nuevaEtapa: 'INGRESADO' | 'EN_PROCESO' | 'FINALIZADO' | 'LISTA') => {
+    try {
+      console.log(`🔄 Cambiando etapa de germinación ${id} a ${nuevaEtapa}`);
+
+      // Preparar datos para actualizar
+      const updateData: any = {
+        etapa_actual: nuevaEtapa
+      };
+
+      // Si la etapa es FINALIZADO o LISTA, agregar la fecha actual como fecha de germinación
+      if (nuevaEtapa === 'FINALIZADO' || nuevaEtapa === 'LISTA') {
+        const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        updateData.fecha_germinacion = fechaActual;
+        console.log(`📅 Actualizando fecha de germinación a: ${fechaActual}`);
+      }
+
+      const response = await api.patch(`germinaciones/${id}/`, updateData);
+      console.log('✅ Etapa cambiada exitosamente');
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error cambiando etapa:', error);
+      throw error;
+    }
+  },
+
+  // NUEVA FUNCIÓN: Cambiar estado de germinación (INICIAL, EN_PROCESO, FINALIZADO)
+  cambiarEstadoGerminacion: async (
+    id: number, 
+    estado: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO',
+    fechaGerminacion?: string
+  ): Promise<any> => {
+    try {
+      console.log(`🔄 Cambiando estado de germinación ${id} a: ${estado}`, fechaGerminacion ? `con fecha: ${fechaGerminacion}` : '');
+
+      const data: any = { estado };
+      if (fechaGerminacion && estado === 'FINALIZADO') {
+        data.fecha_germinacion = fechaGerminacion;
+      }
+
+      const response = await api.post(`germinaciones/${id}/cambiar-estado/`, data);
+
+      console.log('✅ Estado de germinación cambiado exitosamente:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error cambiando estado de germinación:', error);
+      
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+
+      throw new Error('No se pudo cambiar el estado de la germinación.');
+    }
+  },
+
+  // NUEVA FUNCIÓN: Actualizar progreso de germinación (0-100%)
+  actualizarProgresoGerminacion: async (id: number, progreso: number): Promise<any> => {
+    try {
+      console.log(`📊 Actualizando progreso de germinación ${id} a: ${progreso}%`);
+
+      // Validar que el progreso esté entre 0 y 100
+      if (progreso < 0 || progreso > 100) {
+        throw new Error('El progreso debe estar entre 0 y 100');
+      }
+
+      const response = await api.post(`germinaciones/${id}/cambiar-estado/`, {
+        progreso: progreso
+      });
+
+      console.log('✅ Progreso de germinación actualizado exitosamente:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error actualizando progreso de germinación:', error);
+      
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+
+      throw new Error('No se pudo actualizar el progreso de la germinación.');
     }
   },
 };

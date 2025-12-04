@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, TextInput, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { authService } from '@/services/auth.service';
 import * as SecureStore from '@/services/secureStore';
@@ -13,12 +14,13 @@ const LoginScreen = () => {
   const [showTokenCleaner, setShowTokenCleaner] = useState(false);
   const [hasError, setHasError] = useState(false);
   const { login } = useAuth();
+  const toast = useToast();
   const router = useRouter();
   const colorScheme = useColorScheme();
 
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert('Campos requeridos', 'Por favor ingrese su usuario y contraseña para continuar');
+      toast.error('Por favor ingrese su usuario y contraseña para continuar');
       return;
     }
 
@@ -68,14 +70,7 @@ const LoginScreen = () => {
       setUsername('');
       setPassword('');
 
-      Alert.alert(errorTitle, errorMessage, [
-        {
-          text: 'Reintentar',
-          onPress: () => {
-            setHasError(false);
-          }
-        }
-      ]);
+      // El AuthContext ya muestra el toast de error, no necesitamos duplicar el mensaje
     } finally {
       setIsLoading(false);
     }

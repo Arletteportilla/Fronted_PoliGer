@@ -46,6 +46,7 @@ interface NotificationDetailModalProps {
   onEliminar: (id: string) => void;
   onCambiarEstadoPolinizacion?: (id: number, estado: string) => Promise<void>;
   onCambiarEstadoGerminacion?: (id: number, estado: string) => Promise<void>;
+  onRefreshNotifications?: () => Promise<void>;
 }
 
 function NotificationDetailModal({
@@ -57,6 +58,7 @@ function NotificationDetailModal({
   onEliminar,
   onCambiarEstadoPolinizacion,
   onCambiarEstadoGerminacion,
+  onRefreshNotifications,
 }: NotificationDetailModalProps) {
   const colorScheme = useColorScheme();
   // Forzar modo claro
@@ -208,35 +210,58 @@ function NotificationDetailModal({
                 {notification.germinacion_id && onCambiarEstadoGerminacion && (
                   <>
                     <TouchableOpacity
-                      style={[styles.quickActionButton, { backgroundColor: '#10B981' }]}
-                      onPress={async () => {
-                        try {
-                          await onCambiarEstadoGerminacion(notification.germinacion_id!, 'ABIERTA');
-                          onClose();
-                        } catch (error) {
-                          console.error('Error cambiando estado:', error);
-                        }
-                      }}
-                    >
-                      <Ionicons name="leaf" size={20} color="#fff" />
-                      <View>
-                        <Text style={styles.quickActionText}>Cápsula Abierta</Text>
-                        <Text style={styles.quickActionSubtext}>Registra fecha de hoy</Text>
-                      </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity
                       style={[styles.quickActionButton, { backgroundColor: '#F59E0B' }]}
                       onPress={async () => {
                         try {
-                          await onCambiarEstadoGerminacion(notification.germinacion_id!, 'SEMIABIERTA');
+                          await germinacionService.actualizarProgresoGerminacion(notification.germinacion_id!, 25);
+                          if (onRefreshNotifications) await onRefreshNotifications();
                           onClose();
                         } catch (error) {
-                          console.error('Error cambiando estado:', error);
+                          console.error('Error actualizando progreso:', error);
                         }
                       }}
                     >
-                      <Ionicons name="leaf-outline" size={20} color="#fff" />
-                      <Text style={styles.quickActionText}>Semiabierta</Text>
+                      <Ionicons name="hourglass-outline" size={20} color="#fff" />
+                      <View>
+                        <Text style={styles.quickActionText}>25% Progreso</Text>
+                        <Text style={styles.quickActionSubtext}>Estado: En Proceso</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.quickActionButton, { backgroundColor: '#3B82F6' }]}
+                      onPress={async () => {
+                        try {
+                          await germinacionService.actualizarProgresoGerminacion(notification.germinacion_id!, 60);
+                          if (onRefreshNotifications) await onRefreshNotifications();
+                          onClose();
+                        } catch (error) {
+                          console.error('Error actualizando progreso:', error);
+                        }
+                      }}
+                    >
+                      <Ionicons name="time" size={20} color="#fff" />
+                      <View>
+                        <Text style={styles.quickActionText}>60% Progreso</Text>
+                        <Text style={styles.quickActionSubtext}>Estado: En Proceso</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.quickActionButton, { backgroundColor: '#10B981' }]}
+                      onPress={async () => {
+                        try {
+                          await germinacionService.actualizarProgresoGerminacion(notification.germinacion_id!, 100);
+                          if (onRefreshNotifications) await onRefreshNotifications();
+                          onClose();
+                        } catch (error) {
+                          console.error('Error actualizando progreso:', error);
+                        }
+                      }}
+                    >
+                      <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                      <View>
+                        <Text style={styles.quickActionText}>100% Finalizado</Text>
+                        <Text style={styles.quickActionSubtext}>Registra fecha de hoy</Text>
+                      </View>
                     </TouchableOpacity>
                   </>
                 )}
@@ -353,7 +378,7 @@ export function NotificationsScreen() {
 
   const handleCambiarEstadoGerminacion = async (id: number, estado: string) => {
     try {
-      await germinacionService.cambiarEstadoCapsula(id, estado as any);
+      await germinacionService.cambiarEstadoGerminacion(id, estado as 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO');
       // Refrescar notificaciones después del cambio
       await fetchNotifications(filters);
       console.log('✅ Estado de germinación actualizado');
@@ -492,14 +517,16 @@ export function NotificationsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: '#e5e7eb' }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Notificaciones
-        </Text>
-        {stats && (
-          <Text style={[styles.headerSubtitle, { color: colors.tabIconDefault }]}>
-            Mostrando {notifications.length} de {stats.total}
+        <View style={styles.headerContent}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            Notificaciones
           </Text>
-        )}
+          {stats && (
+            <Text style={[styles.headerSubtitle, { color: colors.tabIconDefault }]}>
+              Mostrando {notifications.length} de {stats.total}
+            </Text>
+          )}
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -507,7 +534,7 @@ export function NotificationsScreen() {
         <Ionicons name="search" size={20} color={colors.tabIconDefault} style={styles.searchIcon} />
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Buscar..."
+          placeholder="Buscar notificaciones..."
           placeholderTextColor={colors.tabIconDefault}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -520,44 +547,46 @@ export function NotificationsScreen() {
       </View>
 
       {/* Filters */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
-        contentContainerStyle={styles.filtersContent}
-      >
-        {FILTER_TYPES.map((filter) => {
-          const isActive = activeFilter === filter.id;
-          return (
-            <TouchableOpacity
-              key={filter.id}
-              style={[
-                styles.filterButton,
-                {
-                  backgroundColor: isActive ? colors.accent : '#f3f4f6',
-                },
-              ]}
-              onPress={() => setActiveFilter(filter.id)}
-            >
-              <Ionicons
-                name={filter.icon as any}
-                size={18}
-                color={isActive ? '#ffffff' : colors.tabIconDefault}
-              />
-              <Text
+      <View style={styles.filtersWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersContainer}
+          contentContainerStyle={styles.filtersContent}
+        >
+          {FILTER_TYPES.map((filter) => {
+            const isActive = activeFilter === filter.id;
+            return (
+              <TouchableOpacity
+                key={filter.id}
                 style={[
-                  styles.filterLabel,
+                  styles.filterButton,
                   {
-                    color: isActive ? '#ffffff' : colors.tabIconDefault,
+                    backgroundColor: isActive ? colors.accent : '#f3f4f6',
                   },
                 ]}
+                onPress={() => setActiveFilter(filter.id)}
               >
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+                <Ionicons
+                  name={filter.icon as any}
+                  size={18}
+                  color={isActive ? '#ffffff' : colors.tabIconDefault}
+                />
+                <Text
+                  style={[
+                    styles.filterLabel,
+                    {
+                      color: isActive ? '#ffffff' : colors.tabIconDefault,
+                    },
+                  ]}
+                >
+                  {filter.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       {/* Notifications List */}
       {loading && !refreshing ? (
@@ -577,6 +606,7 @@ export function NotificationsScreen() {
           ListEmptyComponent={renderEmptyState}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
           contentContainerStyle={notifications.length === 0 ? styles.emptyListContainer : styles.listContainer}
+          style={styles.list}
         />
       )}
 
@@ -593,6 +623,7 @@ export function NotificationsScreen() {
         onEliminar={eliminar}
         onCambiarEstadoPolinizacion={handleCambiarEstadoPolinizacion}
         onCambiarEstadoGerminacion={handleCambiarEstadoGerminacion}
+        onRefreshNotifications={async () => await fetchNotifications(filters)}
       />
     </View>
   );
