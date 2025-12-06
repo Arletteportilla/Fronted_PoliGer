@@ -6,7 +6,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { SimpleCalendarPicker } from '@/components/common';
+import { PrediccionMLGerminacion } from '@/components/germinaciones';
 import { Ionicons } from '@expo/vector-icons';
+import type { PrediccionGerminacionMLResponse } from '@/services/germinacion-ml.service';
 
 const ESTADOS_CAPSULA = [
   { label: 'Cerrada', value: 'CERRADA' },
@@ -76,6 +78,9 @@ export default function AddGerminacionScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editItemId, setEditItemId] = useState<number | null>(null);
+
+  // Estado para la predicción ML
+  const [prediccionML, setPrediccionML] = useState<PrediccionGerminacionMLResponse | null>(null);
 
   // Handle edit mode and pre-fill form
   useEffect(() => {
@@ -164,6 +169,11 @@ export default function AddGerminacionScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePrediccionComplete = (resultado: PrediccionGerminacionMLResponse) => {
+    setPrediccionML(resultado);
+    console.log('Predicción ML de germinación recibida:', resultado);
   };
 
   const renderFormField = (label: string, children: React.ReactNode, required = false) => (
@@ -373,6 +383,26 @@ export default function AddGerminacionScreen() {
             />
           ))}
 
+          {/* Predicción ML de Germinación */}
+          <View style={styles.prediccionSection}>
+            <View style={styles.prediccionHeader}>
+              <Ionicons name="analytics" size={20} color="#2E7D32" />
+              <Text style={styles.prediccionTitle}>Predicción ML (Random Forest)</Text>
+            </View>
+            <PrediccionMLGerminacion
+              formData={{
+                fecha_siembra: fechaSiembra,
+                especie: especie,
+                clima: clima,
+                estado_capsula: estadoCapsulas,
+                cantidad_solicitada: parseInt(cantidadSolicitada) || 0,
+                no_capsulas: parseInt(numeroCapsulas) || 0
+              }}
+              onPrediccionComplete={handlePrediccionComplete}
+              disabled={isLoading}
+            />
+          </View>
+
           {/* Botones */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -564,5 +594,23 @@ const styles = StyleSheet.create({
     color: '#182d49',
     fontSize: 16,
     fontWeight: '600',
+  },
+  prediccionSection: {
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  prediccionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  prediccionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2E7D32',
+    marginLeft: 8,
   },
 });

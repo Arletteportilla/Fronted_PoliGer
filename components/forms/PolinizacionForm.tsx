@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, StyleSheet 
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { SimpleCalendarPicker } from '@/components/common';
-import { PredictionDisplay } from '@/components/prediction';
+import { PrediccionMLPolinizacion } from '@/components/polinizaciones/PrediccionMLPolinizacion';
 import { TIPOS_POLINIZACION, CLIMAS, CANTIDAD_SEMILLA } from '@/utils/polinizacionConstants';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { polinizacionPrediccionService } from '@/services/polinizacion-prediccion.service';
@@ -1136,13 +1136,26 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Sección de Predicción Automática */}
-              <PredictionDisplay
-                prediccionData={prediccionData}
-                loadingPrediccion={loadingPrediccion}
-                fechaInicio={form.fecha_polinizacion}
-                tipo="polinizacion"
-              />
+              {/* Sección de Predicción ML Automática */}
+              <View style={styles.formSection}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionIcon}>
+                    <Ionicons name="analytics-outline" size={20} color="#e9ad14" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Predicción de Maduración</Text>
+                </View>
+
+                <PrediccionMLPolinizacion
+                  formData={form}
+                  onPrediccionComplete={(resultado) => {
+                    // Aplicar la fecha estimada de maduración al formulario
+                    setForm((f: any) => ({
+                      ...f,
+                      fecha_maduracion: resultado.fecha_estimada_maduracion
+                    }));
+                  }}
+                />
+              </View>
 
               {/* Botón de acción */}
               <View style={styles.actionButtons}>

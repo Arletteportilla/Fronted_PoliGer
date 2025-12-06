@@ -68,7 +68,7 @@ export function usePerfilUsuarios() {
   const handleToggleStatus = useCallback(async (user: UserWithProfile, onSuccess?: () => void) => {
     try {
       const newStatus = !user.is_active;
-      await rbacService.toggleUserStatus(user.id, newStatus);
+      await rbacService.changeUserStatus(user.id, newStatus);
       await fetchUsuarios();
       onSuccess?.();
     } catch (error) {

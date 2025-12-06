@@ -1,9 +1,14 @@
 import api from './api';
-import { 
-  polinizacionPrediccionService, 
-  PrediccionPolinizacionRequest, 
-  PrediccionPolinizacionResponse 
+import {
+  polinizacionPrediccionService,
+  PrediccionPolinizacionRequest,
+  PrediccionPolinizacionResponse
 } from './polinizacion-prediccion.service';
+import {
+  germinacionMLService,
+  PrediccionGerminacionMLRequest,
+  PrediccionGerminacionMLResponse
+} from './germinacion-ml.service';
 
 export interface PrediccionRequest {
   nombre?: string;
@@ -158,6 +163,47 @@ class PrediccionService {
 
   obtenerColorPrecision(precision: number): string {
     return polinizacionPrediccionService.obtenerColorPrecision(precision);
+  }
+
+  // ============================================================================
+  // NUEVOS MÉTODOS PARA PREDICCIONES DE GERMINACIÓN ML (Random Forest)
+  // ============================================================================
+
+  /**
+   * Genera predicción de germinación usando Random Forest ML
+   */
+  async predecirGerminacionML(data: PrediccionGerminacionMLRequest): Promise<PrediccionGerminacionMLResponse> {
+    return germinacionMLService.predecir(data);
+  }
+
+  /**
+   * Obtiene información del modelo ML de germinación
+   */
+  async obtenerInfoModeloGerminacion() {
+    return germinacionMLService.obtenerInfoModelo();
+  }
+
+  /**
+   * Utilidades para predicciones de germinación ML
+   */
+  formatearFechaGerminacion(fecha: string): string {
+    return germinacionMLService.formatearFecha(fecha);
+  }
+
+  calcularDiasRestantesGerminacion(fechaObjetivo: string): number {
+    return germinacionMLService.calcularDiasRestantes(fechaObjetivo);
+  }
+
+  obtenerColorConfianzaGerminacion(nivelConfianza: 'alta' | 'media' | 'baja'): string {
+    return germinacionMLService.obtenerColorConfianza(nivelConfianza);
+  }
+
+  normalizarEstadoCapsula(estado: string): string {
+    return germinacionMLService.normalizarEstadoCapsula(estado);
+  }
+
+  normalizarClima(clima: string): string {
+    return germinacionMLService.normalizarClima(clima);
   }
 }
 

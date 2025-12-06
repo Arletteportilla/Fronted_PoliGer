@@ -13,13 +13,12 @@ import { usePermissions } from '@/hooks/usePermissions';
 import * as SecureStore from '@/services/secureStore';
 import { Ionicons } from '@expo/vector-icons';
 import { TabNavigation } from '@/components/navigation';
-import { UserManagementTable } from '@/components/UserManagement';
-import { CreateUserModal, UserFormData as CreateUserFormData } from '@/components/UserManagement/CreateUserModal';
-import { EditUserModal, UserFormData as EditUserFormData } from '@/components/UserManagement/EditUserModal';
 import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
 import { CambiarEstadoModal } from '@/components/modals/CambiarEstadoModal';
 import { FinalizarModal } from '@/components/modals/FinalizarModal';
+import { PolinizacionDetailsModal } from '@/components/modals/PolinizacionDetailsModal';
+import { GerminacionDetailsModal } from '@/components/modals/GerminacionDetailsModal';
 import Pagination from '@/components/filters/Pagination';
 import {
   PerfilResumen,
@@ -28,6 +27,7 @@ import {
   PerfilNotificacionesTab,
   PerfilPolinizacionesTab,
   PerfilGerminacionesTab,
+  PerfilUsuariosTab,
   type TabType
 } from '@/components/Perfil';
 import { styles } from '@/utils/Perfil/styles';
@@ -49,7 +49,6 @@ export default function PerfilScreen() {
   // Estados de datos
   const [polinizaciones, setPolinizaciones] = useState<Polinizacion[]>([]);
   const [germinaciones, setGerminaciones] = useState<Germinacion[]>([]);
-  const [usuarios, setUsuarios] = useState<UserWithProfile[]>([]);
   const [estadisticas, setEstadisticas] = useState<EstadisticasUsuario>({
     total_polinizaciones: 0,
     total_germinaciones: 0,
@@ -73,11 +72,8 @@ export default function PerfilScreen() {
   const [germinacionesTotalCount, setGerminacionesTotalCount] = useState(0);
 
   // Estado para modal de creación de usuario
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
 
   // Estado para modal de edición de usuario
-  const [showEditUserModal, setShowEditUserModal] = useState(false);
-  const [userToEdit, setUserToEdit] = useState<UserWithProfile | null>(null);
 
   // Estados para modales de polinizaciones
   const [showPolinizacionDetailsModal, setShowPolinizacionDetailsModal] = useState(false);
@@ -524,112 +520,6 @@ export default function PerfilScreen() {
     setRefreshing(false);
   }, [fetchData]);
 
-  // Función para crear usuario
-  const handleCreateUser = async (userData: CreateUserFormData) => {
-    try {
-      await rbacService.createUser(userData);
-      Alert.alert('Éxito', 'Usuario creado correctamente');
-      setShowCreateUserModal(false);
-      await fetchData(); // Refresh user list
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Error al crear usuario';
-      throw new Error(errorMessage);
-    }
-  };
-
-  // Función para editar usuario
-  const handleEditUser = (userToEdit: UserWithProfile) => {
-    setUserToEdit(userToEdit);
-    setShowEditUserModal(true);
-  };
-
-  const handleUpdateUser = async (userId: number, userData: EditUserFormData) => {
-    try {
-      await rbacService.updateUser(userId, userData);
-      Alert.alert('Éxito', 'Usuario actualizado correctamente');
-      setShowEditUserModal(false);
-      await fetchData(); // Refresh user list
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Error al actualizar usuario';
-      throw new Error(errorMessage);
-    }
-  };
-
-  // Función para eliminar usuario
-  const handleDeleteUser = async (userToDelete: UserWithProfile) => {
-    if (Platform.OS === 'web') {
-      if (confirm(`¿Está seguro que desea eliminar el usuario "${userToDelete.username}"?`)) {
-        try {
-          await rbacService.deleteUser(userToDelete.id);
-          Alert.alert('Éxito', 'Usuario eliminado correctamente');
-          await fetchData();
-        } catch (error: any) {
-          Alert.alert('Error', error.response?.data?.message || 'Error al eliminar usuario');
-        }
-      }
-    } else {
-      Alert.alert(
-        'Eliminar Usuario',
-        `¿Está seguro que desea eliminar el usuario "${userToDelete.username}"?`,
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          {
-            text: 'Eliminar',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await rbacService.deleteUser(userToDelete.id);
-                Alert.alert('Éxito', 'Usuario eliminado correctamente');
-                await fetchData();
-              } catch (error: any) {
-                Alert.alert('Error', error.response?.data?.message || 'Error al eliminar usuario');
-              }
-            }
-          }
-        ]
-      );
-    }
-  };
-
-  // Función para cambiar el estado activo/inactivo de un usuario
-  const handleToggleUserStatus = async (userToToggle: UserWithProfile) => {
-    const newStatus = !userToToggle.profile?.activo;
-    const statusText = newStatus ? 'activar' : 'desactivar';
-    
-    if (Platform.OS === 'web') {
-      if (confirm(`¿Está seguro que desea ${statusText} el usuario "${userToToggle.username}"?`)) {
-        try {
-          await rbacService.changeUserStatus(userToToggle.id, newStatus);
-          Alert.alert('Éxito', `Usuario ${newStatus ? 'activado' : 'desactivado'} correctamente`);
-          await fetchData();
-        } catch (error: any) {
-          Alert.alert('Error', error.response?.data?.message || `Error al ${statusText} usuario`);
-        }
-      }
-    } else {
-      Alert.alert(
-        `${newStatus ? 'Activar' : 'Desactivar'} Usuario`,
-        `¿Está seguro que desea ${statusText} el usuario "${userToToggle.username}"?`,
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          {
-            text: newStatus ? 'Activar' : 'Desactivar',
-            style: newStatus ? 'default' : 'destructive',
-            onPress: async () => {
-              try {
-                await rbacService.changeUserStatus(userToToggle.id, newStatus);
-                Alert.alert('Éxito', `Usuario ${newStatus ? 'activado' : 'desactivado'} correctamente`);
-                await fetchData();
-              } catch (error: any) {
-                Alert.alert('Error', error.response?.data?.message || `Error al ${statusText} usuario`);
-              }
-            }
-          }
-        ]
-      );
-    }
-  };
-
   // ============================================================================
   // FUNCIONES PARA POLINIZACIONES
   // ============================================================================
@@ -982,23 +872,14 @@ export default function PerfilScreen() {
 
   // Componentes de renderizado optimizados
   const renderResumen = () => {
-    return <PerfilResumen estadisticas={estadisticas} loading={loading} />;
-  };
-
-
-
-  const renderUsuarios = () => {
-    const usuariosArray = Array.isArray(usuarios) ? usuarios : [];
-    
     return (
-      <UserManagementTable
-        usuarios={usuariosArray}
+      <PerfilResumen 
+        estadisticas={estadisticas} 
         loading={loading}
-        onEditUser={handleEditUser}
-        onDeleteUser={handleDeleteUser}
-        onToggleStatus={handleToggleUserStatus}
-        onCreateUser={() => setShowCreateUserModal(true)}
-        currentUser={user}
+        polinizaciones={polinizaciones}
+        germinaciones={germinaciones}
+        onViewPolinizacion={handleViewPolinizacion}
+        onViewGerminacion={handleViewGerminacion}
       />
     );
   };
@@ -1087,485 +968,17 @@ export default function PerfilScreen() {
             onChangeStatusGerminacion={handleOpenChangeStatus}
           />
         )}
-        {tab === 'usuarios' && isAdmin() && renderUsuarios()}
+        {tab === 'usuarios' && isAdmin() && <PerfilUsuariosTab />}
       </View>
 
       {/* Modal de creación de usuario */}
-      <CreateUserModal
-        visible={showCreateUserModal}
-        onClose={() => setShowCreateUserModal(false)}
-        onCreateUser={handleCreateUser}
-      />
-
-      {/* Modal de edición de usuario */}
-      <EditUserModal
-        visible={showEditUserModal}
-        onClose={() => setShowEditUserModal(false)}
-        onEditUser={handleUpdateUser}
-        user={userToEdit}
-      />
-
-      {/* Modal de detalles de polinización */}
-      <Modal
-        visible={showPolinizacionDetailsModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowPolinizacionDetailsModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Detalles de Polinización</Text>
-              <TouchableOpacity onPress={() => setShowPolinizacionDetailsModal(false)}>
-                <Ionicons name="close" size={24} color="#374151" />
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={styles.modalBody}>
-              {selectedPolinizacion && (
-                <View style={styles.detailsContainer}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Código:</Text>
-                    <Text style={styles.detailValue}>{selectedPolinizacion.codigo || 'N/A'}</Text>
-                  </View>
-                  
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Tipo:</Text>
-                    <View style={[styles.tipoBadge, { backgroundColor: getTipoColor(selectedPolinizacion.tipo_polinizacion || 'SELF') }]}>
-                      <Text style={styles.tipoBadgeText}>{selectedPolinizacion.tipo_polinizacion || 'SELF'}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Planta Madre</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Género:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.madre_genero || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Especie:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.madre_especie || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Código:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.madre_codigo || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Clima:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.madre_clima || 'N/A'}</Text>
-                    </View>
-                  </View>
-
-                  {selectedPolinizacion.tipo_polinizacion !== 'SELF' && (
-                    <View style={styles.detailSection}>
-                      <Text style={styles.sectionTitle}>Planta Padre</Text>
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Género:</Text>
-                        <Text style={styles.detailValue}>{selectedPolinizacion.padre_genero || 'N/A'}</Text>
-                      </View>
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Especie:</Text>
-                        <Text style={styles.detailValue}>{selectedPolinizacion.padre_especie || 'N/A'}</Text>
-                      </View>
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Código:</Text>
-                        <Text style={styles.detailValue}>{selectedPolinizacion.padre_codigo || 'N/A'}</Text>
-                      </View>
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Clima:</Text>
-                        <Text style={styles.detailValue}>{selectedPolinizacion.padre_clima || 'N/A'}</Text>
-                      </View>
-                    </View>
-                  )}
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Nueva Planta</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Género:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.nueva_genero || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Especie:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.nueva_especie || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Código:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.nueva_codigo || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Clima:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.nueva_clima || 'N/A'}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Fechas</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Polinización:</Text>
-                      <Text style={styles.detailValue}>
-                        {selectedPolinizacion.fechapol 
-                          ? new Date(selectedPolinizacion.fechapol).toLocaleDateString('es-ES')
-                          : 'N/A'}
-                      </Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Maduración:</Text>
-                      <Text style={styles.detailValue}>
-                        {selectedPolinizacion.fechamad 
-                          ? new Date(selectedPolinizacion.fechamad).toLocaleDateString('es-ES')
-                          : 'N/A'}
-                      </Text>
-                    </View>
-                    {selectedPolinizacion.prediccion_fecha_estimada && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Predicción:</Text>
-                        <Text style={styles.detailValue}>
-                          {new Date(selectedPolinizacion.prediccion_fecha_estimada).toLocaleDateString('es-ES')}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Ubicación</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Tipo:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.ubicacion_tipo || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Nombre:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.ubicacion_nombre || 'N/A'}</Text>
-                    </View>
-                    {selectedPolinizacion.vivero && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Vivero:</Text>
-                        <Text style={styles.detailValue}>{selectedPolinizacion.vivero}</Text>
-                      </View>
-                    )}
-                    {selectedPolinizacion.mesa && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Mesa:</Text>
-                        <Text style={styles.detailValue}>{selectedPolinizacion.mesa}</Text>
-                      </View>
-                    )}
-                    {selectedPolinizacion.pared && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Pared:</Text>
-                        <Text style={styles.detailValue}>{selectedPolinizacion.pared}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Información Adicional</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Cápsulas:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.cantidad_capsulas || 0}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Estado:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.estado || 'INGRESADO'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Responsable:</Text>
-                      <Text style={styles.detailValue}>{selectedPolinizacion.responsable || 'N/A'}</Text>
-                    </View>
-                    {selectedPolinizacion.observaciones && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Observaciones:</Text>
-                        <Text style={styles.detailValue}>{selectedPolinizacion.observaciones}</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              )}
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.modalCloseButton}
-                onPress={() => setShowPolinizacionDetailsModal(false)}
-              >
-                <Text style={styles.modalCloseButtonText}>Cerrar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal de detalles de germinación */}
-      <Modal
+      <GerminacionDetailsModal
         visible={showGerminacionDetailsModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowGerminacionDetailsModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Detalles de Germinación</Text>
-              <TouchableOpacity onPress={() => setShowGerminacionDetailsModal(false)}>
-                <Ionicons name="close" size={24} color="#374151" />
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={styles.modalBody}>
-              {selectedGerminacion && (
-                <View style={styles.detailsContainer}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Código:</Text>
-                    <Text style={styles.detailValue}>{selectedGerminacion.codigo || 'N/A'}</Text>
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Información Botánica</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Género:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.genero || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Especie/Variedad:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.especie_variedad || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Clima:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.clima || 'N/A'}</Text>
-                    </View>
-                    {selectedGerminacion.tipo_polinizacion && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Tipo Polinización:</Text>
-                        <Text style={styles.detailValue}>{selectedGerminacion.tipo_polinizacion}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Fechas</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Siembra:</Text>
-                      <Text style={styles.detailValue}>
-                        {selectedGerminacion.fecha_siembra 
-                          ? new Date(selectedGerminacion.fecha_siembra).toLocaleDateString('es-ES')
-                          : 'N/A'}
-                      </Text>
-                    </View>
-                    {selectedGerminacion.fecha_polinizacion && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Polinización:</Text>
-                        <Text style={styles.detailValue}>
-                          {new Date(selectedGerminacion.fecha_polinizacion).toLocaleDateString('es-ES')}
-                        </Text>
-                      </View>
-                    )}
-                    {selectedGerminacion.prediccion_fecha_estimada && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Predicción:</Text>
-                        <Text style={styles.detailValue}>
-                          {new Date(selectedGerminacion.prediccion_fecha_estimada).toLocaleDateString('es-ES')}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Ubicación</Text>
-                    {selectedGerminacion.percha && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Percha:</Text>
-                        <Text style={styles.detailValue}>{selectedGerminacion.percha}</Text>
-                      </View>
-                    )}
-                    {selectedGerminacion.nivel && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Nivel:</Text>
-                        <Text style={styles.detailValue}>{selectedGerminacion.nivel}</Text>
-                      </View>
-                    )}
-                    {selectedGerminacion.clima_lab && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Clima Lab:</Text>
-                        <Text style={styles.detailValue}>{selectedGerminacion.clima_lab}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Cantidades</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Cantidad Solicitada:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.cantidad_solicitada || 0}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Número de Cápsulas:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.no_capsulas || 0}</Text>
-                    </View>
-                    {selectedGerminacion.disponibles !== undefined && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Disponibles:</Text>
-                        <Text style={styles.detailValue}>{selectedGerminacion.disponibles}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Estado</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Estado Cápsula:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.estado_capsula || 'N/A'}</Text>
-                    </View>
-                    {selectedGerminacion.estado_semilla && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Estado Semilla:</Text>
-                        <Text style={styles.detailValue}>{selectedGerminacion.estado_semilla}</Text>
-                      </View>
-                    )}
-                    {selectedGerminacion.cantidad_semilla && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Cantidad Semilla:</Text>
-                        <Text style={styles.detailValue}>{selectedGerminacion.cantidad_semilla}</Text>
-                      </View>
-                    )}
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Semilla en Stock:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.semilla_en_stock ? 'Sí' : 'No'}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Información Adicional</Text>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Responsable:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.responsable || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Etapa Actual:</Text>
-                      <Text style={styles.detailValue}>{selectedGerminacion.etapa_actual || 'N/A'}</Text>
-                    </View>
-                    {selectedGerminacion.observaciones && (
-                      <View style={styles.detailRow}>
-                        <Text style={styles.detailLabel}>Observaciones:</Text>
-                        <Text style={styles.detailValue}>{selectedGerminacion.observaciones}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Sección de Gestión de Etapa */}
-                  <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>Gestión de Etapa</Text>
-
-                    {/* Estado actual con badge color */}
-                    <View style={styles.estadoBadgeContainer}>
-                      <Text style={styles.detailLabel}>Estado Actual:</Text>
-                      <View style={[
-                        styles.estadoBadge,
-                        {
-                          backgroundColor:
-                            selectedGerminacion.estado_germinacion === 'FINALIZADO' ? '#D1FAE5' :
-                            selectedGerminacion.estado_germinacion === 'EN_PROCESO' ? '#FEF3C7' :
-                            '#E5E7EB'
-                        }
-                      ]}>
-                        <Ionicons
-                          name={
-                            selectedGerminacion.estado_germinacion === 'FINALIZADO' ? 'checkmark-circle' :
-                            selectedGerminacion.estado_germinacion === 'EN_PROCESO' ? 'time' :
-                            'ellipse'
-                          }
-                          size={18}
-                          color={
-                            selectedGerminacion.estado_germinacion === 'FINALIZADO' ? '#059669' :
-                            selectedGerminacion.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
-                            '#6B7280'
-                          }
-                        />
-                        <Text style={[
-                          styles.estadoBadgeText,
-                          {
-                            color:
-                              selectedGerminacion.estado_germinacion === 'FINALIZADO' ? '#059669' :
-                              selectedGerminacion.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
-                              '#6B7280'
-                          }
-                        ]}>
-                          {selectedGerminacion.estado_germinacion === 'FINALIZADO' ? 'Finalizado' :
-                           selectedGerminacion.estado_germinacion === 'EN_PROCESO' ? 'En Proceso' :
-                           'Inicial'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Botones de cambio de estado */}
-                    <View style={styles.etapaButtonsContainer}>
-                      {selectedGerminacion.etapa_actual !== 'FINALIZADO' && (
-                        <>
-                          {(selectedGerminacion.etapa_actual === 'INGRESADO' || !selectedGerminacion.etapa_actual) && (
-                            <TouchableOpacity
-                              style={[styles.etapaButton, { backgroundColor: '#F59E0B' }]}
-                              onPress={() => {
-                                if (Platform.OS === 'web') {
-                                  if (confirm('¿Cambiar el estado a "En Proceso"?')) {
-                                    handleCambiarEtapaGerminacion(selectedGerminacion.id, 'EN_PROCESO');
-                                  }
-                                } else {
-                                  Alert.alert(
-                                    'Cambiar Estado',
-                                    '¿Cambiar el estado a "En Proceso"?',
-                                    [
-                                      { text: 'Cancelar', style: 'cancel' },
-                                      {
-                                        text: 'Confirmar',
-                                        onPress: () => handleCambiarEtapaGerminacion(selectedGerminacion.id, 'EN_PROCESO')
-                                      }
-                                    ]
-                                  );
-                                }
-                              }}
-                            >
-                              <Ionicons name="play-circle" size={20} color="#FFFFFF" />
-                              <Text style={styles.etapaButtonText}>Marcar como En Proceso</Text>
-                            </TouchableOpacity>
-                          )}
-
-                          {selectedGerminacion.estado_germinacion === 'EN_PROCESO' && (
-                            <TouchableOpacity
-                              style={[styles.etapaButton, { backgroundColor: '#10B981' }]}
-                              onPress={() => handleOpenFinalizarModal(selectedGerminacion)}
-                            >
-                              <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                              <Text style={styles.etapaButtonText}>Finalizar Germinación</Text>
-                            </TouchableOpacity>
-                          )}
-                        </>
-                      )}
-
-                      {selectedGerminacion.etapa_actual === 'FINALIZADO' && (
-                        <View style={styles.etapaCompletadaContainer}>
-                          <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-                          <Text style={styles.etapaCompletadaText}>
-                            Germinación completada
-                            {selectedGerminacion.fecha_germinacion &&
-                              ` el ${new Date(selectedGerminacion.fecha_germinacion).toLocaleDateString('es-ES')}`
-                            }
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                </View>
-              )}
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.modalCloseButton}
-                onPress={() => setShowGerminacionDetailsModal(false)}
-              >
-                <Text style={styles.modalCloseButtonText}>Cerrar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        germinacion={selectedGerminacion}
+        onClose={() => setShowGerminacionDetailsModal(false)}
+        onCambiarEtapa={handleCambiarEtapaGerminacion}
+        onOpenFinalizar={handleOpenFinalizarModal}
+      />
 
       {/* Modal de edición de germinación */}
       {selectedGerminacion && (
