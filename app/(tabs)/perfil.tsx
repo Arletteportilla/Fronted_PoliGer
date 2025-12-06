@@ -50,6 +50,7 @@ export default function PerfilScreen() {
   // Estados de datos
   const [polinizaciones, setPolinizaciones] = useState<Polinizacion[]>([]);
   const [germinaciones, setGerminaciones] = useState<Germinacion[]>([]);
+  const [usuarios, setUsuarios] = useState<UserWithProfile[]>([]);
   const [estadisticas, setEstadisticas] = useState<EstadisticasUsuario>({
     total_polinizaciones: 0,
     total_germinaciones: 0,
