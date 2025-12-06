@@ -123,7 +123,8 @@ export default function PerfilScreen() {
             const result = await polinizacionService.getMisPolinizacionesPaginated({
               page: polinizacionesPage,
               page_size: 20,
-              search: searchPolinizaciones || undefined
+              search: searchPolinizaciones || undefined,
+              dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
             });
             misPolinizaciones = Array.isArray(result.results) ? result.results : [];
             setPolinizacionesTotalPages(result.totalPages);
@@ -255,7 +256,8 @@ export default function PerfilScreen() {
       const result = await polinizacionService.getMisPolinizacionesPaginated({
         page: 1,
         page_size: 20,
-        search: searchPolinizaciones || undefined
+        search: searchPolinizaciones || undefined,
+        dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
       });
       setPolinizaciones(Array.isArray(result.results) ? result.results : []);
       setPolinizacionesTotalPages(result.totalPages);
@@ -1276,7 +1278,8 @@ export default function PerfilScreen() {
                   const result = await polinizacionService.getMisPolinizacionesPaginated({
                     page: polinizacionesPage,
                     page_size: 20,
-                    search: searchPolinizaciones || undefined
+                    search: searchPolinizaciones || undefined,
+                    dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
                   });
                   setPolinizaciones(Array.isArray(result.results) ? result.results : []);
                   setPolinizacionesTotalPages(result.totalPages);
