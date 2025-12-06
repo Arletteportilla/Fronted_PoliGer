@@ -147,7 +147,8 @@ export default function PerfilScreen() {
             const result = await germinacionService.getMisGerminacionesPaginated({
               page: germinacionesPage,
               page_size: 20,
-              search: searchGerminaciones || undefined
+              search: searchGerminaciones || undefined,
+              dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
             });
             misGerminaciones = Array.isArray(result.results) ? result.results : [];
             setGerminacionesTotalPages(result.totalPages);
@@ -279,7 +280,8 @@ export default function PerfilScreen() {
       const result = await germinacionService.getMisGerminacionesPaginated({
         page: 1,
         page_size: 20,
-        search: searchGerminaciones || undefined
+        search: searchGerminaciones || undefined,
+        dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
       });
       setGerminaciones(Array.isArray(result.results) ? result.results : []);
       setGerminacionesTotalPages(result.totalPages);
@@ -1026,7 +1028,8 @@ export default function PerfilScreen() {
                   const result = await germinacionService.getMisGerminacionesPaginated({
                     page: germinacionesPage,
                     page_size: 20,
-                    search: searchGerminaciones || undefined
+                    search: searchGerminaciones || undefined,
+                    dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
                   });
                   setGerminaciones(Array.isArray(result.results) ? result.results : []);
                   setGerminacionesTotalPages(result.totalPages);
