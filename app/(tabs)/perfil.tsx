@@ -131,7 +131,7 @@ export default function PerfilScreen() {
             setPolinizacionesTotalCount(result.count);
           } else {
             // Para resumen y notificaciones, obtener todas sin paginación
-            const pols = await polinizacionService.getMisPolinizaciones('');
+            const pols = await polinizacionService.getMisPolinizaciones(0); // 0 = todas
             misPolinizaciones = Array.isArray(pols) ? pols : [];
           }
         } catch (error) {
@@ -155,7 +155,7 @@ export default function PerfilScreen() {
             setGerminacionesTotalCount(result.count);
           } else {
             // Para resumen y notificaciones, obtener todas sin paginación
-            const germs = await germinacionService.getMisGerminaciones('');
+            const germs = await germinacionService.getMisGerminaciones(0); // 0 = todas
             misGerminaciones = Array.isArray(germs) ? germs : [];
           }
         } catch (error) {
