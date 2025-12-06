@@ -32,16 +32,6 @@ class RBACService {
     return response.data;
   }
   
-  async getMyPermissions(): Promise<{
-    usuario: string;
-    rol: string;
-    rol_display: string;
-    permisos: UserPermissions;
-  }> {
-    const response = await api.get('user-profiles/mis_permisos/');
-    return response.data;
-  }
-  
   async updateMyProfile(data: Partial<UpdateProfileRequest>): Promise<UserProfile> {
     // Primero obtenemos nuestro perfil actual
     const currentProfile = await this.getMyProfile();
@@ -382,23 +372,6 @@ class RBACService {
   }
 
   /**
-   * Actualiza las metas de rendimiento de un usuario
-   */
-  async updateUserMetas(userId: number, metasData: {
-    meta_polinizaciones: number;
-    meta_germinaciones: number;
-    tasa_exito_objetivo: number;
-  }): Promise<any> {
-    try {
-      const response = await api.post(`/user-metas/${userId}/update_metas/`, metasData);
-      return response.data;
-    } catch (error: any) {
-      console.error('Error actualizando metas:', error);
-      throw error;
-    }
-  }
-
-  /**
    * Actualiza el progreso mensual de un usuario
    */
   async updateUserProgress(userId: number): Promise<any> {
@@ -407,19 +380,6 @@ class RBACService {
       return response.data;
     } catch (error: any) {
       console.error('Error actualizando progreso:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Actualiza el progreso mensual de todos los usuarios
-   */
-  async updateAllUsersProgress(): Promise<any> {
-    try {
-      const response = await api.post(`/user-metas/actualizar_progreso_todos/`);
-      return response.data;
-    } catch (error: any) {
-      console.error('Error actualizando progreso de todos los usuarios:', error);
       throw error;
     }
   }

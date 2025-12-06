@@ -235,15 +235,6 @@ export const reportesService = {
     }
   },
 
-  async getAlertasPrediccion() {
-    const token = await SecureStore.secureStore.getItem('authToken');
-    if (!token) throw new Error('No hay token de autenticación');
-    const res = await api.get('/laboratorio/predicciones-alertas/', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
-  },
-
   generarReporteConEstadisticas: async (tipo: 'germinaciones' | 'polinizaciones' | 'ambos', formato: string = 'excel', filtros: any = {}) => {
     try {
       // Obtener el token de autenticación

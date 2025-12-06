@@ -63,10 +63,14 @@ export const EstadisticasPrecisionPolinizacion: React.FC<EstadisticasPrecisionPo
       setLoading(true);
       console.log('📊 Cargando estadísticas de predicciones de polinización...');
 
-      const data = await polinizacionService.obtenerEstadisticasPredicciones();
-      setEstadisticas(data);
+      // NOTA: La función obtenerEstadisticasPredicciones() fue eliminada porque
+      // el endpoint backend /estadisticas/predicciones/polinizacion/ no existe
+      // TODO: Implementar endpoint en backend o usar datos locales
+      // const data = await polinizacionService.obtenerEstadisticasPredicciones();
+      // setEstadisticas(data);
 
-      console.log('✅ Estadísticas cargadas:', data);
+      console.log('⚠️ Función de estadísticas no disponible - endpoint eliminado');
+      Alert.alert('No disponible', 'Las estadísticas de predicciones no están disponibles actualmente');
     } catch (error: any) {
       console.error('❌ Error cargando estadísticas:', error);
       Alert.alert('Error', 'No se pudieron cargar las estadísticas de predicciones');

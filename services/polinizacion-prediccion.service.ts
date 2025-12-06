@@ -377,35 +377,6 @@ class PolinizacionPrediccionService {
   }
 
   /**
-   * Función principal que maneja automáticamente el flujo de predicción
-   * Determina qué tipo de predicción realizar según los datos disponibles
-   */
-  async prediccionCompleta(data: PrediccionPolinizacionRequest): Promise<any> {
-    try {
-      console.log('🌸 Ejecutando predicción completa de polinización:', data);
-      
-      const response = await api.post('predicciones/polinizacion/completa/', data);
-      
-      if (response.data.success) {
-        console.log('✅ Predicción completa ejecutada exitosamente');
-        return response.data.resultado;
-      } else {
-        throw new Error(response.data.error || 'Error desconocido en predicción completa');
-      }
-    } catch (error: any) {
-      console.error('❌ Error en predicción completa de polinización:', error);
-      
-      if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
-      } else if (error.response?.data?.networkError) {
-        throw new Error('Error de conexión. Verifica tu conexión a internet.');
-      } else {
-        throw new Error('Error inesperado en predicción completa');
-      }
-    }
-  }
-
-  /**
    * Obtiene estadísticas generales del sistema de predicciones
    * Incluye métricas de rendimiento, distribuciones y tendencias
    */
