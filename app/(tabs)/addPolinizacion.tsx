@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, Text, ScrollView, View, Modal, Dimensions, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { polinizacionService } from '@/services/polinizacion.service';
-import { prediccionService } from '@/services/prediccion.service';
+import { polinizacionPrediccionService } from '@/services/polinizacion-prediccion.service';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useToast } from '@/contexts/ToastContext';
 import { SimpleCalendarPicker } from '@/components/common';
@@ -134,7 +134,7 @@ export default function AddPolinizacionScreen() {
       console.log('Datos para predicción:', datosPrediccion);
 
       // Generar predicción inicial
-      const resultado = await prediccionService.predecirPolinizacionInicial({
+      const resultado = await polinizacionPrediccionService.generarPrediccionInicial({
         especie: especie.trim(),
         ...(clima && { clima }),
         ...(ubicacion && { ubicacion }),
