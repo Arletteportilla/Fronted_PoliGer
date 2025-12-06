@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, TextInput, Platform, Modal } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-// import DebugPolinizaciones from '@/DEBUG_POLINIZACIONES';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -122,47 +121,25 @@ export default function PerfilScreen() {
         try {
           if (tab === 'polinizaciones') {
             // Usar paginación para la tab de polinizaciones
-            console.log('🔍 [PERFIL] Llamando getMisPolinizacionesPaginated con:', {
-              page: polinizacionesPage,
-              page_size: 20,
-              search: searchPolinizaciones || undefined,
-              dias_recientes: 0
-            });
             const result = await polinizacionService.getMisPolinizacionesPaginated({
               page: polinizacionesPage,
               page_size: 20,
               search: searchPolinizaciones || undefined,
               dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
             });
-            console.log('✅ [PERFIL] Resultado getMisPolinizacionesPaginated:', {
-              count: result.count,
-              totalPages: result.totalPages,
-              resultsLength: result.results?.length,
-              results: result.results
-            });
             misPolinizaciones = Array.isArray(result.results) ? result.results : [];
             setPolinizacionesTotalPages(result.totalPages);
             setPolinizacionesTotalCount(result.count);
           } else {
             // Para resumen y notificaciones, obtener todas sin paginación
-            console.log('🔍 [PERFIL] Llamando getMisPolinizaciones(0)');
             const pols = await polinizacionService.getMisPolinizaciones(0); // 0 = todas
-            console.log('✅ [PERFIL] Resultado getMisPolinizaciones:', {
-              length: Array.isArray(pols) ? pols.length : 0,
-              data: pols
-            });
             misPolinizaciones = Array.isArray(pols) ? pols : [];
           }
         } catch (error) {
-          console.error('❌ [PERFIL] Error obteniendo polinizaciones:', error);
+          console.error('Error obteniendo polinizaciones:', error);
           misPolinizaciones = [];
         }
       }
-
-      console.log('📊 [PERFIL] misPolinizaciones final:', {
-        length: misPolinizaciones.length,
-        data: misPolinizaciones
-      });
 
       if (tab === 'germinaciones' || tab === 'resumen' || tab === 'notificaciones') {
         try {
