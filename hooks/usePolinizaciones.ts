@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { polinizacionService } from '@/services/polinizacion.service';
-import { prediccionService } from '@/services/prediccion.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useRouter } from 'expo-router';

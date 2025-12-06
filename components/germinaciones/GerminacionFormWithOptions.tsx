@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TextInput, ScrollView } from 'react-native';
 import { OptionsPicker } from '@/components/common';
-import { germinacionOptionsService, GerminacionOptions } from '@/services/germinacionOptions.service';
 import { SimpleCalendarPicker } from '@/components/common';
+
+// Opciones estáticas para el formulario
+interface GerminacionOptions {
+  niveles: { value: string; label: string }[];
+  tipos_semilla: { value: string; label: string }[];
+  estados_capsula: { value: string; label: string }[];
+}
 
 interface GerminacionFormProps {
   form: any;
@@ -10,47 +16,39 @@ interface GerminacionFormProps {
   saving: boolean;
 }
 
+// Opciones estáticas (valores por defecto)
+const DEFAULT_OPTIONS: GerminacionOptions = {
+  niveles: [
+    { value: 'A', label: 'A' },
+    { value: 'B', label: 'B' },
+    { value: 'C', label: 'C' },
+  ],
+  tipos_semilla: [
+    { value: 'MADURA', label: 'Madura' },
+    { value: 'TIERNA', label: 'Tierna' },
+    { value: 'VANA', label: 'Vana' },
+  ],
+  estados_capsula: [
+    { value: 'VIABLE', label: 'Viable' },
+    { value: 'NO_VIABLE', label: 'No viable' },
+    { value: 'GERMINADA', label: 'Germinada' },
+    { value: 'EXITOSA', label: 'Exitosa' },
+    { value: 'CERRADA', label: 'Cerrada' },
+    { value: 'ABIERTA', label: 'Abierta' },
+    { value: 'SEMIABIERTA', label: 'Semiabierta' },
+  ],
+};
+
 export const GerminacionFormWithOptions: React.FC<GerminacionFormProps> = ({
   form,
   setForm,
   saving,
 }) => {
-  const [options, setOptions] = useState<GerminacionOptions>({
-    niveles: [],
-    tipos_semilla: [],
-    estados_capsula: [],
-  });
-  const [loadingOptions, setLoadingOptions] = useState(true);
-
-  useEffect(() => {
-    loadOptions();
-  }, []);
-
-  const loadOptions = async () => {
-    try {
-      console.log('🔍 Cargando opciones de germinación...');
-      const loadedOptions = await germinacionOptionsService.getOptions();
-      setOptions(loadedOptions);
-      console.log('✅ Opciones cargadas:', loadedOptions);
-    } catch (error) {
-      console.error('❌ Error cargando opciones:', error);
-      Alert.alert('Error', 'No se pudieron cargar las opciones. Usando valores por defecto.');
-    } finally {
-      setLoadingOptions(false);
-    }
-  };
+  const options = DEFAULT_OPTIONS;
 
   const updateForm = (field: string, value: any) => {
     setForm({ ...form, [field]: value });
   };
-
-  if (loadingOptions) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Cargando opciones...</Text>
-      </View>
-    );
-  }
 
   return (
     <ScrollView style={styles.container}>
