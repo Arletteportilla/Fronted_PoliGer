@@ -4,6 +4,7 @@ import { styles } from '@/utils/Perfil/styles';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import type { EstadisticasUsuario, Polinizacion, Germinacion } from '@/types/index';
+import { getEstadoColor } from '@/utils/colorHelpers';
 
 interface PerfilResumenProps {
   estadisticas: EstadisticasUsuario;
@@ -14,10 +15,10 @@ interface PerfilResumenProps {
   onViewGerminacion?: (germinacion: Germinacion) => void;
 }
 
-export function PerfilResumen({ 
-  estadisticas, 
-  loading, 
-  polinizaciones = [], 
+export function PerfilResumen({
+  estadisticas,
+  loading,
+  polinizaciones = [],
   germinaciones = [],
   onViewPolinizacion,
   onViewGerminacion
@@ -55,21 +56,6 @@ export function PerfilResumen({
       return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
     } catch {
       return 'N/A';
-    }
-  };
-
-  const getEstadoColor = (estado?: string) => {
-    switch (estado?.toUpperCase()) {
-      case 'INGRESADO':
-      case 'INICIAL':
-        return '#3B82F6';
-      case 'EN_PROCESO':
-        return '#F59E0B';
-      case 'FINALIZADO':
-      case 'LISTO':
-        return '#10B981';
-      default:
-        return '#6B7280';
     }
   };
 

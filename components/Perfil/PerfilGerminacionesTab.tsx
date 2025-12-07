@@ -6,6 +6,7 @@ import { styles } from '@/utils/Perfil/styles';
 import { Colors } from '@/constants/Colors';
 import Pagination from '@/components/filters/Pagination';
 import type { Germinacion } from '@/types/index';
+import { getEstadoColor } from '@/utils/colorHelpers';
 
 export interface PerfilGerminacionesTabProps {
   loading: boolean;
@@ -27,18 +28,6 @@ export interface PerfilGerminacionesTabProps {
   handleOpenChangeStatus: (item: Germinacion) => void;
   onDescargarPDF: () => void;
 }
-
-// Función auxiliar para colores de estado
-const getEstadoColor = (estado: string): string => {
-  const estadoLower = estado?.toLowerCase() || '';
-  if (estadoLower === 'completado') return '#10B981';
-  if (estadoLower === 'en proceso') return '#F59E0B';
-  if (estadoLower === 'ingresado') return '#6B7280';
-  if (estadoLower === 'en desarrollo') return '#fbbf24';
-  if (estadoLower === 'maduro') return '#60a5fa';
-  if (estadoLower === 'pendiente') return '#f59e0b';
-  return '#6B7280';
-};
 
 export function PerfilGerminacionesTab({
   loading,

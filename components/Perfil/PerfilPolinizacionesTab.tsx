@@ -6,6 +6,7 @@ import { styles } from '@/utils/Perfil/styles';
 import { Colors } from '@/constants/Colors';
 import Pagination from '@/components/filters/Pagination';
 import type { Polinizacion } from '@/types/index';
+import { getEstadoColor, getTipoColor } from '@/utils/colorHelpers';
 
 export interface PerfilPolinizacionesTabProps {
   loading: boolean;
@@ -26,27 +27,6 @@ export interface PerfilPolinizacionesTabProps {
   handleDeletePolinizacion: (item: Polinizacion) => void;
   onDescargarPDF: () => void;
 }
-
-// Funciones auxiliares para colores
-const getTipoColor = (tipo: string): string => {
-  const tipoLower = tipo?.toLowerCase() || '';
-  if (tipoLower === 'self') return '#3B82F6';
-  if (tipoLower === 'sibling') return '#8B5CF6';
-  if (tipoLower === 'híbrida' || tipoLower === 'hibrida') return '#F59E0B';
-  if (tipoLower === 'replante') return '#3b82f6';
-  return '#3B82F6';
-};
-
-const getEstadoColor = (estado: string): string => {
-  const estadoLower = estado?.toLowerCase() || '';
-  if (estadoLower === 'completado') return '#10B981';
-  if (estadoLower === 'en proceso') return '#F59E0B';
-  if (estadoLower === 'ingresado') return '#6B7280';
-  if (estadoLower === 'en desarrollo') return '#fbbf24';
-  if (estadoLower === 'maduro') return '#60a5fa';
-  if (estadoLower === 'pendiente') return '#f59e0b';
-  return '#6B7280';
-};
 
 export function PerfilPolinizacionesTab({
   loading,
