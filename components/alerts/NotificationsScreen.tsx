@@ -27,14 +27,14 @@ const isTablet = width >= 768;
 
 // Usar los colores del sistema definidos en Colors.ts
 
-// Tipos de filtros basados en los tipos reales del sistema
+// Tipos de filtros útiles para el usuario
 const FILTER_TYPES = [
   { id: 'all', label: 'Todas', icon: 'albums-outline' },
-  { id: 'NUEVA_GERMINACION', label: 'Germinaciones', icon: 'leaf-outline' },
-  { id: 'NUEVA_POLINIZACION', label: 'Polinizaciones', icon: 'flower-outline' },
-  { id: 'ESTADO_ACTUALIZADO', label: 'Estados', icon: 'sync-outline' },
-  { id: 'ESTADO_POLINIZACION_ACTUALIZADO', label: 'Estados Pol.', icon: 'sync-outline' },
+  { id: 'unread', label: 'No Leídas', icon: 'mail-unread-outline' },
+  { id: 'germinaciones', label: 'Germinaciones', icon: 'leaf-outline' },
+  { id: 'polinizaciones', label: 'Polinizaciones', icon: 'flower-outline' },
   { id: 'RECORDATORIO_REVISION', label: 'Recordatorios', icon: 'time-outline' },
+  { id: 'favoritas', label: 'Favoritas', icon: 'star-outline' },
 ];
 
 interface NotificationDetailModalProps {
@@ -328,12 +328,38 @@ export function NotificationsScreen() {
 
   const filters: NotificationFilters = useMemo(() => {
     const filter: NotificationFilters = {};
-    if (activeFilter !== 'all') {
-      filter.tipo = activeFilter;
+
+    // Mapear filtros especiales a parámetros del backend
+    switch (activeFilter) {
+      case 'all':
+        // Sin filtros adicionales
+        break;
+      case 'unread':
+        filter.leida = false;
+        break;
+      case 'favoritas':
+        filter.favorita = true;
+        break;
+      case 'germinaciones':
+        // El backend solo soporta filtrar por un tipo específico
+        // Vamos a filtrar por NUEVA_GERMINACION como tipo principal
+        filter.tipo = 'NUEVA_GERMINACION';
+        break;
+      case 'polinizaciones':
+        filter.tipo = 'NUEVA_POLINIZACION';
+        break;
+      case 'RECORDATORIO_REVISION':
+        filter.tipo = 'RECORDATORIO_REVISION';
+        break;
+      default:
+        // Si es un tipo directo del backend, usarlo
+        filter.tipo = activeFilter;
     }
+
     if (searchQuery.trim()) {
       filter.search = searchQuery.trim();
     }
+
     return filter;
   }, [activeFilter, searchQuery]);
 

@@ -72,7 +72,7 @@ export const notificacionesService = {
   getNotificaciones: async (filters?: NotificationFilters): Promise<Notification[]> => {
     try {
       const params = new URLSearchParams();
-      
+
       // Filtros específicos del backend
       if (filters?.leida === false) {
         params.append('solo_no_leidas', 'true');
@@ -80,15 +80,22 @@ export const notificacionesService = {
       if (filters?.archivada === true) {
         params.append('incluir_archivadas', 'true');
       }
-      if (filters?.tipo) params.append('tipo', filters.tipo);
-      if (filters?.search) params.append('search', filters.search);
+      if (filters?.favorita === true) {
+        params.append('favorita', 'true');
+      }
+      if (filters?.tipo) {
+        params.append('tipo', filters.tipo);
+      }
+      if (filters?.search) {
+        params.append('search', filters.search);
+      }
 
-      const url = params.toString() 
+      const url = params.toString()
         ? `notifications/?${params.toString()}`
         : 'notifications/';
-      
-      console.log('🔔 Obteniendo notificaciones:', url);
-      
+
+      console.log('🔔 Obteniendo notificaciones con filtros:', filters, '| URL:', url);
+
       const response = await api.get(url);
       
       // El backend devuelve un array directo
