@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, TextInput, Platform, Modal } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, Platform, Modal } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { polinizacionService } from '@/services/polinizacion.service';
@@ -18,9 +18,7 @@ import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
 import { CambiarEstadoModal } from '@/components/modals/CambiarEstadoModal';
 import { FinalizarModal } from '@/components/modals/FinalizarModal';
-import { PolinizacionDetailsModal } from '@/components/modals/PolinizacionDetailsModal';
 import { GerminacionDetailsModal } from '@/components/modals/GerminacionDetailsModal';
-import Pagination from '@/components/filters/Pagination';
 import {
   PerfilResumen,
   PerfilHeader,
@@ -32,7 +30,6 @@ import {
   type TabType
 } from '@/components/Perfil';
 import { styles } from '@/utils/Perfil/styles';
-import { Colors } from '@/constants/Colors';
 import type { Polinizacion, Germinacion, EstadisticasUsuario, UserWithProfile } from '@/types/index';
 
 export default function PerfilScreen() {
@@ -40,7 +37,6 @@ export default function PerfilScreen() {
   const toast = useToast();
   const { canViewGerminaciones, canViewPolinizaciones, isAdmin } = usePermissions();
   const { showConfirmation } = useConfirmation();
-  const router = useRouter();
   const params = useLocalSearchParams();
 
   // Estados principales
@@ -120,7 +116,7 @@ export default function PerfilScreen() {
             const result = await polinizacionService.getMisPolinizacionesPaginated({
               page: polinizacionesPage,
               page_size: 20,
-              search: searchPolinizaciones || undefined,
+              ...(searchPolinizaciones && { search: searchPolinizaciones }),
               dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
             });
             misPolinizaciones = Array.isArray(result.results) ? result.results : [];
@@ -144,7 +140,7 @@ export default function PerfilScreen() {
             const result = await germinacionService.getMisGerminacionesPaginated({
               page: germinacionesPage,
               page_size: 20,
-              search: searchGerminaciones || undefined,
+              ...(searchGerminaciones && { search: searchGerminaciones }),
               dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
             });
             misGerminaciones = Array.isArray(result.results) ? result.results : [];
@@ -254,7 +250,7 @@ export default function PerfilScreen() {
       const result = await polinizacionService.getMisPolinizacionesPaginated({
         page: 1,
         page_size: 20,
-        search: searchPolinizaciones || undefined,
+        ...(searchPolinizaciones && { search: searchPolinizaciones }),
         dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
       });
       setPolinizaciones(Array.isArray(result.results) ? result.results : []);
@@ -277,7 +273,7 @@ export default function PerfilScreen() {
       const result = await germinacionService.getMisGerminacionesPaginated({
         page: 1,
         page_size: 20,
-        search: searchGerminaciones || undefined,
+        ...(searchGerminaciones && { search: searchGerminaciones }),
         dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
       });
       setGerminaciones(Array.isArray(result.results) ? result.results : []);
@@ -922,7 +918,7 @@ export default function PerfilScreen() {
                   const result = await germinacionService.getMisGerminacionesPaginated({
                     page: germinacionesPage,
                     page_size: 20,
-                    search: searchGerminaciones || undefined,
+                    ...(searchGerminaciones && { search: searchGerminaciones }),
                     dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
                   });
                   setGerminaciones(Array.isArray(result.results) ? result.results : []);
@@ -1174,7 +1170,7 @@ export default function PerfilScreen() {
                   const result = await polinizacionService.getMisPolinizacionesPaginated({
                     page: polinizacionesPage,
                     page_size: 20,
-                    search: searchPolinizaciones || undefined,
+                    ...(searchPolinizaciones && { search: searchPolinizaciones }),
                     dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
                   });
                   setPolinizaciones(Array.isArray(result.results) ? result.results : []);
