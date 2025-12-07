@@ -144,7 +144,7 @@ function NotificationDetailModal({
             {notification.detalles && (
               <View style={styles.detailsContainer}>
                 {/* Detalles específicos para polinizaciones */}
-                {(notification.tipo === 'NUEVA_POLINIZACION' || notification.tipo === 'ESTADO_POLINIZACION_ACTUALIZADO') && notification.detalles.polinizacion_id && (
+                {(notification.tipo === 'NUEVA_POLINIZACION' || notification.tipo === 'ESTADO_POLINIZACION_ACTUALIZADO') && notification.detalles.polinizacion_id ? (
                   <>
                     {notification.detalles.fecha_polinizacion && (
                       <View style={styles.detailRow}>
@@ -192,7 +192,7 @@ function NotificationDetailModal({
                           Planta Madre:
                         </Text>
                         <Text style={[styles.detailValue, { color: colors.text }]}>
-                          {notification.detalles.madre_genero} {notification.detalles.madre_especie}
+                          {notification.detalles.madre_genero ? `${notification.detalles.madre_genero} ` : ''}{notification.detalles.madre_especie}
                         </Text>
                       </View>
                     )}
@@ -202,7 +202,7 @@ function NotificationDetailModal({
                           Planta Padre:
                         </Text>
                         <Text style={[styles.detailValue, { color: colors.text }]}>
-                          {notification.detalles.padre_genero} {notification.detalles.padre_especie}
+                          {notification.detalles.padre_genero ? `${notification.detalles.padre_genero} ` : ''}{notification.detalles.padre_especie}
                         </Text>
                       </View>
                     )}
@@ -212,18 +212,22 @@ function NotificationDetailModal({
                           Nueva Planta:
                         </Text>
                         <Text style={[styles.detailValue, { color: colors.text, fontWeight: '600' }]}>
-                          {notification.detalles.nueva_genero} {notification.detalles.nueva_especie}
+                          {notification.detalles.nueva_genero ? `${notification.detalles.nueva_genero} ` : ''}{notification.detalles.nueva_especie}
                         </Text>
                       </View>
                     )}
                   </>
-                )}
-
-                {/* Detalles genéricos para otros tipos de notificaciones */}
-                {notification.tipo !== 'NUEVA_POLINIZACION' && notification.tipo !== 'ESTADO_POLINIZACION_ACTUALIZADO' && (
+                ) : (
+                  /* Detalles genéricos para otros tipos de notificaciones */
                   <>
                     {Object.entries(notification.detalles)
-                      .filter(([key]) => !['polinizacion_id', 'germinacion_id'].includes(key))
+                      .filter(([key, value]) =>
+                        !['polinizacion_id', 'germinacion_id'].includes(key) &&
+                        value !== null &&
+                        value !== undefined &&
+                        value !== '' &&
+                        value !== 'N/A'
+                      )
                       .map(([key, value]) => (
                         <View key={key} style={styles.detailRow}>
                           <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
