@@ -143,16 +143,99 @@ function NotificationDetailModal({
 
             {notification.detalles && (
               <View style={styles.detailsContainer}>
-                {Object.entries(notification.detalles).map(([key, value]) => (
-                  <View key={key} style={styles.detailRow}>
-                    <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
-                      {key}:
-                    </Text>
-                    <Text style={[styles.detailValue, { color: colors.text }]}>
-                      {String(value)}
-                    </Text>
-                  </View>
-                ))}
+                {/* Detalles específicos para polinizaciones */}
+                {(notification.tipo === 'NUEVA_POLINIZACION' || notification.tipo === 'ESTADO_POLINIZACION_ACTUALIZADO') && notification.detalles.polinizacion_id && (
+                  <>
+                    {notification.detalles.fecha_polinizacion && (
+                      <View style={styles.detailRow}>
+                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                          Fecha de Polinización:
+                        </Text>
+                        <Text style={[styles.detailValue, { color: colors.text }]}>
+                          {new Date(notification.detalles.fecha_polinizacion).toLocaleDateString('es-ES')}
+                        </Text>
+                      </View>
+                    )}
+                    {notification.detalles.prediccion_fecha_estimada && (
+                      <View style={styles.detailRow}>
+                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                          Fecha Predicha de Maduración:
+                        </Text>
+                        <Text style={[styles.detailValue, { color: colors.text }]}>
+                          {new Date(notification.detalles.prediccion_fecha_estimada).toLocaleDateString('es-ES')}
+                        </Text>
+                      </View>
+                    )}
+                    {notification.detalles.tipo_polinizacion && (
+                      <View style={styles.detailRow}>
+                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                          Tipo de Polinización:
+                        </Text>
+                        <Text style={[styles.detailValue, { color: colors.text }]}>
+                          {notification.detalles.tipo_polinizacion}
+                        </Text>
+                      </View>
+                    )}
+                    {notification.detalles.estado && (
+                      <View style={styles.detailRow}>
+                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                          Estado:
+                        </Text>
+                        <Text style={[styles.detailValue, { color: colors.text }]}>
+                          {notification.detalles.estado}
+                        </Text>
+                      </View>
+                    )}
+                    {notification.detalles.madre_especie && (
+                      <View style={styles.detailRow}>
+                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                          Planta Madre:
+                        </Text>
+                        <Text style={[styles.detailValue, { color: colors.text }]}>
+                          {notification.detalles.madre_genero} {notification.detalles.madre_especie}
+                        </Text>
+                      </View>
+                    )}
+                    {notification.detalles.padre_especie && notification.detalles.tipo_polinizacion !== 'SELF' && (
+                      <View style={styles.detailRow}>
+                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                          Planta Padre:
+                        </Text>
+                        <Text style={[styles.detailValue, { color: colors.text }]}>
+                          {notification.detalles.padre_genero} {notification.detalles.padre_especie}
+                        </Text>
+                      </View>
+                    )}
+                    {notification.detalles.nueva_especie && (
+                      <View style={styles.detailRow}>
+                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                          Nueva Planta:
+                        </Text>
+                        <Text style={[styles.detailValue, { color: colors.text, fontWeight: '600' }]}>
+                          {notification.detalles.nueva_genero} {notification.detalles.nueva_especie}
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                )}
+
+                {/* Detalles genéricos para otros tipos de notificaciones */}
+                {notification.tipo !== 'NUEVA_POLINIZACION' && notification.tipo !== 'ESTADO_POLINIZACION_ACTUALIZADO' && (
+                  <>
+                    {Object.entries(notification.detalles)
+                      .filter(([key]) => !['polinizacion_id', 'germinacion_id'].includes(key))
+                      .map(([key, value]) => (
+                        <View key={key} style={styles.detailRow}>
+                          <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                            {key}:
+                          </Text>
+                          <Text style={[styles.detailValue, { color: colors.text }]}>
+                            {String(value)}
+                          </Text>
+                        </View>
+                      ))}
+                  </>
+                )}
               </View>
             )}
           </ScrollView>
