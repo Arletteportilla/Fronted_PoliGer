@@ -19,8 +19,6 @@ import { Notification } from '@/types';
 import { useNotificaciones } from '@/hooks/useNotificaciones';
 import { NotificationFilters } from '@/services/notificaciones.service';
 import AppColors from '@/utils/colors';
-import { polinizacionService } from '@/services/polinizacion.service';
-import { germinacionService } from '@/services/germinacion.service';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
@@ -44,9 +42,6 @@ interface NotificationDetailModalProps {
   onToggleFavorita: (id: string) => void;
   onArchivar: (id: string) => void;
   onEliminar: (id: string) => void;
-  onCambiarEstadoPolinizacion?: (id: number, estado: string) => Promise<void>;
-  onCambiarEstadoGerminacion?: (id: number, estado: string) => Promise<void>;
-  onRefreshNotifications?: () => Promise<void>;
 }
 
 function NotificationDetailModal({
@@ -56,9 +51,6 @@ function NotificationDetailModal({
   onToggleFavorita,
   onArchivar,
   onEliminar,
-  onCambiarEstadoPolinizacion,
-  onCambiarEstadoGerminacion,
-  onRefreshNotifications,
 }: NotificationDetailModalProps) {
   const colorScheme = useColorScheme();
   // Forzar modo claro
@@ -164,110 +156,6 @@ function NotificationDetailModal({
               </View>
             )}
           </ScrollView>
-
-          {/* Acciones Rápidas para Polinizaciones/Germinaciones */}
-          {(notification.germinacion_id || notification.polinizacion_id) && (
-            <View style={styles.quickActionsContainer}>
-              <Text style={[styles.quickActionsTitle, { color: colors.text }]}>
-                Acciones Rápidas
-              </Text>
-              <View style={styles.quickActionsButtons}>
-                {notification.polinizacion_id && onCambiarEstadoPolinizacion && (
-                  <>
-                    <TouchableOpacity
-                      style={[styles.quickActionButton, { backgroundColor: '#10B981' }]}
-                      onPress={async () => {
-                        try {
-                          await onCambiarEstadoPolinizacion(notification.polinizacion_id!, 'LISTA');
-                          onClose();
-                        } catch (error) {
-                          console.error('Error cambiando estado:', error);
-                        }
-                      }}
-                    >
-                      <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                      <View>
-                        <Text style={styles.quickActionText}>Marcar Lista</Text>
-                        <Text style={styles.quickActionSubtext}>Registra fecha de hoy</Text>
-                      </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.quickActionButton, { backgroundColor: '#3B82F6' }]}
-                      onPress={async () => {
-                        try {
-                          await onCambiarEstadoPolinizacion(notification.polinizacion_id!, 'EN_PROCESO');
-                          onClose();
-                        } catch (error) {
-                          console.error('Error cambiando estado:', error);
-                        }
-                      }}
-                    >
-                      <Ionicons name="time" size={20} color="#fff" />
-                      <Text style={styles.quickActionText}>En Proceso</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-                {notification.germinacion_id && onCambiarEstadoGerminacion && (
-                  <>
-                    <TouchableOpacity
-                      style={[styles.quickActionButton, { backgroundColor: '#F59E0B' }]}
-                      onPress={async () => {
-                        try {
-                          await germinacionService.actualizarProgresoGerminacion(notification.germinacion_id!, 25);
-                          if (onRefreshNotifications) await onRefreshNotifications();
-                          onClose();
-                        } catch (error) {
-                          console.error('Error actualizando progreso:', error);
-                        }
-                      }}
-                    >
-                      <Ionicons name="hourglass-outline" size={20} color="#fff" />
-                      <View>
-                        <Text style={styles.quickActionText}>25% Progreso</Text>
-                        <Text style={styles.quickActionSubtext}>Estado: En Proceso</Text>
-                      </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.quickActionButton, { backgroundColor: '#3B82F6' }]}
-                      onPress={async () => {
-                        try {
-                          await germinacionService.actualizarProgresoGerminacion(notification.germinacion_id!, 60);
-                          if (onRefreshNotifications) await onRefreshNotifications();
-                          onClose();
-                        } catch (error) {
-                          console.error('Error actualizando progreso:', error);
-                        }
-                      }}
-                    >
-                      <Ionicons name="time" size={20} color="#fff" />
-                      <View>
-                        <Text style={styles.quickActionText}>60% Progreso</Text>
-                        <Text style={styles.quickActionSubtext}>Estado: En Proceso</Text>
-                      </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.quickActionButton, { backgroundColor: '#10B981' }]}
-                      onPress={async () => {
-                        try {
-                          await germinacionService.actualizarProgresoGerminacion(notification.germinacion_id!, 100);
-                          if (onRefreshNotifications) await onRefreshNotifications();
-                          onClose();
-                        } catch (error) {
-                          console.error('Error actualizando progreso:', error);
-                        }
-                      }}
-                    >
-                      <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                      <View>
-                        <Text style={styles.quickActionText}>100% Finalizado</Text>
-                        <Text style={styles.quickActionSubtext}>Registra fecha de hoy</Text>
-                      </View>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            </View>
-          )}
 
           <View style={styles.modalActions}>
             <TouchableOpacity
@@ -388,30 +276,6 @@ export function NotificationsScreen() {
     setSelectedNotification(notification);
     setDetailModalVisible(true);
     selectNotification(notification);
-  };
-
-  const handleCambiarEstadoPolinizacion = async (id: number, estado: string) => {
-    try {
-      await polinizacionService.cambiarEstado(id, estado as any);
-      // Refrescar notificaciones después del cambio
-      await fetchNotifications(filters);
-      console.log('✅ Estado de polinización actualizado');
-    } catch (error) {
-      console.error('❌ Error actualizando estado de polinizacion:', error);
-      throw error;
-    }
-  };
-
-  const handleCambiarEstadoGerminacion = async (id: number, estado: string) => {
-    try {
-      await germinacionService.cambiarEstadoGerminacion(id, estado as 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO');
-      // Refrescar notificaciones después del cambio
-      await fetchNotifications(filters);
-      console.log('✅ Estado de germinación actualizado');
-    } catch (error) {
-      console.error('❌ Error actualizando estado de germinación:', error);
-      throw error;
-    }
   };
 
   const getNotificationIcon = (notification: Notification) => {
@@ -647,9 +511,6 @@ export function NotificationsScreen() {
         onToggleFavorita={toggleFavorita}
         onArchivar={archivar}
         onEliminar={eliminar}
-        onCambiarEstadoPolinizacion={handleCambiarEstadoPolinizacion}
-        onCambiarEstadoGerminacion={handleCambiarEstadoGerminacion}
-        onRefreshNotifications={async () => await fetchNotifications(filters)}
       />
     </View>
   );
@@ -881,43 +742,6 @@ const styles = StyleSheet.create({
   actionButton: {
     padding: 12,
     marginLeft: 12,
-  },
-  quickActionsContainer: {
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  quickActionsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  quickActionsButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  quickActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  quickActionText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  quickActionSubtext: {
-    color: '#fff',
-    fontSize: 11,
-    marginLeft: 6,
-    opacity: 0.8,
   },
 });
 
