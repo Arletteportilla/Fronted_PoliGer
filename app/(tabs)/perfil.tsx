@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, Platform, Modal } from 'react-native';
+import { View, ScrollView, RefreshControl, Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { useLocalSearchParams } from 'expo-router';
@@ -8,11 +8,9 @@ import { useToast } from '@/contexts/ToastContext';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { germinacionService } from '@/services/germinacion.service';
 import { estadisticasService } from '@/services/estadisticas.service';
-import { rbacService } from '@/services/rbac.service';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useConfirmation, useModalState, useCRUDOperations } from '@/hooks';
 import * as SecureStore from '@/services/secureStore';
-import { Ionicons } from '@expo/vector-icons';
 import { TabNavigation } from '@/components/navigation';
 import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
@@ -30,7 +28,7 @@ import {
   type TabType
 } from '@/components/Perfil';
 import { styles } from '@/utils/Perfil/styles';
-import type { Polinizacion, Germinacion, EstadisticasUsuario, UserWithProfile } from '@/types/index';
+import type { Polinizacion, Germinacion, EstadisticasUsuario } from '@/types/index';
 
 export default function PerfilScreen() {
   const { user, forceLogout } = useAuth();
@@ -47,7 +45,6 @@ export default function PerfilScreen() {
   // Estados de datos
   const [polinizaciones, setPolinizaciones] = useState<Polinizacion[]>([]);
   const [germinaciones, setGerminaciones] = useState<Germinacion[]>([]);
-  const [usuarios, setUsuarios] = useState<UserWithProfile[]>([]);
   const [estadisticas, setEstadisticas] = useState<EstadisticasUsuario>({
     total_polinizaciones: 0,
     total_germinaciones: 0,
@@ -75,7 +72,7 @@ export default function PerfilScreen() {
   // Estado para modal de edición de usuario
 
   // Modales de polinizaciones (usando useModalState)
-  const [polinizacionDetailsModal, polinizacionDetailsControls] = useModalState<Polinizacion>();
+  const [_polinizacionDetailsModal, polinizacionDetailsControls] = useModalState<Polinizacion>();
   const [polinizacionEditModal, polinizacionEditControls] = useModalState<Polinizacion>();
 
   // Modales de germinaciones (usando useModalState)
@@ -167,29 +164,7 @@ export default function PerfilScreen() {
         }
       }
 
-      // Obtener usuarios solo si estamos en la tab de usuarios y es administrador
-      if (tab === 'usuarios') {
-        const adminStatus = isAdmin();
-        if (adminStatus) {
-          try {
-            const allUsers = await rbacService.getAllUsers();
-            setUsuarios(Array.isArray(allUsers) ? allUsers : []);
-          } catch (error: any) {
-            console.error('Error obteniendo usuarios:', error);
-            setUsuarios([]);
-            // Solo mostrar alerta si no es un error de permisos (403)
-            if (error.response?.status !== 403) {
-              Alert.alert('Error', 'No se pudieron cargar los usuarios: ' + (error.message || 'Error desconocido'));
-            }
-          }
-        } else {
-          // Si no es admin, limpiar la lista de usuarios
-          setUsuarios([]);
-        }
-      } else if (tab !== 'usuarios') {
-        // Limpiar usuarios cuando se cambia a otra pestaña para liberar memoria
-        setUsuarios([]);
-      }
+      // La pestaña de usuarios maneja su propia carga de datos internamente
 
       // Calcular estadísticas si no se obtuvieron
       if (!stats && (tab === 'resumen' || tab === 'polinizaciones' || tab === 'germinaciones')) {
@@ -197,10 +172,10 @@ export default function PerfilScreen() {
           total_polinizaciones: misPolinizaciones.length,
           total_germinaciones: misGerminaciones.length,
           polinizaciones_actuales: misPolinizaciones.filter(p =>
-            p.etapa_actual === 'En desarrollo' || p.etapa_actual === 'Ingresado'
+            p.estado_polinizacion === 'EN_PROCESO' || p.estado_polinizacion === 'INICIAL'
           ).length,
           germinaciones_actuales: misGerminaciones.filter(g =>
-            g.etapa_actual === 'En desarrollo' || g.etapa_actual === 'Ingresado'
+            g.estado_germinacion === 'EN_PROCESO' || g.estado_germinacion === 'INICIAL'
           ).length,
           usuario: user?.username || 'Usuario'
         };
@@ -561,14 +536,12 @@ export default function PerfilScreen() {
 
       // Actualizar la germinación seleccionada en el modal de edición con el nuevo estado
       if (germinacionEditModal.selectedItem) {
-        const updatedGerminacion = {
+        const updatedGerminacion: Germinacion = {
           ...germinacionEditModal.selectedItem,
           estado_germinacion: nuevoEstado,
-          progreso_germinacion: nuevoEstado === 'INICIAL' ? 0 : nuevoEstado === 'FINALIZADO' ? 100 : 50
+          progreso_germinacion: nuevoEstado === 'INICIAL' ? 0 : nuevoEstado === 'FINALIZADO' ? 100 : 50,
+          ...(nuevoEstado === 'FINALIZADO' && { fecha_germinacion: new Date().toISOString().split('T')[0] })
         };
-        if (nuevoEstado === 'FINALIZADO') {
-          updatedGerminacion.fecha_germinacion = new Date().toISOString().split('T')[0];
-        }
         germinacionEditControls.setSelectedItem(updatedGerminacion);
       }
 
@@ -675,14 +648,14 @@ export default function PerfilScreen() {
       await polinizacionService.cambiarEstadoPolinizacion(polinizacionId, nuevoEstado, fechaMaduracion);
 
       // Actualizar la polinización en la lista local
-      setPolinizaciones(prevPolinizaciones => 
-        prevPolinizaciones.map(p => 
-          p.numero === polinizacionId 
-            ? { 
-                ...p, 
+      setPolinizaciones(prevPolinizaciones =>
+        prevPolinizaciones.map(p =>
+          p.numero === polinizacionId
+            ? {
+                ...p,
                 estado_polinizacion: nuevoEstado,
                 progreso_polinizacion: nuevoEstado === 'INICIAL' ? 0 : nuevoEstado === 'FINALIZADO' ? 100 : 50,
-                fechamad: nuevoEstado === 'FINALIZADO' && fechaMaduracion ? fechaMaduracion : p.fechamad
+                ...(nuevoEstado === 'FINALIZADO' && fechaMaduracion && { fechamad: fechaMaduracion })
               }
             : p
         )
@@ -690,12 +663,13 @@ export default function PerfilScreen() {
 
       // Actualizar la polinización seleccionada en el modal de edición si es la misma
       if (polinizacionEditModal.selectedItem && polinizacionEditModal.selectedItem.numero === polinizacionId) {
-        polinizacionEditControls.setSelectedItem({
+        const updatedPolinizacion: Polinizacion = {
           ...polinizacionEditModal.selectedItem,
           estado_polinizacion: nuevoEstado,
           progreso_polinizacion: nuevoEstado === 'INICIAL' ? 0 : nuevoEstado === 'FINALIZADO' ? 100 : 50,
-          fechamad: nuevoEstado === 'FINALIZADO' && fechaMaduracion ? fechaMaduracion : polinizacionEditModal.selectedItem.fechamad
-        });
+          ...(nuevoEstado === 'FINALIZADO' && fechaMaduracion && { fechamad: fechaMaduracion })
+        };
+        polinizacionEditControls.setSelectedItem(updatedPolinizacion);
       }
 
       // Cerrar el modal de cambio de estado si está abierto
@@ -945,138 +919,6 @@ export default function PerfilScreen() {
         />
       )}
 
-      {/* Modal de cambio de estado de germinación */}
-      <Modal
-        visible={showChangeStatusModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowChangeStatusModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { maxWidth: 500 }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Cambiar Estado de Germinación</Text>
-              <TouchableOpacity onPress={() => setShowChangeStatusModal(false)}>
-                <Ionicons name="close" size={28} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-
-            {germinacionToChangeStatus && (
-              <View style={{ padding: 24 }}>
-                {/* Información de la germinación */}
-                <View style={[styles.detailSection, { marginBottom: 24 }]}>
-                  <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Germinación</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 4 }}>
-                    {germinacionToChangeStatus.codigo || 'Sin código'}
-                  </Text>
-                  <Text style={{ fontSize: 14, color: '#6B7280' }}>
-                    {germinacionToChangeStatus.genero} {germinacionToChangeStatus.especie_variedad}
-                  </Text>
-                </View>
-
-                {/* Estado actual */}
-                <View style={{ marginBottom: 24 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#6B7280', marginBottom: 12 }}>
-                    Estado Actual
-                  </Text>
-                  <View style={[
-                    styles.estadoBadge,
-                    {
-                      alignSelf: 'flex-start',
-                      paddingVertical: 10,
-                      paddingHorizontal: 16,
-                      backgroundColor:
-                        germinacionToChangeStatus.estado_germinacion === 'FINALIZADO' ? '#D1FAE5' :
-                        germinacionToChangeStatus.estado_germinacion === 'EN_PROCESO' ? '#FEF3C7' :
-                        '#E5E7EB'
-                    }
-                  ]}>
-                    <Ionicons
-                      name={
-                        germinacionToChangeStatus.estado_germinacion === 'FINALIZADO' ? 'checkmark-circle' :
-                        germinacionToChangeStatus.estado_germinacion === 'EN_PROCESO' ? 'time' :
-                        'ellipse'
-                      }
-                      size={18}
-                      color={
-                        germinacionToChangeStatus.estado_germinacion === 'FINALIZADO' ? '#059669' :
-                        germinacionToChangeStatus.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
-                        '#6B7280'
-                      }
-                      style={{ marginRight: 8 }}
-                    />
-                    <Text style={[
-                      styles.estadoBadgeText,
-                      {
-                        color:
-                          germinacionToChangeStatus.estado_germinacion === 'FINALIZADO' ? '#059669' :
-                          germinacionToChangeStatus.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
-                          '#6B7280'
-                      }
-                    ]}>
-                      {germinacionToChangeStatus.estado_germinacion === 'FINALIZADO' ? 'Finalizado' :
-                       germinacionToChangeStatus.estado_germinacion === 'EN_PROCESO' ? 'En Proceso' :
-                       'Inicial'}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Botones de cambio de estado */}
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#6B7280', marginBottom: 12 }}>
-                    Cambiar a
-                  </Text>
-                  <View style={{ gap: 12 }}>
-                    {/* Solo mostrar "En Proceso" si está en INICIAL */}
-                    {(germinacionToChangeStatus.estado_germinacion === 'INICIAL' || !germinacionToChangeStatus.estado_germinacion) && (
-                      <TouchableOpacity
-                        style={[styles.etapaButton, { backgroundColor: '#F59E0B' }]}
-                        onPress={() => handleCambiarEtapaGerminacion(germinacionToChangeStatus.id, 'EN_PROCESO')}
-                      >
-                        <Ionicons name="play-circle" size={20} color="#FFFFFF" />
-                        <Text style={styles.etapaButtonText}>Iniciar Proceso</Text>
-                      </TouchableOpacity>
-                    )}
-
-                    {/* Solo mostrar "Finalizar" si está en EN_PROCESO */}
-                    {germinacionToChangeStatus.estado_germinacion === 'EN_PROCESO' && (
-                      <TouchableOpacity
-                        style={[styles.etapaButton, { backgroundColor: '#10B981' }]}
-                        onPress={() => {
-                          setShowChangeStatusModal(false);
-                          handleOpenFinalizarModal(germinacionToChangeStatus);
-                        }}
-                      >
-                        <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                        <Text style={styles.etapaButtonText}>Finalizar</Text>
-                      </TouchableOpacity>
-                    )}
-
-                    {/* Mensaje si ya está finalizada */}
-                    {germinacionToChangeStatus.estado_germinacion === 'FINALIZADO' && (
-                      <View style={styles.etapaCompletadaContainer}>
-                        <Ionicons name="checkmark-circle" size={24} color="#059669" />
-                        <Text style={styles.etapaCompletadaText}>
-                          Esta germinación ya está finalizada
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-
-                {/* Botón cerrar */}
-                <TouchableOpacity
-                  style={[styles.modalCloseButton, { marginTop: 8 }]}
-                  onPress={() => setShowChangeStatusModal(false)}
-                >
-                  <Text style={styles.modalCloseButtonText}>Cancelar</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
-
       {/* Modal de edición de polinización */}
       {polinizacionEditModal.selectedItem && (
         <PolinizacionForm
@@ -1246,7 +1088,7 @@ export default function PerfilScreen() {
           finalizarGerminacionControls.close();
         }}
         onConfirm={handleConfirmFinalizar}
-        item={finalizarGerminacionModal.selectedItem}
+        item={finalizarGerminacionModal.selectedItem as any}
         tipo="germinacion"
       />
 
