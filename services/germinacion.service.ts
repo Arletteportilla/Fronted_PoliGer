@@ -1114,4 +1114,115 @@ export const germinacionService = {
       throw new Error('No se pudo actualizar el progreso de la germinación.');
     }
   },
+
+  // =============================================================================
+  // VALIDACIÓN DE PREDICCIONES (para reentrenamiento del modelo)
+  // =============================================================================
+
+  /**
+   * Valida una predicción de germinación comparando con fecha real
+   *
+   * @param germinacionId - ID de la germinación
+   * @param fechaRealGerminacion - Fecha real cuando germinó (formato: YYYY-MM-DD)
+   * @returns Resultado de la validación con métricas de precisión
+   */
+  validarPrediccion: async (
+    germinacionId: number,
+    fechaRealGerminacion: string
+  ): Promise<{
+    mensaje: string;
+    validacion: {
+      dias_reales: number;
+      dias_predichos: number;
+      diferencia_dias: number;
+      precision: number;
+      calidad: string;
+    };
+    germinacion: any;
+  }> => {
+    try {
+      console.log(`✓ Validando predicción de germinación ${germinacionId} con fecha real:`, fechaRealGerminacion);
+
+      const response = await api.post(
+        `germinaciones/${germinacionId}/validar-prediccion/`,
+        { fecha_real_germinacion: fechaRealGerminacion }
+      );
+
+      console.log('✅ Predicción validada exitosamente:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error validando predicción:', error);
+
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+
+      throw new Error('No se pudo validar la predicción. Intenta nuevamente.');
+    }
+  },
+
+  /**
+   * Obtiene germinaciones con predicciones validadas
+   *
+   * @param params - Parámetros opcionales de filtro
+   * @returns Lista de germinaciones validadas con estadísticas
+   */
+  obtenerGerminacionesValidadas: async (params?: {
+    precision_minima?: number;
+    desde?: string;
+    hasta?: string;
+  }): Promise<{
+    total: number;
+    precision_promedio: number;
+    germinaciones: any[];
+  }> => {
+    try {
+      console.log('📊 Obteniendo germinaciones validadas...', params);
+
+      const response = await api.get('predicciones/germinaciones/validadas/', {
+        params
+      });
+
+      console.log('✅ Germinaciones validadas obtenidas:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error obteniendo germinaciones validadas:', error);
+
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+
+      throw new Error('No se pudieron obtener las germinaciones validadas.');
+    }
+  },
+
+  /**
+   * Exporta datos de germinaciones validadas para reentrenamiento del modelo
+   * Retorna un archivo CSV con todos los datos necesarios
+   *
+   * @returns Blob con el archivo CSV
+   */
+  exportarDatosReentrenamiento: async (): Promise<Blob> => {
+    try {
+      console.log('📤 Exportando datos de germinaciones validadas para reentrenamiento...');
+
+      const response = await api.post(
+        'predicciones/exportar-reentrenamiento-germinacion/',
+        {},
+        { responseType: 'blob' }
+      );
+
+      console.log('✅ Datos exportados exitosamente');
+      console.log('📊 Tamaño del archivo:', response.data.size, 'bytes');
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error exportando datos:', error);
+
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+
+      throw new Error('No se pudieron exportar los datos de reentrenamiento.');
+    }
+  },
 };

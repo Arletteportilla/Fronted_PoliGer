@@ -294,23 +294,6 @@ export function PrediccionMLPolinizacion({
               </View>
             )}
           </View>
-
-          {/* Información del Modelo */}
-          <View style={styles.modelInfo}>
-            <Text style={styles.modelInfoTitle}>Información del Modelo</Text>
-            <View style={styles.modelInfoRow}>
-              <Text style={styles.modelInfoLabel}>Método:</Text>
-              <Text style={styles.modelInfoValue}>{prediccion.metodo || 'XGBoost'}</Text>
-            </View>
-            <View style={styles.modelInfoRow}>
-              <Text style={styles.modelInfoLabel}>Modelo:</Text>
-              <Text style={styles.modelInfoValue}>{prediccion.modelo || 'polinizacion.joblib'}</Text>
-            </View>
-            <View style={styles.modelInfoRow}>
-              <Text style={styles.modelInfoLabel}>Features usadas:</Text>
-              <Text style={styles.modelInfoValue}>{prediccion.features_count || 16}</Text>
-            </View>
-          </View>
         </View>
       )}
     </View>
@@ -467,31 +450,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#856404',
     lineHeight: 16,
-  },
-  modelInfo: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  modelInfoTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  modelInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  modelInfoLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  modelInfoValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1F2937',
   },
 });

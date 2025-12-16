@@ -8,6 +8,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { germinacionService } from '@/services/germinacion.service';
 import { estadisticasService } from '@/services/estadisticas.service';
+import { prediccionValidacionService } from '@/services/prediccion-validacion.service';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useConfirmation, useModalState, useCRUDOperations } from '@/hooks';
 import * as SecureStore from '@/services/secureStore';
@@ -693,18 +694,59 @@ export default function PerfilScreen() {
     try {
       setLoading(true);
 
+      const polinizacion = finalizarPolinizacionModal.selectedItem;
+
+      // 1. Cambiar estado a FINALIZADO
       const response = await polinizacionService.cambiarEstadoPolinizacion(
-        finalizarPolinizacionModal.selectedItem.numero,
+        polinizacion.numero,
         'FINALIZADO',
         fechaMaduracion
       );
 
       console.log('✅ Respuesta del servidor:', response);
 
-      // Actualizar la polinización en la lista local
+      // 2. Validar predicción si existe
+      const tienePrediccion = polinizacion.fecha_maduracion_predicha || polinizacion.prediccion_fecha_estimada;
+
+      if (tienePrediccion) {
+        try {
+          console.log('📊 Validando predicción automáticamente...');
+
+          const validacion = await prediccionValidacionService.validarPrediccionPolinizacion(
+            polinizacion.numero,
+            fechaMaduracion
+          );
+
+          console.log('✅ Predicción validada:', validacion);
+
+          // Mostrar resultado de validación al usuario
+          const { precision, calidad, diferencia_dias } = validacion.validacion;
+
+          let mensajeValidacion = `Polinización finalizada exitosamente.\n\n`;
+          mensajeValidacion += `📊 Precisión de predicción: ${precision.toFixed(1)}% (${calidad})\n`;
+
+          if (diferencia_dias === 0) {
+            mensajeValidacion += `🎯 ¡Predicción exacta!`;
+          } else if (diferencia_dias > 0) {
+            mensajeValidacion += `⏱️ ${diferencia_dias} días más tarde de lo predicho`;
+          } else {
+            mensajeValidacion += `⏱️ ${Math.abs(diferencia_dias)} días antes de lo predicho`;
+          }
+
+          toast.success(mensajeValidacion);
+        } catch (validacionError) {
+          console.warn('⚠️ No se pudo validar la predicción:', validacionError);
+          // No bloquear el flujo si falla la validación
+          toast.success('Polinización finalizada exitosamente');
+        }
+      } else {
+        toast.success('Polinización finalizada exitosamente');
+      }
+
+      // 3. Actualizar la polinización en la lista local
       setPolinizaciones(prevPolinizaciones =>
         prevPolinizaciones.map(p =>
-          p.numero === finalizarPolinizacionModal.selectedItem!.numero
+          p.numero === polinizacion.numero
             ? {
                 ...p,
                 estado_polinizacion: 'FINALIZADO',
@@ -715,8 +757,8 @@ export default function PerfilScreen() {
         )
       );
 
-      // Actualizar la polinización seleccionada en el modal de edición si es la misma
-      if (polinizacionEditModal.selectedItem && polinizacionEditModal.selectedItem.numero === finalizarPolinizacionModal.selectedItem!.numero) {
+      // 4. Actualizar la polinización seleccionada en el modal de edición si es la misma
+      if (polinizacionEditModal.selectedItem && polinizacionEditModal.selectedItem.numero === polinizacion.numero) {
         polinizacionEditControls.setSelectedItem({
           ...polinizacionEditModal.selectedItem,
           estado_polinizacion: 'FINALIZADO',
@@ -725,13 +767,12 @@ export default function PerfilScreen() {
         });
       }
 
-      // Cerrar modal
+      // 5. Cerrar modal
       finalizarPolinizacionControls.close();
-      
-      // Recargar datos del servidor
+
+      // 6. Recargar datos del servidor
       await fetchData();
-      
-      toast.success('Polinización finalizada exitosamente');
+
     } catch (error: any) {
       console.error('Error finalizando polinización:', error);
       toast.error(error.response?.data?.error || 'No se pudo finalizar la polinización');

@@ -22,8 +22,16 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
 }) => {
   const responsive = useResponsive();
 
-  // Determinar el estado actual de la polinización
+  // Determinar el estado actual de la polinización usando los campos de workflow
   const getCurrentStatus = () => {
+    // Usar estado_polinizacion si existe
+    if (item.estado_polinizacion) {
+      if (item.estado_polinizacion === 'FINALIZADO') return 'Finalizado';
+      if (item.estado_polinizacion === 'EN_PROCESO') return 'En Proceso';
+      if (item.estado_polinizacion === 'INICIAL') return 'Inicial';
+    }
+
+    // Fallback a lógica legacy si no existe estado_polinizacion
     if (item.fechamad) return 'Completado';
     if (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) return 'En Proceso';
     return 'Ingresado';
@@ -32,8 +40,14 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
   const currentStatus = getCurrentStatus();
   const isOverdue = item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) < new Date() && !item.fechamad;
 
-  // Calcular el progreso de la polinización
+  // Calcular el progreso de la polinización usando progreso_polinizacion
   const calculateProgress = () => {
+    // Usar progreso_polinizacion si existe (0-100%)
+    if (item.progreso_polinizacion !== undefined && item.progreso_polinizacion !== null) {
+      return item.progreso_polinizacion;
+    }
+
+    // Fallback a lógica legacy si no existe progreso_polinizacion
     if (item.fechamad) return 100; // Completado
     if (item.fechapol) return 70; // En proceso
     return 30; // Ingresado
@@ -121,8 +135,11 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
         </View>
         <View style={styles.tableCell}>
           <View style={[responsiveStyles.badge, styles.statusBadge, {
-            backgroundColor: currentStatus === 'Completado' ? '#10B981' : 
-                            currentStatus === 'En Proceso' ? '#F59E0B' : '#6B7280'
+            backgroundColor:
+              (currentStatus === 'Completado' || currentStatus === 'Finalizado') ? '#10B981' :
+              currentStatus === 'En Proceso' ? '#F59E0B' :
+              currentStatus === 'Inicial' ? '#3B82F6' :
+              '#6B7280'
           }]}>
             <Text style={responsiveStyles.badgeText}>{currentStatus}</Text>
           </View>

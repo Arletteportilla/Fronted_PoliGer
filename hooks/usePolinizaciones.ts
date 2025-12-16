@@ -262,7 +262,7 @@ export const usePolinizaciones = () => {
           toast.error('Para polinización SELF, la información de la nueva planta es requerida');
           return false;
         }
-      } else if (form.tipo_polinizacion === 'SIBLING' || form.tipo_polinizacion === 'HIBRIDO') {
+      } else if (form.tipo_polinizacion === 'SIBLING' || form.tipo_polinizacion === 'HIBRIDA') {
         if (!form.madre_codigo || !form.madre_genero || !form.madre_especie) {
           toast.error(`Para polinización ${form.tipo_polinizacion}, la información de la planta madre es requerida`);
           return false;

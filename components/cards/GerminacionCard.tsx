@@ -1,9 +1,10 @@
 // Reusable germinacion card component - matching PolinizacionCard styles
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '@/hooks/useResponsive';
 import { calcularDiasRestantes, getEstadoPrediccion } from '@/utils/prediccionHelpers';
+import { ValidarPrediccionGerminacionModal } from '../modals/ValidarPrediccionGerminacionModal';
 
 interface GerminacionCardProps {
   item: any;
@@ -12,6 +13,7 @@ interface GerminacionCardProps {
   onDelete?: (item: any) => void;
   onViewDetails?: (item: any) => void;
   onChangeStatus?: (item: any) => void;
+  onValidacionExitosa?: (germinacion: any) => void;
 }
 
 export const GerminacionCard: React.FC<GerminacionCardProps> = ({
@@ -21,8 +23,10 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
   onDelete,
   onViewDetails,
   onChangeStatus,
+  onValidacionExitosa,
 }) => {
   const responsive = useResponsive();
+  const [showValidarModal, setShowValidarModal] = useState(false);
 
   const diasRestantes = item.prediccion_fecha_estimada || item.fecha_germinacion_estimada
     ? calcularDiasRestantes(item.prediccion_fecha_estimada || item.fecha_germinacion_estimada)
@@ -294,6 +298,44 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
         </View>
       )}
 
+      {/* Badge de predicción validada */}
+      {item.estado_validacion === 'VALIDADA' && item.precision_prediccion && (
+        <View style={styles.validadaSection}>
+          <View style={styles.validadaBadge}>
+            <Ionicons name="checkmark-circle" size={16} color="#4caf50" />
+            <Text style={styles.validadaText}>
+              Validada ({item.precision_prediccion ?
+                (typeof item.precision_prediccion === 'number'
+                  ? item.precision_prediccion.toFixed(0)
+                  : Math.round(parseFloat(item.precision_prediccion))
+                ) : '0'}%)
+            </Text>
+          </View>
+          {item.calidad_prediccion && (
+            <Text style={styles.calidadText}>
+              Calidad: {item.calidad_prediccion}
+            </Text>
+          )}
+        </View>
+      )}
+
+      {/* Botón de validar predicción */}
+      {item.prediccion_dias_estimados &&
+       item.estado_validacion !== 'VALIDADA' &&
+       progress === 100 && (
+        <TouchableOpacity
+          style={styles.validarButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            setShowValidarModal(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="checkmark-done-outline" size={18} color="#4caf50" />
+          <Text style={styles.validarButtonText}>Validar Predicción</Text>
+        </TouchableOpacity>
+      )}
+
       {/* Botones de acción */}
       <View style={styles.actionsRow}>
         {onViewDetails && (
@@ -360,6 +402,17 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Modal de validación de predicción */}
+      <ValidarPrediccionGerminacionModal
+        visible={showValidarModal}
+        germinacion={item}
+        onClose={() => setShowValidarModal(false)}
+        onValidacionExitosa={(germinacionActualizada) => {
+          setShowValidarModal(false);
+          onValidacionExitosa?.(germinacionActualizada);
+        }}
+      />
     </TouchableOpacity>
   );
 };
@@ -601,5 +654,49 @@ const styles = StyleSheet.create({
   },
   actionButtonTextDelete: {
     color: '#EF4444',
+  },
+  validadaSection: {
+    marginTop: 10,
+    paddingTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#4caf50',
+  },
+  validadaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  validadaText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2E7D32',
+  },
+  calidadText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#4caf50',
+    marginTop: 4,
+  },
+  validarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#A5D6A7',
+    gap: 8,
+  },
+  validarButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32',
   },
 });

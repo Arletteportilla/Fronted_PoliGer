@@ -2,7 +2,7 @@
 export const TIPOS_POLINIZACION = [
   { label: 'Self', value: 'SELF' },
   { label: 'Sibling', value: 'SIBLING' },
-  { label: 'Híbrido', value: 'HIBRIDO' },
+  { label: 'Híbrida', value: 'HIBRIDA' },
 ];
 
 // Opciones de clima (según backend)

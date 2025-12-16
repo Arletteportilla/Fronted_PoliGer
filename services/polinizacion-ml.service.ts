@@ -191,13 +191,15 @@ class PolinizacionMLService {
       if (!fechaRegex.test(data.fechapol)) {
         errores.push('fechapol debe tener formato YYYY-MM-DD');
       } else {
-        // Comparar fechas como strings (más simple y sin problemas de timezone)
+        // Validar que no sea una fecha muy futura (permitir hasta mañana para cubrir diferencias de timezone)
+        const fechaPol = new Date(data.fechapol + 'T00:00:00');
         const hoy = new Date();
-        const hoyString = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+        const mañana = new Date(hoy);
+        mañana.setDate(mañana.getDate() + 1);
+        mañana.setHours(23, 59, 59, 999);
 
-        // Permitir fecha de hoy y pasado, no futuro
-        if (data.fechapol > hoyString) {
-          errores.push('fechapol no puede ser futura');
+        if (fechaPol > mañana) {
+          errores.push('fechapol no puede ser más de 1 día en el futuro');
         }
       }
     }

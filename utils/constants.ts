@@ -22,7 +22,7 @@ export const ESTADOS_SEMILLA = [
 export const TIPOS_POLINIZACION = [
   { label: 'Self', value: 'SELF' },
   { label: 'Sibling', value: 'SIBLING' },
-  { label: 'Híbrido', value: 'HIBRIDO' },
+  { label: 'Híbrida', value: 'HIBRIDA' },
 ];
 
 export const CANTIDADES_SEMILLA = [
