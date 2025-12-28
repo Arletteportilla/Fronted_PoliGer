@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react';
-import { View, Modal, StyleSheet, Alert, ScrollView, Text, Pressable } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { View, Modal, StyleSheet, Alert, ScrollView, Text, Pressable, TextInput, TouchableOpacity, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/navigation';
-import { TabNavigation } from '@/components/navigation';
+import { ResponsiveLayout } from '@/components/layout';
 import { PrediccionMejoradaModal } from '@/components/modals';
 import { germinacionService } from '@/services/germinacion.service';
-import { ExportModal } from '@/components/export';
+import { useTheme } from '@/contexts/ThemeContext';
+import { CONFIG } from '@/services/config';
+import * as SecureStore from '@/services/secureStore';
 
 // Extracted components and hooks
 import { useResponsive } from '@/hooks/useResponsive';
@@ -18,6 +22,7 @@ import GerminacionFilters from '@/components/filters/GerminacionFilters';
 export default function GerminacionesScreen() {
   const { user } = useAuth();
   const responsive = useResponsive();
+  const { colors: themeColors } = useTheme();
 
   // Use hook with pagination and filters
   const {
@@ -39,11 +44,98 @@ export default function GerminacionesScreen() {
   // Use old hook only for form management
   const germinacionesHook = useGerminaciones(user);
 
+  // Estado para exportación
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Función de exportación usando el mismo endpoint que perfil
+  const handleExport = useCallback(async () => {
+    if (!user) {
+      Alert.alert('Error', 'Usuario no autenticado');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      console.log('🔄 Iniciando descarga de PDF de germinaciones...');
+
+      // Obtener token de autenticación
+      const token = await SecureStore.secureStore.getItem('authToken');
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      // Construir URL usando el endpoint para TODAS las germinaciones del sistema
+      const params = new URLSearchParams();
+      if (filters.search) params.append('search', filters.search);
+
+      const url = `${CONFIG.API_BASE_URL}/germinaciones/germinaciones-pdf/?${params.toString()}`;
+      console.log(`🔍 URL completa: ${url}`);
+
+      // Crear nombre de archivo
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const searchSuffix = filters.search ? `_${filters.search.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
+      const fileName = `germinaciones_todas${searchSuffix}_${timestamp}.pdf`;
+
+      if (Platform.OS === 'web') {
+        // Descarga para web
+        console.log('🌐 Descargando en web...');
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/pdf'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+
+        // Crear enlace de descarga
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+
+        console.log('✅ PDF de germinaciones descargado exitosamente en web');
+        Alert.alert('Éxito', 'PDF de germinaciones descargado correctamente');
+      } else {
+        // Descarga para móvil
+        console.log('📱 Descargando en móvil...');
+        const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+        const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/pdf'
+          }
+        });
+
+        if (downloadResult.status === 200) {
+          console.log('✅ PDF descargado exitosamente:', downloadResult.uri);
+          Alert.alert('Éxito', `PDF descargado en: ${downloadResult.uri}`);
+        } else {
+          throw new Error('Error al descargar el archivo');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error exportando PDF:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido en la exportación';
+      Alert.alert('Error', `Error al exportar: ${errorMessage}`);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [user, filters.search]);
+
   // Local state for UI
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
   const [detalle, setDetalle] = useState(null);
 
   // Prediction states (solo para mantener compatibilidad con el modal antiguo)
@@ -86,33 +178,142 @@ export default function GerminacionesScreen() {
         germinacionesHook.resetForm();
         setPrediccionData(null); // Limpiar predicción
         setShowPrediccionModal(false); // Cerrar modal de predicción
-        refresh(); // Refresh paginated list
+
+        // Navegar a la página 1 para ver la nueva germinación
+        goToPage(1);
       }
     } finally {
       setSaving(false);
     }
   };
 
+  const styles = createStyles(themeColors);
 
   return (
     <ProtectedRoute requiredModule="germinaciones" requiredAction="ver">
-      <View style={styles.mainContainer}>
-        <TabNavigation currentTab="germinaciones" />
+      <ResponsiveLayout currentTab="germinaciones" style={styles.mainContainer}>
+        <ScrollView 
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.container}>
+            <GerminacionesHeader
+              totalGerminaciones={totalCount}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              showOnlyMine={germinacionesHook.showOnlyMine}
+              search={filters.search || ''}
+              activeFiltersCount={activeFiltersCount}
+              onToggleShowOnlyMine={() => germinacionesHook.setShowOnlyMine(!germinacionesHook.showOnlyMine)}
+              onSearchChange={(text) => setFilters({ ...filters, search: text })}
+              onShowForm={() => setShowForm(true)}
+              onShowExportModal={() => handleExport()}
+              onShowFilters={() => setShowFilters(true)}
+            />
 
-        <View style={styles.container}>
-          <GerminacionesHeader
-            totalGerminaciones={totalCount}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            showOnlyMine={germinacionesHook.showOnlyMine}
-            search={filters.search || ''}
-            activeFiltersCount={activeFiltersCount}
-            onToggleShowOnlyMine={() => germinacionesHook.setShowOnlyMine(!germinacionesHook.showOnlyMine)}
-            onSearchChange={(text) => setFilters({ ...filters, search: text })}
-            onShowForm={() => setShowForm(true)}
-            onShowExportModal={() => setShowExportModal(true)}
-            onShowFilters={() => setShowFilters(true)}
-          />
+            {/* Tarjetas de Métricas */}
+            <View style={styles.metricsContainer}>
+            <View style={styles.metricCard}>
+              <View style={styles.metricHeader}>
+                <Text style={styles.metricLabel}>Total en Proceso</Text>
+                <View style={[styles.metricIcon, { backgroundColor: '#d1fae5' }]}>
+                  <Ionicons name="leaf" size={18} color="#10b981" />
+                </View>
+              </View>
+              <View style={styles.metricValueContainer}>
+                <Text style={styles.metricValue}>
+                  {germinaciones.filter(g => g.etapa_actual === 'EN_PROCESO').length}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.metricCard}>
+              <View style={styles.metricHeader}>
+                <Text style={styles.metricLabel}>Éxito Promedio</Text>
+                <View style={[styles.metricIcon, { backgroundColor: '#dbeafe' }]}>
+                  <Ionicons name="checkmark-circle" size={18} color="#3b82f6" />
+                </View>
+              </View>
+              <View style={styles.metricValueContainer}>
+                <Text style={styles.metricValue}>
+                  {totalCount > 0 
+                    ? Math.round((germinaciones.filter(g => g.etapa_actual === 'LISTA').length / totalCount) * 100)
+                    : 0}%
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.metricCard}>
+              <View style={styles.metricHeader}>
+                <Text style={styles.metricLabel}>Cosecha Semanal</Text>
+                <View style={[styles.metricIcon, { backgroundColor: '#fef3c7' }]}>
+                  <Ionicons name="calendar" size={18} color="#f59e0b" />
+                </View>
+              </View>
+              <View style={styles.metricValueContainer}>
+                <Text style={styles.metricValue}>
+                  {germinaciones.filter(g => {
+                    const fecha = new Date(g.fecha_siembra || g.fecha_ingreso);
+                    const hoy = new Date();
+                    const diffDias = Math.floor((hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24));
+                    return diffDias <= 7 && g.etapa_actual === 'LISTA';
+                  }).length}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Barra de búsqueda */}
+          <View style={styles.searchBarContainer}>
+            <View style={styles.searchInputWrapper}>
+              <Ionicons name="search" size={20} color={themeColors.text.disabled} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar por ID de lote, especie o responsable..."
+                placeholderTextColor={themeColors.text.disabled}
+                value={filters.search || ''}
+                onChangeText={(text) => setFilters({ ...filters, search: text })}
+              />
+              {filters.search && (
+                <TouchableOpacity
+                  style={styles.clearSearchButton}
+                  onPress={() => setFilters({ ...filters, search: '' })}
+                >
+                  <Ionicons name="close-circle" size={20} color={themeColors.text.disabled} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => setShowFilters(true)}
+              >
+                <Ionicons name="options-outline" size={18} color={themeColors.text.tertiary} />
+                <Text style={styles.actionButtonText}>Filtros</Text>
+                {activeFiltersCount > 0 && (
+                  <View style={styles.actionBadge}>
+                    <Text style={styles.actionBadgeText}>{activeFiltersCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.actionButton}>
+                <Ionicons name="calendar-outline" size={18} color={themeColors.text.tertiary} />
+                <Text style={styles.actionButtonText}>Fecha</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleExport()}
+                disabled={isExporting}
+              >
+                <Ionicons name="download-outline" size={18} color={themeColors.text.tertiary} />
+                <Text style={styles.actionButtonText}>{isExporting ? 'Exportando...' : 'Exportar'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
         <GerminacionesContent
           germinaciones={germinaciones}
@@ -131,22 +332,53 @@ export default function GerminacionesScreen() {
           onGoToPage={goToPage}
           onItemPress={setDetalle}
         />
+          </View>
+        </ScrollView>
 
-        {/* Form Modal */}
-        <GerminacionForm
+        {/* Form Modal - Popup Centrado */}
+        <Modal
           visible={showForm}
-          onClose={() => setShowForm(false)}
-          form={germinacionesHook.form}
-          setForm={germinacionesHook.setForm}
-          onSubmit={handleSubmit}
-          saving={saving}
-          codigosDisponibles={germinacionesHook.codigosDisponibles}
-          especiesDisponibles={germinacionesHook.especiesDisponibles}
-          perchasDisponibles={germinacionesHook.perchasDisponibles}
-          nivelesDisponibles={germinacionesHook.nivelesDisponibles}
-          handleCodigoSelection={germinacionesHook.handleCodigoSelection}
-          handleEspecieSelection={germinacionesHook.handleEspecieSelection}
-        />
+          animationType="fade"
+          transparent={true}
+          onRequestClose={() => setShowForm(false)}
+        >
+          <View style={styles.formModalOverlay}>
+            <View style={styles.formModalContent}>
+              {/* Header del Modal */}
+              <View style={styles.formModalHeader}>
+                <View>
+                  <Text style={styles.formModalTitle}>Nueva Germinación</Text>
+                  <Text style={styles.formModalSubtitle}>Completa los datos del formulario</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.formModalCloseButton}
+                  onPress={() => setShowForm(false)}
+                >
+                  <Ionicons name="close" size={24} color={themeColors.text.tertiary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Formulario */}
+              <ScrollView style={styles.formModalScrollView}>
+                <GerminacionForm
+                  visible={true}
+                  onClose={() => setShowForm(false)}
+                  form={germinacionesHook.form}
+                  setForm={germinacionesHook.setForm}
+                  onSubmit={handleSubmit}
+                  saving={saving}
+                  codigosDisponibles={germinacionesHook.codigosDisponibles}
+                  especiesDisponibles={germinacionesHook.especiesDisponibles}
+                  perchasDisponibles={germinacionesHook.perchasDisponibles}
+                  nivelesDisponibles={germinacionesHook.nivelesDisponibles}
+                  handleCodigoSelection={germinacionesHook.handleCodigoSelection}
+                  handleEspecieSelection={germinacionesHook.handleEspecieSelection}
+                  useOwnModal={false}
+                />
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
 
         {/* Prediction Modal */}
         <PrediccionMejoradaModal
@@ -158,31 +390,26 @@ export default function GerminacionesScreen() {
           error={prediccionError}
         />
 
-        {/* Filters Modal */}
+        {/* Filters Modal - Popup Centrado */}
         <Modal
           visible={showFilters}
-          animationType="slide"
-          presentationStyle="pageSheet"
+          animationType="fade"
+          transparent={true}
           onRequestClose={() => setShowFilters(false)}
         >
-          <GerminacionFilters
-            filters={filters}
-            onFiltersChange={(newFilters) => {
-              setFilters(newFilters);
-              setShowFilters(false);
-            }}
-            onClose={() => setShowFilters(false)}
-          />
+          <View style={styles.filterModalOverlay}>
+            <View style={styles.filterModalContent}>
+              <GerminacionFilters
+                filters={filters}
+                onFiltersChange={(newFilters) => {
+                  setFilters(newFilters);
+                  setShowFilters(false);
+                }}
+                onClose={() => setShowFilters(false)}
+              />
+            </View>
+          </View>
         </Modal>
-
-          {/* Export Modal */}
-          <ExportModal
-            visible={showExportModal}
-            onClose={() => setShowExportModal(false)}
-            defaultEntity="germinaciones"
-            allowEntitySelection={false}
-            title="Exportar Germinaciones"
-          />
 
         {/* Modal de detalle */}
         <Modal
@@ -248,35 +475,174 @@ export default function GerminacionesScreen() {
             </View>
           </View>
         </Modal>
-        </View>
-      </View>
+      </ResponsiveLayout>
     </ProtectedRoute>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   mainContainer: {
+    backgroundColor: colors.background.secondary,
+  },
+  scrollContainer: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   container: {
-    flex: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
+    paddingBottom: 20,
+  },
+  metricsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 24,
+  },
+  metricCard: {
+    flex: 1,
+    backgroundColor: colors.background.primary,
+    borderRadius: 12,
+    padding: 14,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  metricHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  metricLabel: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    fontWeight: '600',
+  },
+  metricIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  metricValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  metricValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text.primary,
+    letterSpacing: -1,
+  },
+  metricBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.status.successLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  metricBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.status.success,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+    backgroundColor: colors.background.secondary,
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  searchInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.primary,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.text.primary,
+  },
+  clearSearchButton: {
+    padding: 4,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: colors.background.primary,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    position: 'relative',
+  },
+  actionButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.text.secondary,
+  },
+  actionBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: colors.status.success,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: colors.background.primary,
+  },
+  actionBadgeText: {
+    color: colors.text.inverse,
+    fontSize: 10,
+    fontWeight: '800',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.background.modal,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 20,
     width: '90%',
     maxHeight: '80%',
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 20,
@@ -285,7 +651,7 @@ const styles = StyleSheet.create({
   detalleTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#182d49',
+    color: colors.text.primary,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -296,18 +662,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: colors.border.light,
   },
   detalleLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text.secondary,
     width: 140,
     marginRight: 12,
   },
   detalleValue: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.text.tertiary,
     flex: 1,
   },
   modalButtons: {
@@ -316,14 +682,87 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   modalButton: {
-    backgroundColor: '#182d49',
+    backgroundColor: colors.accent.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   modalButtonText: {
-    color: '#fff',
+    color: colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
+  },
+  formModalOverlay: {
+    flex: 1,
+    backgroundColor: colors.background.modal,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  formModalContent: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 700,
+    maxHeight: '85%',
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+    overflow: 'hidden',
+  },
+  formModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.background.secondary,
+  },
+  formModalTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text.primary,
+    marginBottom: 4,
+    letterSpacing: -0.5,
+  },
+  formModalSubtitle: {
+    fontSize: 14,
+    color: colors.text.tertiary,
+  },
+  formModalCloseButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  formModalScrollView: {
+    flex: 1,
+  },
+  filterModalOverlay: {
+    flex: 1,
+    backgroundColor: colors.background.modal,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterModalContent: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 600,
+    maxHeight: '85%',
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+    overflow: 'hidden',
   },
 });
