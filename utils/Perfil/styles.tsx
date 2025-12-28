@@ -1,10 +1,16 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/constants/Colors';
+import { getColors } from '@/utils/colors';
 
-export const styles = StyleSheet.create({
+// Función para crear estilos dinámicos basados en el tema
+export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: colors.background.secondary,
+    flexDirection: 'row',
+  },
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.secondary,
   },
   scrollContent: {
     paddingBottom: 40,
@@ -19,11 +25,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   tab: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 25,
-    shadowColor: '#121212',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -32,22 +38,22 @@ export const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   activeTab: {
-    backgroundColor: Colors.light.tint,
-    borderColor: Colors.light.accent,
-    shadowColor: Colors.light.tint,
+    backgroundColor: colors.accent.primary,
+    borderColor: colors.primary.main,
+    shadowColor: colors.accent.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 6,
   },
   tabText: {
-    color: Colors.light.text,
+    color: colors.text.primary,
     fontWeight: '600',
     fontSize: 13,
     textAlign: 'center',
   },
   activeTabText: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontWeight: '700',
   },
   contentContainer: {
@@ -58,14 +64,14 @@ export const styles = StyleSheet.create({
     margin: 24,
   },
   listEmptyText: {
-    color: Colors.light.text,
+    color: colors.text.primary,
     textAlign: 'center',
     margin: 24,
     fontSize: 18,
     fontWeight: '600',
   },
   emptySubtext: {
-    color: '#6b7280',
+    color: colors.text.tertiary,
     textAlign: 'center',
     fontSize: 14,
     marginTop: 8,
@@ -86,18 +92,18 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   statsCard: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 16,
     flex: 1,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 6,
     minHeight: 85,
     borderWidth: 1,
-    borderColor: '#e5f3f0',
+    borderColor: colors.border.light,
     borderLeftWidth: 4,
   },
   statsCardContent: {
@@ -119,7 +125,7 @@ export const styles = StyleSheet.create({
     flexShrink: 0,
   },
   statsTitle: {
-    color: Colors.light.text,
+    color: colors.text.primary,
     fontSize: 11,
     fontWeight: '500',
     marginBottom: 4,
@@ -128,21 +134,22 @@ export const styles = StyleSheet.create({
   statsValue: {
     fontSize: 24,
     fontWeight: '700',
+    color: colors.text.primary,
     textAlign: 'left',
     letterSpacing: -0.5,
   },
   progressSection: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#121212',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
     elevation: 8,
     borderWidth: 1,
-    borderColor: '#e5f3f0',
+    borderColor: colors.border.light,
   },
   progressCardsContainer: {
     flexDirection: 'row',
@@ -153,19 +160,19 @@ export const styles = StyleSheet.create({
   progressTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#1f2937',
+    color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'center',
   },
   progressMeta: {
-    color: Colors.light.text,
+    color: colors.text.primary,
     fontSize: 14,
     marginBottom: 6,
     textAlign: 'center',
     fontWeight: '500',
   },
   progressCurrent: {
-    color: '#1f2937',
+    color: colors.text.primary,
     fontSize: 32,
     fontWeight: '900',
     marginBottom: 16,
@@ -177,18 +184,18 @@ export const styles = StyleSheet.create({
   },
   progressBarMain: {
     height: 8,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.background.secondary,
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 8,
   },
   progressFillMain: {
     height: '100%',
-    backgroundColor: '#22c55e',
+    backgroundColor: colors.status.success,
     borderRadius: 4,
   },
   progressText: {
-    color: Colors.light.text,
+    color: colors.text.primary,
     fontSize: 12,
     textAlign: 'center',
     fontWeight: '500',
@@ -250,17 +257,17 @@ export const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   alertaCard: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#e5f3f0',
+    borderColor: colors.border.light,
   },
   alertaCardHeader: {
     flexDirection: 'row',
@@ -317,7 +324,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   notificacionCard: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     marginBottom: 12,
     shadowColor: '#000',
@@ -392,7 +399,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalContainer: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     maxHeight: '80%',
     width: '90%',
@@ -418,12 +425,12 @@ export const styles = StyleSheet.create({
   detailModalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: Colors.light.tint,
+    color: colors.accent.primary,
   },
   modalCloseButton: {
     padding: 6,
     borderRadius: 15,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -484,14 +491,14 @@ export const styles = StyleSheet.create({
     borderBottomRightRadius: 16,
   },
   modalCloseFooterButton: {
-    backgroundColor: Colors.light.tint,
+    backgroundColor: colors.accent.primary,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
   },
   modalCloseFooterButtonText: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -531,19 +538,19 @@ export const styles = StyleSheet.create({
   usuariosTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.light.tint,
+    color: colors.accent.primary,
   },
   addUserButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.tint,
+    backgroundColor: colors.accent.primary,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     gap: 6,
   },
   addUserButtonText: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -554,7 +561,7 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   usuarioCard: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -740,7 +747,7 @@ export const styles = StyleSheet.create({
   createUserButtonSmall: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.tint,
+    backgroundColor: colors.accent.primary,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 6,
@@ -754,7 +761,7 @@ export const styles = StyleSheet.create({
     elevation: 1,
   },
   createUserButtonTextSmall: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -778,7 +785,7 @@ export const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.light.tint,
+    color: colors.accent.primary,
     marginBottom: 4,
   },
   statLabel: {
@@ -807,7 +814,7 @@ export const styles = StyleSheet.create({
   recentItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 10,
@@ -1155,7 +1162,7 @@ export const styles = StyleSheet.create({
   usuarioName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.light.tint,
+    color: colors.accent.primary,
     marginBottom: 4,
   },
   usuarioEmail: {
@@ -1165,7 +1172,7 @@ export const styles = StyleSheet.create({
   },
   usuarioRole: {
     fontSize: 12,
-    color: Colors.light.accent,
+    color: colors.primary.main,
     fontWeight: '600',
   },
   usuarioActions: {
@@ -1214,7 +1221,7 @@ export const styles = StyleSheet.create({
   createUserModalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.light.tint,
+    color: colors.accent.primary,
   },
   closeButton: {
     padding: 4,
@@ -1262,8 +1269,8 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   createUserRoleOptionSelected: {
-    backgroundColor: Colors.light.accent,
-    borderColor: Colors.light.accent,
+    backgroundColor: colors.primary.main,
+    borderColor: colors.primary.main,
   },
   createUserRoleOptionText: {
     fontSize: 12,
@@ -1271,7 +1278,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   createUserRoleOptionTextSelected: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontWeight: '600',
   },
   createUserModalFooter: {
@@ -1303,7 +1310,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: Colors.light.accent,
+    backgroundColor: colors.primary.main,
     color: '#fff',
     alignItems: 'center',
     marginLeft: 8,
@@ -1312,7 +1319,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#9ca3af',
   },
   createButtonText: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -1382,7 +1389,7 @@ export const styles = StyleSheet.create({
   // ESTILOS PARA SISTEMA RBAC
   // ============================================================================
   topUserInfoSection: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 20,
     padding: 28,
     marginHorizontal: 16,
@@ -1403,7 +1410,7 @@ export const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     marginBottom: 20,
-    shadowColor: Colors.light.tint,
+    shadowColor: colors.accent.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -1417,7 +1424,7 @@ export const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: Colors.light.accent,
+    borderColor: colors.primary.main,
   },
 
   userInfoContainer: {
@@ -1478,12 +1485,12 @@ export const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: Colors.light.tint,
+    backgroundColor: colors.accent.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
     borderColor: '#FFFFFF',
-    shadowColor: Colors.light.tint,
+    shadowColor: colors.accent.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1491,7 +1498,7 @@ export const styles = StyleSheet.create({
   },
 
   userAvatarText: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontSize: 48,
     fontWeight: '700',
     letterSpacing: 1,
@@ -1868,7 +1875,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: Colors.light.tint,
+    backgroundColor: colors.accent.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1880,7 +1887,7 @@ export const styles = StyleSheet.create({
   assignMetasButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.light.background,
+    color: colors.text.inverse,
   },
 
   disabledInput: {
@@ -1990,14 +1997,14 @@ export const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    backgroundColor: Colors.light.tint,
+    backgroundColor: colors.accent.primary,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
   editModalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.light.background,
+    color: colors.text.inverse,
   },
   editModalCloseButton: {
     padding: 4,
@@ -2061,7 +2068,7 @@ export const styles = StyleSheet.create({
   // ESTILOS PARA TABLA DE GERMINACIONES
   // ============================================================================
   professionalTableContainer: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     marginHorizontal: 16,
     marginBottom: 16,
@@ -2288,7 +2295,7 @@ export const styles = StyleSheet.create({
   
   // Estilos para el encabezado de la tabla
   tableHeaderSection: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
@@ -2302,7 +2309,7 @@ export const styles = StyleSheet.create({
   professionalTableTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.light.text,
+    color: colors.text.primary,
     marginBottom: 4,
   },
   
@@ -2321,12 +2328,12 @@ export const styles = StyleSheet.create({
   newItemButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.tint,
+    backgroundColor: colors.accent.primary,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     gap: 8,
-    shadowColor: Colors.light.tint,
+    shadowColor: colors.accent.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -2334,7 +2341,7 @@ export const styles = StyleSheet.create({
   },
   
   newItemButtonText: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -2342,13 +2349,13 @@ export const styles = StyleSheet.create({
   exportButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     gap: 8,
     borderWidth: 1,
-    borderColor: Colors.light.tint,
+    borderColor: colors.accent.primary,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -2357,7 +2364,7 @@ export const styles = StyleSheet.create({
   },
   
   exportButtonText: {
-    color: Colors.light.tint,
+    color: colors.accent.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -2374,7 +2381,7 @@ export const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 10,
@@ -2396,7 +2403,7 @@ export const styles = StyleSheet.create({
 
   // Estilos para cards de items optimizados
   itemCard: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -2419,13 +2426,13 @@ export const styles = StyleSheet.create({
   itemCode: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.light.text,
+    color: colors.text.primary,
   },
 
   itemTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: Colors.light.text,
+    color: colors.text.primary,
     marginBottom: 4,
   },
 
@@ -2502,7 +2509,7 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 8,
     borderBottomWidth: 2,
-    borderBottomColor: Colors.light.tint,
+    borderBottomColor: colors.accent.primary,
   },
   // Estilos adicionales para modal simplificado
   fieldGroup: {
@@ -2672,4 +2679,172 @@ export const styles = StyleSheet.create({
   etapasContainer: {
     gap: 12,
   },
+  // =============================================================================
+  // ESTILOS PARA NOTIFICACIONES
+  // =============================================================================
+  
+  notificationCard: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    position: 'relative',
+  },
+  
+  notificationCardUnread: {
+    borderLeftWidth: 4,
+    borderLeftColor: colors.accent.primary,
+    backgroundColor: colors.background.primary,
+  },
+  
+  unreadIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  
+  notificationContent: {
+    flex: 1,
+  },
+  
+  notificationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  
+  notificationTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  
+  notificationIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+  notificationTypeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  
+  notificationActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  
+  notificationActionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background.secondary,
+  },
+  
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  
+  notificationTitleUnread: {
+    fontWeight: '700',
+  },
+  
+  notificationMessage: {
+    fontSize: 14,
+    color: colors.text.secondary,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  
+  notificationFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  
+  notificationMeta: {
+    flex: 1,
+  },
+  
+  notificationUser: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    marginBottom: 2,
+    fontWeight: '500',
+  },
+  
+  notificationDate: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+  },
+  
+  notificationReference: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.background.secondary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  
+  notificationReferenceText: {
+    fontSize: 11,
+    color: colors.text.tertiary,
+    fontWeight: '500',
+  },
+  
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: colors.background.primary,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  
+  filterButtonActive: {
+    backgroundColor: colors.accent.light,
+    borderColor: colors.accent.primary,
+  },
+  
+  filterButtonText: {
+    fontSize: 12,
+    color: colors.text.secondary,
+    fontWeight: '500',
+  },
+  
+  filterButtonTextActive: {
+    color: colors.accent.primary,
+    fontWeight: '600',
+  },
+
 });
+
+// Exportar estilos por defecto para compatibilidad (tema claro)
+export const styles = createPerfilStyles(getColors('light'));

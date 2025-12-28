@@ -4,7 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { Germinacion, Polinizacion } from '@/types';
-import { TabNavigation } from '@/components/navigation';
+import { ResponsiveLayout } from '@/components/layout';
+import { useTheme } from '@/contexts/ThemeContext';
+import Svg, { Line } from 'react-native-svg';
 
 // IMPORTS DIRECTOS - NO LAZY
 import { germinacionService } from '@/services/germinacion.service';
@@ -34,9 +36,12 @@ interface ItemCard {
 export default function HomeScreen() {
   const { token } = useAuth();
   const router = useRouter();
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [chartDimensions, setChartDimensions] = useState({ width: 229, height: 120 });
 
   // Estadísticas
   const [germinacionStats, setGerminacionStats] = useState<StatusCounts>({
@@ -87,13 +92,13 @@ export default function HomeScreen() {
 
   const getGerminacionStatusColor = useCallback((status: string) => {
     switch (status) {
-      case 'INGRESADO': return '#F59E0B';
-      case 'EN_PROCESO': return '#3B82F6';
-      case 'LISTA': return '#10B981';
-      case 'CANCELADO': return '#EF4444';
-      default: return '#6B7280';
+      case 'INGRESADO': return themeColors.status.warning;
+      case 'EN_PROCESO': return themeColors.accent.secondary;
+      case 'LISTA': return themeColors.status.success;
+      case 'CANCELADO': return themeColors.status.error;
+      default: return themeColors.text.tertiary;
     }
-  }, []);
+  }, [themeColors]);
 
   const getPolinizacionStatusLabel = useCallback((polinizacion: any) => {
     if (polinizacion.fechamad) return 'Completado';
@@ -102,10 +107,10 @@ export default function HomeScreen() {
   }, []);
 
   const getPolinizacionStatusColor = useCallback((polinizacion: any) => {
-    if (polinizacion.fechamad) return '#10B981';
-    if (polinizacion.fechapol) return '#3B82F6';
-    return '#F59E0B';
-  }, []);
+    if (polinizacion.fechamad) return themeColors.status.success;
+    if (polinizacion.fechapol) return themeColors.accent.secondary;
+    return themeColors.status.warning;
+  }, [themeColors]);
 
   const calculatePolinizacionStats = useCallback((polinizaciones: Polinizacion[]): StatusCounts => {
     if (!Array.isArray(polinizaciones)) {
@@ -235,7 +240,7 @@ export default function HomeScreen() {
       // Obtener datos de polinizaciones
       const [germinacionesRecientesRaw, polinizacionesRaw, totalPolinizaciones] = await Promise.allSettled([
         germinacionService.getPaginated({ page: 1, page_size: 20 }),
-        polinizacionService.getPaginated(1, 1000),
+        polinizacionService.getPaginated({ page: 1, page_size: 1000 }),
         polinizacionService.getTotalCount()
       ]);
 
@@ -295,93 +300,58 @@ export default function HomeScreen() {
     }
   };
 
-  const getStatusColor = useCallback((status: string) => {
-    switch (status) {
-      case 'ingresado': return '#F59E0B';
-      case 'en_proceso': return '#3B82F6';
-      case 'completado': return '#10B981';
-      default: return '#6B7280';
+  const formatTimeAgo = (dateString: string) => {
+    if (!dateString) return 'hace un momento';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'hace un momento';
+      
+      const now = new Date();
+      const diffInMs = now.getTime() - date.getTime();
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+      const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+      const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+      if (diffInMinutes < 60) {
+        return diffInMinutes <= 1 ? 'hace un momento' : `hace ${diffInMinutes} min`;
+      } else if (diffInHours < 24) {
+        return diffInHours === 1 ? 'hace 1 hora' : `hace ${diffInHours} horas`;
+      } else if (diffInDays < 7) {
+        return diffInDays === 1 ? 'hace 1 día' : `hace ${diffInDays} días`;
+      } else {
+        return formatDate(dateString);
+      }
+    } catch (error) {
+      return 'hace un momento';
     }
-  }, []);
+  };
 
-  const renderStatusCard = useCallback((title: string, stats: StatusCounts, icon: string, color: string, onPress: () => void) => {
-    if (!stats || typeof stats.total !== 'number') {
-      return null;
-    }
+  // Datos simulados para el gráfico (basados en estadísticas reales)
+  const chartData = useMemo(() => {
+    const months = ['MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT'];
+    const germinacionesData = [
+      Math.max(1, Math.floor(germinacionStats.total * 0.12)),
+      Math.max(1, Math.floor(germinacionStats.total * 0.15)),
+      Math.max(1, Math.floor(germinacionStats.total * 0.18)),
+      Math.max(1, Math.floor(germinacionStats.total * 0.22)),
+      Math.max(1, Math.floor(germinacionStats.total * 0.16)),
+      Math.max(1, Math.floor(germinacionStats.total * 0.17))
+    ];
+    const polinizacionesData = [
+      Math.max(1, Math.floor(polinizacionStats.total * 0.14)),
+      Math.max(1, Math.floor(polinizacionStats.total * 0.19)),
+      Math.max(1, Math.floor(polinizacionStats.total * 0.16)),
+      Math.max(1, Math.floor(polinizacionStats.total * 0.20)),
+      Math.max(1, Math.floor(polinizacionStats.total * 0.15)),
+      Math.max(1, Math.floor(polinizacionStats.total * 0.16))
+    ];
+    
+    return { months, germinacionesData, polinizacionesData };
+  }, [germinacionStats.total, polinizacionStats.total]);
 
-    // Calcular porcentajes
-    const total = stats.total || 1; // Evitar división por cero
-    const ingresadoPct = Math.round((stats.ingresado / total) * 100);
-    const procesPct = Math.round((stats.en_proceso / total) * 100);
-    const completadoPct = Math.round((stats.completado / total) * 100);
 
-    return (
-      <TouchableOpacity style={[styles.statusCard, { borderLeftColor: color }]} onPress={onPress} activeOpacity={0.7}>
-        <View style={styles.statusHeader}>
-          <View style={[styles.iconCircle, { backgroundColor: `${color}15` }]}>
-            <Ionicons name={icon as any} size={28} color={color} />
-          </View>
-          <View style={styles.statusTitleContainer}>
-            <Text style={styles.statusTitle}>{title}</Text>
-            <Text style={styles.totalCount}>{stats.total.toLocaleString()}</Text>
-          </View>
-        </View>
 
-        {/* Barra de progreso visual */}
-        <View style={styles.progressBarWrapper}>
-          <View style={styles.progressBarTrack}>
-            {stats.ingresado > 0 && (
-              <View style={[styles.progressSegment, {
-                width: `${ingresadoPct}%`,
-                backgroundColor: getStatusColor('ingresado')
-              }]} />
-            )}
-            {stats.en_proceso > 0 && (
-              <View style={[styles.progressSegment, {
-                width: `${procesPct}%`,
-                backgroundColor: getStatusColor('en_proceso')
-              }]} />
-            )}
-            {stats.completado > 0 && (
-              <View style={[styles.progressSegment, {
-                width: `${completadoPct}%`,
-                backgroundColor: getStatusColor('completado')
-              }]} />
-            )}
-          </View>
-        </View>
 
-        <View style={styles.statusBreakdown}>
-          <View style={styles.statusItem}>
-            <View style={[styles.statusDot, { backgroundColor: getStatusColor('ingresado') }]} />
-            <View style={styles.statusLabelContainer}>
-              <Text style={styles.statusLabel}>Ingresado</Text>
-              <Text style={styles.statusValue}>{stats.ingresado || 0} ({ingresadoPct}%)</Text>
-            </View>
-          </View>
-          <View style={styles.statusItem}>
-            <View style={[styles.statusDot, { backgroundColor: getStatusColor('en_proceso') }]} />
-            <View style={styles.statusLabelContainer}>
-              <Text style={styles.statusLabel}>En Proceso</Text>
-              <Text style={styles.statusValue}>{stats.en_proceso || 0} ({procesPct}%)</Text>
-            </View>
-          </View>
-          <View style={styles.statusItem}>
-            <View style={[styles.statusDot, { backgroundColor: getStatusColor('completado') }]} />
-            <View style={styles.statusLabelContainer}>
-              <Text style={styles.statusLabel}>Completado</Text>
-              <Text style={styles.statusValue}>{stats.completado || 0} ({completadoPct}%)</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.cardFooter}>
-          <Text style={styles.viewDetailsText}>Ver detalles</Text>
-          <Ionicons name="arrow-forward" size={16} color={color} />
-        </View>
-      </TouchableOpacity>
-    );
-  }, [getStatusColor]);
 
   const renderItemCard = useCallback(({ item }: { item: ItemCard }) => {
     if (!item || !item.type || !item.title) {
@@ -404,7 +374,7 @@ export default function HomeScreen() {
             <Ionicons
               name={item.type === 'germinacion' ? 'leaf' : 'flower'}
               size={20}
-              color={item.type === 'germinacion' ? '#10B981' : '#F59E0B'}
+              color={item.type === 'germinacion' ? themeColors.primary.main : themeColors.status.warning}
             />
             <Text style={styles.cardType}>
               {item.type === 'germinacion' ? 'Germinación' : 'Polinización'}
@@ -431,7 +401,7 @@ export default function HomeScreen() {
                   styles.progressFill,
                   {
                     width: `${item.progress}%`,
-                    backgroundColor: '#fff'
+                    backgroundColor: themeColors.background.primary
                   }
                 ]}
               />
@@ -441,12 +411,12 @@ export default function HomeScreen() {
 
         <View style={styles.cardDetails}>
           <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={14} color="#6B7280" />
+            <Ionicons name="calendar-outline" size={14} color={themeColors.text.tertiary} />
             <Text style={styles.detailText}>{formatDate(item.date)}</Text>
           </View>
           {item.responsable && (
             <View style={styles.detailRow}>
-              <Ionicons name="person-outline" size={14} color="#6B7280" />
+              <Ionicons name="person-outline" size={14} color={themeColors.text.tertiary} />
               <Text style={styles.detailText}>
                 {typeof item.responsable === 'object' && item.responsable
                   ? item.responsable.username || 'Sin asignar'
@@ -457,7 +427,7 @@ export default function HomeScreen() {
           )}
           {item.location && (
             <View style={styles.detailRow}>
-              <Ionicons name="location-outline" size={14} color="#6B7280" />
+              <Ionicons name="location-outline" size={14} color={themeColors.text.tertiary} />
               <Text style={styles.detailText}>{item.location}</Text>
             </View>
           )}
@@ -487,281 +457,823 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e9ad14" />
+        <ActivityIndicator size="large" color={themeColors.primary.main} />
         <Text style={styles.loadingText}>Cargando datos...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.root}>
-      <TabNavigation currentTab="inicio" />
-
+    <ResponsiveLayout currentTab="inicio">
       <ScrollView
         style={styles.container}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#F59E0B']}
-            tintColor="#F59E0B"
+            colors={[themeColors.status.warning]}
+            tintColor={themeColors.status.warning}
           />
         }
       >
         {/* Header con resumen rápido */}
         <View style={styles.dashboardHeader}>
-          <View>
-            <Text style={styles.pageTitle}>Dashboard</Text>
-            <Text style={styles.pageSubtitle}>Vista general del sistema</Text>
-          </View>
-          {(germinacionStats.total > 0 || polinizacionStats.total > 0) && (
-            <View style={styles.quickSummary}>
-              <View style={styles.summaryItem}>
-                <Ionicons name="leaf" size={20} color="#10B981" />
-                <Text style={styles.summaryNumber}>{germinacionStats.total.toLocaleString()}</Text>
-              </View>
-              <View style={styles.summaryDivider} />
-              <View style={styles.summaryItem}>
-                <Ionicons name="flower" size={20} color="#F59E0B" />
-                <Text style={styles.summaryNumber}>{polinizacionStats.total.toLocaleString()}</Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Estado General */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Ionicons name="stats-chart" size={20} color="#111827" /> Estado General
-          </Text>
-          <View style={styles.statusGrid}>
-            {germinacionStats && renderStatusCard(
-              'Germinaciones',
-              germinacionStats,
-              'leaf-outline',
-              '#10B981',
-              () => router.push('/(tabs)/germinaciones')
-            )}
-            {polinizacionStats && renderStatusCard(
-              'Polinizaciones',
-              polinizacionStats,
-              'flower-outline',
-              '#F59E0B',
-              () => router.push('/(tabs)/polinizaciones')
-            )}
-          </View>
-        </View>
-
-        {/* Notificaciones */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Ionicons name="notifications" size={20} color="#111827" /> Notificaciones
-          </Text>
-          <TouchableOpacity
-            style={[styles.alertasCard, { borderLeftColor: '#3B82F6' }]}
-            onPress={() => router.push('/(tabs)/notificaciones')}
-          >
-            <View style={styles.alertasHeader}>
-              <View style={styles.alertasInfo}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={24}
-                  color="#3B82F6"
-                />
-                <Text style={styles.alertasTitle}>
-                  Centro de Notificaciones
+          <View style={styles.headerContent}>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.pageTitle}>Dashboard</Text>
+              <Text style={styles.pageSubtitle}>Vista general del sistema PoliGer</Text>
+              <View style={styles.lastUpdateContainer}>
+                <Ionicons name="time-outline" size={14} color={themeColors.text.tertiary} />
+                <Text style={styles.lastUpdateText}>
+                  Última actualización: {new Date().toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
                 </Text>
               </View>
             </View>
 
-            <Text style={styles.notificacionesDescription}>
-              Mantente informado sobre las actualizaciones importantes de germinaciones y polinizaciones
-            </Text>
-
-            <View style={styles.alertasFooter}>
-              <Text style={styles.alertasFooterText}>
-                Ver todas las notificaciones
-              </Text>
-              <Ionicons name="chevron-forward" size={16} color="#6B7280" />
-            </View>
-          </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Actividades Recientes */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Ionicons name="time" size={20} color="#111827" /> Actividades Recientes
+        {/* Módulos de Métricas */}
+        <View style={styles.metricsSection}>
+            <Text style={styles.sectionTitle}>
+            <Ionicons name="analytics" size={20} color={themeColors.text.primary} /> Métricas del Sistema
           </Text>
-          <View style={styles.filterContainer}>
-            <TouchableOpacity
-              style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
-              onPress={() => setFilter('all')}
+          <View style={styles.metricsGrid}>
+            {/* Total Polinizaciones */}
+            <TouchableOpacity 
+              style={[styles.metricCard, styles.metricCardPolinizaciones]}
+              onPress={() => router.push('/(tabs)/polinizaciones')}
             >
-              <Text style={[styles.filterText, filter === 'all' ? styles.filterTextActive : {}]}>
-                Todas ({cardCounts.all})
+              <View style={styles.metricCardHeader}>
+                <View style={[styles.metricIcon, { backgroundColor: themeColors.accent.tertiary }]}>
+                  <Ionicons name="flower" size={20} color={themeColors.accent.primary} />
+                </View>
+              </View>
+              <Text style={styles.metricLabel}>Total Polinizaciones</Text>
+              <Text style={styles.metricValue}>{polinizacionStats.total.toLocaleString()}</Text>
+            </TouchableOpacity>
+
+            {/* Total Germinaciones */}
+            <TouchableOpacity 
+              style={[styles.metricCard, styles.metricCardGerminaciones]}
+              onPress={() => router.push('/(tabs)/germinaciones')}
+            >
+              <View style={styles.metricCardHeader}>
+                <View style={[styles.metricIcon, { backgroundColor: themeColors.primary.light }]}>
+                  <Ionicons name="leaf" size={20} color={themeColors.primary.main} />
+                </View>
+              </View>
+              <Text style={styles.metricLabel}>Total Germinaciones</Text>
+              <Text style={styles.metricValue}>{germinacionStats.total.toLocaleString()}</Text>
+            </TouchableOpacity>
+
+            {/* Tasa de Éxito */}
+            <TouchableOpacity style={[styles.metricCard, styles.metricCardSuccess]}>
+              <View style={styles.metricCardHeader}>
+                <View style={[styles.metricIcon, { backgroundColor: themeColors.primary.light }]}>
+                  <Ionicons name="checkmark-circle" size={20} color={themeColors.primary.dark} />
+                </View>
+              </View>
+              <Text style={styles.metricLabel}>Tasa de Éxito</Text>
+              <Text style={styles.metricValue}>
+                {germinacionStats.total > 0 
+                  ? Math.round((germinacionStats.completado / germinacionStats.total) * 100)
+                  : 0}%
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.filterTab, filter === 'germinacion' && styles.filterTabActive]}
-              onPress={() => setFilter('germinacion')}
-            >
-              <Ionicons name="leaf-outline" size={16} color={filter === 'germinacion' ? '#fff' : '#6B7280'} />
-              <Text style={[styles.filterText, filter === 'germinacion' ? styles.filterTextActive : {}]}>
-                Germinaciones ({cardCounts.germinacion})
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.filterTab, filter === 'polinizacion' && styles.filterTabActive]}
-              onPress={() => setFilter('polinizacion')}
-            >
-              <Ionicons name="flower-outline" size={16} color={filter === 'polinizacion' ? '#fff' : '#6B7280'} />
-              <Text style={[styles.filterText, filter === 'polinizacion' ? styles.filterTextActive : {}]}>
-                Polinizaciones ({cardCounts.polinizacion})
-              </Text>
+
+            {/* Acciones Pendientes */}
+            <TouchableOpacity style={[styles.metricCard, styles.metricCardPending]}>
+              <View style={styles.metricCardHeader}>
+                <View style={[styles.metricIcon, { backgroundColor: themeColors.status.warningLight }]}>
+                  <Ionicons name="time" size={20} color={themeColors.status.warning} />
+                </View>
+              </View>
+              <Text style={styles.metricLabel}>Acciones Pendientes</Text>
+              <Text style={styles.metricValue}>{germinacionStats.ingresado + polinizacionStats.ingresado}</Text>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.activityHeader}>
-            <Text style={styles.activityTitle}>
-              {(() => {
-                if (filter === 'all') {
-                  return 'Todos los Procesos';
-                } else if (filter === 'germinacion') {
-                  return 'Germinaciones';
-                } else {
-                  return 'Polinizaciones';
-                }
-              })()}
-            </Text>
-            <View style={styles.activityCount}>
-              <Text style={styles.activityCountText}>{filteredCards?.length || 0} registros</Text>
-            </View>
-          </View>
-
-          {filteredCards && filteredCards.length > 0 ? (
-            <FlatList
-              data={filteredCards}
-              renderItem={renderItemCard}
-              keyExtractor={(item) => {
-                if (!item || !item.id) return Math.random().toString();
-                return item.id.toString();
-              }}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.cardsContainer}
-            />
-          ) : (
-            <View style={styles.emptyState}>
-              <Ionicons name="document-outline" size={48} color="#6B7280" />
-              <Text style={styles.emptyStateText}>No hay elementos para mostrar</Text>
-              <Text style={styles.emptyStateSubtext}>
-                {(() => {
-                  if (filter === 'all') {
-                    return 'No hay procesos registrados';
-                  } else if (filter === 'germinacion') {
-                    return 'No hay germinaciones registradas';
-                  } else {
-                    return 'No hay polinizaciones registradas';
-                  }
-                })()}
-              </Text>
-            </View>
-          )}
         </View>
+
+        {/* Performance Overview y Recent Activity */}
+        <View style={styles.performanceSection}>
+          <View style={styles.performanceContainer}>
+            {/* Resumen de Rendimiento */}
+            <View style={styles.performanceCard}>
+              <View style={styles.performanceHeader}>
+                <View>
+                  <Text style={styles.performanceTitle}>Resumen de Rendimiento</Text>
+                  <Text style={styles.performanceSubtitle}>Últimos 6 Meses</Text>
+                </View>
+              </View>
+              
+              {/* Gráfico de rendimiento */}
+              <View style={styles.chartContainer}>
+                <View style={styles.chartWrapper}>
+                  {/* Área del gráfico */}
+                  <View 
+                    style={styles.chartArea}
+                    onLayout={(event) => {
+                      const { width, height } = event.nativeEvent.layout;
+                      setChartDimensions({ width, height });
+                    }}
+                  >
+                    {/* Líneas de cuadrícula horizontales */}
+                    <View style={[styles.gridLine, { bottom: '20%' }]} />
+                    <View style={[styles.gridLine, { bottom: '40%' }]} />
+                    <View style={[styles.gridLine, { bottom: '60%' }]} />
+                    <View style={[styles.gridLine, { bottom: '80%' }]} />
+                    
+                    {/* Área sombreada verde */}
+                    <View style={styles.areaChartGreen} />
+                    
+                    {/* Área sombreada azul */}
+                    <View style={styles.areaChartBlue} />
+                    
+                    {/* Líneas del gráfico */}
+                    {(() => {
+                      const maxValue = Math.max(...chartData.germinacionesData, ...chartData.polinizacionesData);
+                      const { width, height } = chartDimensions;
+                      
+                      // Calcular posiciones de los puntos para germinaciones en píxeles
+                      const germinacionesPoints = chartData.germinacionesData.map((value, index) => {
+                        const heightPercent = (value / maxValue) * 80;
+                        const xPercent = 10 + (index * 80 / (chartData.months.length - 1));
+                        const yPercent = 10 + heightPercent;
+                        
+                        return {
+                          x: (xPercent / 100) * width,
+                          y: ((100 - yPercent) / 100) * height, // Invertir porque SVG y=0 está arriba
+                        };
+                      });
+                      
+                      // Calcular posiciones de los puntos para polinizaciones en píxeles
+                      const polinizacionesPoints = chartData.polinizacionesData.map((value, index) => {
+                        const heightPercent = (value / maxValue) * 80;
+                        const xPercent = 10 + (index * 80 / (chartData.months.length - 1));
+                        const yPercent = 10 + heightPercent;
+                        
+                        return {
+                          x: (xPercent / 100) * width,
+                          y: ((100 - yPercent) / 100) * height, // Invertir porque SVG y=0 está arriba
+                        };
+                      });
+                      
+                      return (
+                        <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+                          {/* Líneas de germinaciones */}
+                          {germinacionesPoints.map((point, index) => {
+                            if (index === 0) return null;
+                            const prevPoint = germinacionesPoints[index - 1];
+                            return (
+                              <Line
+                                key={`green-line-${index}`}
+                                x1={prevPoint.x}
+                                y1={prevPoint.y}
+                                x2={point.x}
+                                y2={point.y}
+                                stroke={themeColors.status.success}
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                              />
+                            );
+                          })}
+                          {/* Líneas de polinizaciones */}
+                          {polinizacionesPoints.map((point, index) => {
+                            if (index === 0) return null;
+                            const prevPoint = polinizacionesPoints[index - 1];
+                            return (
+                              <Line
+                                key={`blue-line-${index}`}
+                                x1={prevPoint.x}
+                                y1={prevPoint.y}
+                                x2={point.x}
+                                y2={point.y}
+                                stroke={themeColors.accent.secondary}
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                              />
+                            );
+                          })}
+                        </Svg>
+                      );
+                    })()}
+                  </View>
+                  
+                  {/* Labels de meses */}
+                  <View style={styles.chartLabels}>
+                    {chartData.months.map((month) => (
+                      <Text key={month} style={styles.chartLabel}>{month}</Text>
+                    ))}
+                  </View>
+                </View>
+                
+                {/* Leyenda */}
+                <View style={styles.chartLegend}>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendDot, { backgroundColor: themeColors.primary.main }]} />
+                    <Text style={styles.legendText}>Germinaciones</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendDot, { backgroundColor: themeColors.accent.primary }]} />
+                    <Text style={styles.legendText}>Polinizaciones</Text>
+                  </View>
+                </View>
+              </View>
+              
+              {/* Estadísticas del sistema */}
+              <View style={styles.statsContainer}>
+              </View>
+            </View>
+
+            {/* Actividad Reciente */}
+            <View style={styles.activityCard}>
+              <View style={styles.activityHeader}>
+                <Text style={styles.activityTitle}>Actividad Reciente</Text>
+              </View>
+
+              <View style={styles.activityList}>
+                {/* Mostrar las últimas polinizaciones y germinaciones */}
+                {itemCards.slice(0, 4).map((item, index) => {
+                  const isGerminacion = item.type === 'germinacion';
+                  const timeAgo = formatTimeAgo(item.date);
+                  
+                  return (
+                    <View key={`activity-${index}`} style={styles.activityItem}>
+                      <View style={[
+                        styles.activityIcon, 
+                        { backgroundColor: isGerminacion ? themeColors.primary.light : themeColors.accent.tertiary }
+                      ]}>
+                        <Ionicons 
+                          name={isGerminacion ? "leaf" : "flower"} 
+                          size={12} 
+                          color={isGerminacion ? themeColors.primary.main : themeColors.accent.primary} 
+                        />
+                      </View>
+                      <View style={styles.activityContent}>
+                        <Text style={styles.activityItemTitle}>
+                          {isGerminacion ? 'Nueva Germinación' : 'Nueva Polinización'}
+                        </Text>
+                        <Text style={styles.activityItemSubtitle}>
+                          {item.title} • {item.subtitle} • {timeAgo}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+                
+                {/* Si no hay suficientes elementos, mostrar mensaje */}
+                {itemCards.length === 0 && (
+                  <View style={styles.activityItem}>
+                    <View style={[styles.activityIcon, { backgroundColor: themeColors.border.light }]}>
+                      <Ionicons name="time-outline" size={12} color={themeColors.text.tertiary} />
+                    </View>
+                    <View style={styles.activityContent}>
+                      <Text style={styles.activityItemTitle}>Sin actividad reciente</Text>
+                      <Text style={styles.activityItemSubtitle}>
+                        No hay registros recientes para mostrar
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+
       </ScrollView>
-    </View>
+    </ResponsiveLayout>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.secondary,
   },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.secondary,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.text.tertiary,
   },
   dashboardHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+    backgroundColor: colors.background.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+    marginBottom: 20,
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 140,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    marginBottom: 20,
+    alignItems: 'flex-start',
+  },
+  headerTextContainer: {
+    flex: 1,
+    marginRight: 20,
   },
   pageTitle: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.text.primary,
     letterSpacing: -0.5,
+    marginBottom: 4,
   },
   pageSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
+    fontSize: 16,
+    color: colors.text.tertiary,
+    marginBottom: 8,
+    lineHeight: 24,
+  },
+  lastUpdateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  lastUpdateText: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    fontStyle: 'italic',
   },
   quickSummary: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 16,
+    backgroundColor: colors.background.secondary,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 20,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border.light,
   },
   summaryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
+  },
+  summaryIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  summaryTextContainer: {
+    alignItems: 'flex-start',
   },
   summaryNumber: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.text.primary,
+    lineHeight: 24,
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   summaryDivider: {
     width: 1,
-    height: 24,
-    backgroundColor: '#D1D5DB',
+    height: 40,
+    backgroundColor: colors.border.default,
   },
   section: {
     marginBottom: 24,
     paddingHorizontal: 20,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
+  metricsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 32,
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  metricCard: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 16,
+    padding: 16,
+    flex: 1,
+    minWidth: 140,
+    maxWidth: '48%',
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    position: 'relative',
+  },
+  metricCardPolinizaciones: {
+  },
+  metricCardGerminaciones: {
+  },
+  metricCardSuccess: {
+  },
+  metricCardPending: {
+  },
+  metricCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  metricIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  metricBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: colors.background.secondary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 3,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  metricBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  metricLabel: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    fontWeight: '600',
+    marginBottom: 8,
+    lineHeight: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  metricValue: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: colors.text.primary,
+    letterSpacing: -1,
+    marginBottom: 12,
+  },
+  metricProgress: {
+    marginTop: 6,
+  },
+  metricProgressBar: {
+    height: 5,
+    backgroundColor: colors.border.light,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  metricProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  metricProgressText: {
+    fontSize: 11,
+    color: colors.text.tertiary,
+    fontWeight: '500',
+  },
+  performanceSection: {
+    paddingHorizontal: 20,
+    marginBottom: 32,
+  },
+  performanceContainer: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  performanceCard: {
+    flex: 2,
+    backgroundColor: colors.background.primary,
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  performanceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  performanceTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  performanceSubtitle: {
+    fontSize: 14,
+    color: colors.text.tertiary,
+  },
+  yieldContainer: {
+    alignItems: 'flex-end',
+  },
+  yieldTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text.primary,
+    marginBottom: 8,
+  },
+  growthBadge: {
+    backgroundColor: colors.status.successLight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  growthText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.status.success,
+  },
+  chartContainer: {
+    marginBottom: 24,
+  },
+  chartWrapper: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  chartArea: {
+    height: 120,
+    position: 'relative',
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  gridLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: colors.border.default,
+    opacity: 0.5,
+  },
+  areaChartGreen: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '45%',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+  },
+  areaChartBlue: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '35%',
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+  },
+  chartDot: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.background.primary,
+  },
+  chartDotGreen: {
+    backgroundColor: colors.status.success,
+    shadowColor: colors.status.success,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  chartDotBlue: {
+    backgroundColor: colors.accent.secondary,
+    shadowColor: colors.accent.secondary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  chartLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  chartLabel: {
+    fontSize: 11,
+    color: colors.text.disabled,
+    fontWeight: '500',
+  },
+  chartLegend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    fontWeight: '500',
+  },
+  statsContainer: {
+    gap: 16,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.secondary,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  statContent: {
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text.primary,
+    marginBottom: 2,
+  },
+  statSubtext: {
+    fontSize: 11,
+    color: colors.text.tertiary,
+    lineHeight: 14,
+  },
+  activityCard: {
+    flex: 1,
+    backgroundColor: colors.background.primary,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  activityTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: colors.status.success,
+    fontWeight: '600',
+  },
+  activityList: {
+    gap: 16,
+  },
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  activityIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityItemTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  activityItemSubtitle: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    lineHeight: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.text.primary,
+    letterSpacing: -0.5,
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: colors.status.successLight,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.status.success,
+  },
+  viewAllButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.status.success,
   },
   statusGrid: {
     flexDirection: 'row',
     gap: 16,
   },
   statusCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
     borderRadius: 20,
     padding: 24,
     borderLeftWidth: 6,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 12,
@@ -788,7 +1300,7 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.tertiary,
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -796,7 +1308,7 @@ const styles = StyleSheet.create({
   totalCount: {
     fontSize: 36,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.text.primary,
     lineHeight: 40,
   },
   progressBarWrapper: {
@@ -804,7 +1316,7 @@ const styles = StyleSheet.create({
   },
   progressBarTrack: {
     height: 12,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.border.light,
     borderRadius: 6,
     flexDirection: 'row',
     overflow: 'hidden',
@@ -834,12 +1346,12 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     fontWeight: '500',
   },
   statusValue: {
     fontSize: 14,
-    color: '#111827',
+    color: colors.text.primary,
     fontWeight: '700',
   },
   cardFooter: {
@@ -848,44 +1360,31 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.border.light,
     gap: 8,
   },
   viewDetailsText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     fontWeight: '600',
   },
-  activityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: '#E5E7EB',
-  },
-  activityTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  activityCount: {
-    backgroundColor: '#F3F4F6',
+  activityCountBadge: {
+    backgroundColor: colors.border.light,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
   },
-  activityCountText: {
+  activityCountBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.tertiary,
   },
+
   filterContainer: {
     flexDirection: 'row',
     marginBottom: 20,
     gap: 8,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.secondary,
     padding: 4,
     borderRadius: 12,
   },
@@ -901,8 +1400,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   filterTabActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    backgroundColor: colors.background.primary,
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -911,116 +1410,145 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: colors.text.disabled,
   },
   filterTextActive: {
-    color: '#111827',
+    color: colors.text.primary,
   },
   cardsContainer: {
     gap: 16,
   },
   itemCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    backgroundColor: colors.background.primary,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.light,
+    marginBottom: 4,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
   cardTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    backgroundColor: colors.background.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border.default,
   },
   cardType: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.text.tertiary,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.text.primary,
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
   cardSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 12,
-    fontStyle: 'italic',
+    fontSize: 15,
+    color: colors.text.tertiary,
+    marginBottom: 16,
+    lineHeight: 22,
   },
   statusBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   statusBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
+    color: colors.text.inverse,
+    fontSize: 11,
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   progressSection: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   progressLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text.tertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   progressPercentage: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.text.primary,
   },
   progressBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
+    height: 10,
+    backgroundColor: colors.border.light,
+    borderRadius: 5,
     overflow: 'hidden',
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   progressBar: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 5,
     position: 'relative',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 4,
-    opacity: 0.8,
+    borderRadius: 5,
+    opacity: 0.9,
   },
   cardDetails: {
-    gap: 8,
+    gap: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    backgroundColor: colors.background.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
   detailText: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 13,
+    color: colors.text.secondary,
     flex: 1,
+    fontWeight: '500',
   },
   emptyState: {
     alignItems: 'center',
@@ -1029,21 +1557,21 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.tertiary,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.text.disabled,
     textAlign: 'center',
   },
   alertasCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 20,
     borderLeftWidth: 4,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -1063,7 +1591,7 @@ const styles = StyleSheet.create({
   alertasTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text.primary,
   },
   alertasBadge: {
     paddingHorizontal: 12,
@@ -1075,7 +1603,7 @@ const styles = StyleSheet.create({
   alertasBadgeText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.text.inverse,
   },
   alertasStats: {
     flexDirection: 'row',
@@ -1088,11 +1616,11 @@ const styles = StyleSheet.create({
   alertasStatNumber: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text.primary,
   },
   alertasStatLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     marginTop: 4,
   },
   alertasFooter: {
@@ -1101,18 +1629,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border.default,
   },
   alertasFooterText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.text.tertiary,
   },
   alertasBreakdown: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border.default,
     marginTop: 8,
   },
   alertasBreakdownItem: {
@@ -1122,11 +1650,11 @@ const styles = StyleSheet.create({
   },
   alertasBreakdownText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.text.tertiary,
   },
   notificacionesDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     lineHeight: 20,
     marginBottom: 12,
   },

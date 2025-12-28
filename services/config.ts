@@ -1,7 +1,8 @@
 // Configuración centralizada de la aplicación
 export const CONFIG = {
   // URL del backend - Usar variables de entorno cuando sea posible
-  API_BASE_URL: process.env['EXPO_PUBLIC_API_URL'] || 'http://127.0.0.1:8000/api',
+  // CAMBIADO A LOCALHOST PARA DESARROLLO - La BD local tiene 17,665 germinaciones
+  API_BASE_URL: process.env['EXPO_PUBLIC_API_URL'] || 'http://localhost:8000/api',
 
   // Timeouts optimizados para mejor experiencia de usuario
   API_TIMEOUT: 30000, // 30 segundos para operaciones normales

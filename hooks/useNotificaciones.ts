@@ -25,34 +25,109 @@ export function useNotificaciones(filters?: NotificationFilters) {
     }
   }, [filters]);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const data = await notificacionesService.getEstadisticas();
-      setStats(data);
-    } catch (err) {
-      console.error('Error fetching stats:', err);
-    }
-  }, []);
-
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([fetchNotifications(), fetchStats()]);
-    setRefreshing(false);
-  }, [fetchNotifications, fetchStats]);
+    try {
+      const [notifs, statsData] = await Promise.all([
+        notificacionesService.getNotificaciones(filters || {}),
+        notificacionesService.getEstadisticas()
+      ]);
+      setNotifications(notifs);
+      setStats(statsData);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Error al obtener las notificaciones');
+      console.error('Error refreshing notifications:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [filters]);
+
+  // Initial fetch and fetch when filters change
+  // Use JSON.stringify to avoid infinite loops caused by object reference changes
+  const filtersKey = JSON.stringify(filters);
 
   useEffect(() => {
-    fetchNotifications();
-    fetchStats();
-  }, [fetchNotifications, fetchStats]);
+    let isMounted = true;
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [notifs, statsData] = await Promise.all([
+          notificacionesService.getNotificaciones(filters || {}),
+          notificacionesService.getEstadisticas()
+        ]);
+
+        if (isMounted) {
+          setNotifications(notifs);
+          setStats(statsData);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err?.response?.data?.error || 'Error al obtener las notificaciones');
+          console.error('Error fetching notifications:', err);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersKey]);
+
+  // Polling interval - only for Navbar badge updates
+  useEffect(() => {
+    // Only poll if we're filtering for unread notifications (Navbar use case)
+    const shouldPoll = filters?.leida === false && !filters.tipo && !filters.search;
+
+    if (!shouldPoll) {
+      return;
+    }
+
+    // Poll every 60 seconds (1 minute) for unread notifications
+    const pollInterval = setInterval(async () => {
+      try {
+        const statsData = await notificacionesService.getEstadisticas();
+        setStats(statsData);
+      } catch (err) {
+        console.error('Error polling stats:', err);
+      }
+    }, 60000);
+
+    return () => clearInterval(pollInterval);
+  }, [filters?.leida, filters?.tipo, filters?.search]);
 
   const markAsRead = async (notificationId: string) => {
     try {
       await notificacionesService.marcarComoLeida(notificationId);
-      setNotifications(prev =>
-        prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
-      );
+
+      // Si estamos filtrando por no leídas, eliminar la notificación de la lista
+      if (filters?.leida === false) {
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      } else {
+        // Si no, solo actualizar el estado
+        setNotifications(prev =>
+          prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
+        );
+      }
+
       if (selectedNotification?.id === notificationId) {
         setSelectedNotification(prev => prev ? { ...prev, isRead: true } : null);
+      }
+
+      // Actualizar las estadísticas
+      try {
+        const statsData = await notificacionesService.getEstadisticas();
+        setStats(statsData);
+      } catch (statsErr) {
+        console.error('Error updating stats:', statsErr);
       }
     } catch (err) {
       console.error('Error marking as read:', err);
@@ -62,9 +137,25 @@ export function useNotificaciones(filters?: NotificationFilters) {
   const markAllAsRead = async () => {
     try {
       await notificacionesService.marcarTodasComoLeidas();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+
+      // Si estamos filtrando por no leídas, limpiar la lista completa
+      if (filters?.leida === false) {
+        setNotifications([]);
+      } else {
+        // Si no, solo actualizar el estado
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      }
+
       if (selectedNotification) {
         setSelectedNotification(prev => prev ? { ...prev, isRead: true } : null);
+      }
+
+      // Actualizar las estadísticas
+      try {
+        const statsData = await notificacionesService.getEstadisticas();
+        setStats(statsData);
+      } catch (statsErr) {
+        console.error('Error updating stats:', statsErr);
       }
     } catch (err) {
       console.error('Error marking all as read:', err);

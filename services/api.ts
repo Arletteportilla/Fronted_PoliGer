@@ -3,16 +3,14 @@ import * as SecureStore from '@/services/secureStore';
 import { CONFIG } from './config';
 // import { cache, CACHE_KEYS, CACHE_TTL } from './cache';
 
-// Usar la configuración centralizada
-const API_URL = CONFIG.API_BASE_URL;
-
 // API optimizada con cache y pooling de conexiones
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: CONFIG.API_BASE_URL,  // Usando CONFIG en vez de hardcoded
+  withCredentials: false, // JWT por header
+  timeout: CONFIG.API_TIMEOUT,  // Usando CONFIG timeout
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: CONFIG.API_TIMEOUT, // 30 segundos por defecto
   // Optimizaciones de rendimiento
   maxRedirects: 3,
   maxContentLength: 50 * 1024 * 1024, // 50MB max para manejar grandes datasets

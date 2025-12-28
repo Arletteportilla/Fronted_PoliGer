@@ -22,6 +22,7 @@ interface GerminacionFormProps {
   nivelesDisponibles: string[];
   handleCodigoSelection: (codigo: string) => void;
   handleEspecieSelection: (especie: string) => void;
+  useOwnModal?: boolean; // Nuevo prop para controlar si usa su propio Modal
 }
 
 export const GerminacionForm: React.FC<GerminacionFormProps> = ({
@@ -37,6 +38,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   nivelesDisponibles,
   handleCodigoSelection,
   handleEspecieSelection,
+  useOwnModal = true, // Por defecto usa su propio Modal
 }) => {
   const [showClimaPicker, setShowClimaPicker] = useState(false);
   const [showEstadoCapsula, setShowEstadoCapsula] = useState(false);
@@ -189,35 +191,30 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
     </View>
   );
 
-  return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent={true}
-      onRequestClose={onClose}
+  // Contenido del formulario (sin header si no usa su propio modal)
+  const formContent = (
+    <ScrollView
+      style={useOwnModal ? styles.popupScrollView : styles.sidePanelScrollView}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={useOwnModal ? styles.popupContent : styles.sidePanelContent}
     >
-      <View style={styles.popupOverlay}>
-        <View style={styles.popupContainer}>
-          <ScrollView
-            style={styles.popupScrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.popupContent}
-          >
-            {/* Header del formulario */}
-            <View style={styles.popupHeader}>
-              <View style={styles.closeButton}>
-                <TouchableOpacity
-                  onPress={onClose}
-                  style={styles.closeButtonInner}
-                >
-                  <Ionicons name="close" size={24} color="#182d49" />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.popupTitle}>Nueva Germinación</Text>
-              <View style={styles.placeholder} />
-            </View>
+      {/* Header del formulario - solo si usa su propio modal */}
+      {useOwnModal && (
+        <View style={styles.popupHeader}>
+          <View style={styles.closeButton}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.closeButtonInner}
+            >
+              <Ionicons name="close" size={24} color="#182d49" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.popupTitle}>Nueva Germinación</Text>
+          <View style={styles.placeholder} />
+        </View>
+      )}
 
-            {/* Contenido del formulario */}
+      {/* Contenido del formulario */}
             <View style={styles.formContainer}>
               {/* Sección de Fechas y Código */}
               <View style={styles.formSection}>
@@ -725,11 +722,29 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </TouchableOpacity>
               </View>
             </View>
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    </ScrollView>
   );
+
+  // Si usa su propio modal, envolver el contenido
+  if (useOwnModal) {
+    return (
+      <Modal
+        visible={visible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={onClose}
+      >
+        <View style={styles.popupOverlay}>
+          <View style={styles.popupContainer}>
+            {formContent}
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
+  // Si no usa su propio modal, solo retornar el contenido
+  return formContent;
 };
 
 const styles = StyleSheet.create({
@@ -967,5 +982,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#3B82F6',
     fontWeight: '600',
+  },
+  // Estilos para panel lateral
+  sidePanelScrollView: {
+    flex: 1,
+  },
+  sidePanelContent: {
+    padding: 32,
   },
 });

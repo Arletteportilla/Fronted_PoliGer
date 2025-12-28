@@ -7,6 +7,7 @@ import { Colors } from '@/constants/Colors';
 import Pagination from '@/components/filters/Pagination';
 import type { Polinizacion } from '@/types/index';
 import { getEstadoColor, getTipoColor } from '@/utils/colorHelpers';
+import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 
 export interface PerfilPolinizacionesTabProps {
   loading: boolean;
@@ -166,6 +167,23 @@ export function PerfilPolinizacionesTab({
           {/* Filas de datos */}
           <ScrollView style={{ maxHeight: 500 }}>
             {filteredPolinizaciones.map((item, index) => {
+              // Debug: Log de datos de predicción
+              if (index === 0) {
+                console.log('🔍 Datos de predicción en primera polinización:', {
+                  numero: item.numero,
+                  codigo: item.codigo,
+                  fecha_maduracion_predicha: item.fecha_maduracion_predicha,
+                  prediccion_fecha_estimada: item.prediccion_fecha_estimada,
+                  metodo_prediccion: item.metodo_prediccion,
+                  confianza_prediccion: item.confianza_prediccion,
+                  dias_maduracion_predichos: item.dias_maduracion_predichos
+                });
+                
+                // Log adicional para debugging
+                console.log('🔍 Todas las propiedades del item:', Object.keys(item));
+                console.log('🔍 Item completo:', item);
+              }
+              
               // Construir especie completa
               const especieCompleta = item.nueva_planta_especie || item.especie || item.madre_especie || 'Sin especie';
               const generoCompleto = item.nueva_planta_genero || item.genero || item.madre_genero || 'Sin género';
@@ -176,14 +194,6 @@ export function PerfilPolinizacionesTab({
               const estadoActual = item.fechamad ? 'Completado' :
                              (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) ? 'En Proceso' :
                              'Ingresado';
-
-              // Calcular progreso de la polinización
-              const calculateProgress = () => {
-                if (item.fechamad) return 100; // Completado
-                if (item.fechapol) return 70; // En proceso
-                return 30; // Ingresado
-              };
-              const progress = calculateProgress();
 
               const tipo = item.tipo_polinizacion || item.tipo || 'SELF';
               const itemKey = item.numero?.toString() || item.id?.toString() || `pol-${index}`;
@@ -225,42 +235,57 @@ export function PerfilPolinizacionesTab({
                       <Text style={styles.fechaText}>{fechaFormateada}</Text>
                     </View>
                     <View style={[styles.tableCell, { flex: 1.2 }]}>
-                      {item.fecha_maduracion_predicha ? (
-                        <View>
-                          <Text style={[styles.fechaText, { fontSize: 11 }]}>
-                            {new Date(item.fecha_maduracion_predicha).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })}
-                          </Text>
-                          {(() => {
-                            const hoy = new Date();
-                            hoy.setHours(0, 0, 0, 0);
-                            const fechaEst = new Date(item.fecha_maduracion_predicha);
-                            fechaEst.setHours(0, 0, 0, 0);
-                            const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-
-                            return diasFaltantes > 0 ? (
-                              <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '600' }}>
-                                {diasFaltantes}d restantes
+                      {(() => {
+                        // Buscar fecha de predicción (ML o legacy)
+                        const fechaPrediccion = item.fecha_maduracion_predicha || item.prediccion_fecha_estimada;
+                        
+                        if (fechaPrediccion) {
+                          const fechaFormateada = new Date(fechaPrediccion).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          });
+                          
+                          // Calcular días restantes
+                          const hoy = new Date();
+                          hoy.setHours(0, 0, 0, 0);
+                          const fechaEst = new Date(fechaPrediccion);
+                          fechaEst.setHours(0, 0, 0, 0);
+                          const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+                          
+                          return (
+                            <View>
+                              <Text style={[styles.fechaText, { fontSize: 11 }]}>
+                                {fechaFormateada}
                               </Text>
-                            ) : diasFaltantes === 0 ? (
-                              <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
-                                Hoy
+                              {diasFaltantes > 0 ? (
+                                <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '600' }}>
+                                  {diasFaltantes}d restantes
+                                </Text>
+                              ) : diasFaltantes === 0 ? (
+                                <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
+                                  Hoy
+                                </Text>
+                              ) : (
+                                <Text style={{ fontSize: 9, color: '#EF4444', fontWeight: '600' }}>
+                                  Vencido
+                                </Text>
+                              )}
+                              {/* Mostrar tipo de predicción */}
+                              <Text style={{ fontSize: 8, color: '#6B7280', fontStyle: 'italic' }}>
+                                {item.metodo_prediccion === 'ejemplo_automatico' ? 'Ejemplo' : 
+                                 item.fecha_maduracion_predicha ? 'ML' : 'Legacy'}
                               </Text>
-                            ) : (
-                              <Text style={{ fontSize: 9, color: '#EF4444', fontWeight: '600' }}>
-                                Vencido
-                              </Text>
-                            );
-                          })()}
-                        </View>
-                      ) : (
-                        <Text style={[styles.fechaText, { fontSize: 10, color: '#9CA3AF' }]}>
-                          Sin predicción
-                        </Text>
-                      )}
+                            </View>
+                          );
+                        } else {
+                          return (
+                            <Text style={[styles.fechaText, { fontSize: 10, color: '#9CA3AF' }]}>
+                              Sin predicción
+                            </Text>
+                          );
+                        }
+                      })()}
                     </View>
                     <View style={[styles.tableCell, { flex: 1, alignItems: 'center' }]}>
                       <View style={[styles.estadoBadge, { backgroundColor: estadoColor }]}>
@@ -291,30 +316,20 @@ export function PerfilPolinizacionesTab({
                     </View>
                   </View>
 
-                  {/* Barra de progreso */}
-                  <View style={styles.progressRow}>
-                    <View style={styles.progressInfo}>
-                      <Ionicons
-                        name="stats-chart-outline"
-                        size={12}
-                        color={estadoColor}
-                        style={{ marginRight: 4 }}
-                      />
-                      <Text style={styles.progressLabel}>Progreso:</Text>
-                      <Text style={[styles.progressPercentage, { color: estadoColor }]}>{progress}%</Text>
-                    </View>
-                    <View style={styles.progressBarContainer}>
-                      <View
-                        style={[
-                          styles.progressBarFill,
-                          {
-                            width: `${progress}%`,
-                            backgroundColor: estadoColor
-                          }
-                        ]}
+                  {/* Barra de progreso por etapas */}
+                  {item.estado_polinizacion && (
+                    <View style={{
+                      marginTop: 8,
+                      backgroundColor: '#f9fafb',
+                      borderRadius: 12,
+                      paddingVertical: 4
+                    }}>
+                      <EstadoProgressBar
+                        estadoActual={item.estado_polinizacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
+                        tipo="polinizacion"
                       />
                     </View>
-                  </View>
+                  )}
                 </View>
               );
             })}

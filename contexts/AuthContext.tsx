@@ -339,6 +339,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     permissions,
     hasPermission,
     refreshPermissions,
+    refreshUser: loadUserData,
     token,
   };
 

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ProtectedButton } from '@/components/navigation';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface GerminacionesHeaderProps {
   totalGerminaciones: number;
@@ -36,189 +37,102 @@ export const GerminacionesHeader: React.FC<GerminacionesHeaderProps> = ({
   onShowExportModal,
   onShowFilters,
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
+
   return (
     <>
-      {/* Header - Estilo de Polinizaciones */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Germinaciones</Text>
-          <Text style={styles.subtitle}>
-            Total: {totalGerminaciones} | Página {currentPage} de {totalPages}
+      {/* Breadcrumb */}
+      <View style={styles.breadcrumb}>
+        <Text style={styles.breadcrumbText}>Inicio</Text>
+        <Text style={styles.breadcrumbSeparator}>/</Text>
+        <Text style={styles.breadcrumbTextActive}>Germinaciones</Text>
+      </View>
+
+      {/* Header Principal */}
+      <View style={styles.mainHeader}>
+        <View style={styles.headerContent}>
+          <Text style={styles.mainTitle}>Gestión de Germinaciones</Text>
+          <Text style={styles.mainSubtitle}>
+            Administra y monitorea el ciclo de vida de los cultivos y lotes de germinación en tiempo real.
           </Text>
         </View>
 
-        <View style={styles.headerButtons}>
-          {onShowFilters && (
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={onShowFilters}
-            >
-              <Ionicons name="filter" size={20} color="#182d49" />
-              {activeFiltersCount > 0 && (
-                <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {onShowExportModal && (
-            <TouchableOpacity
-              style={styles.exportButton}
-              onPress={onShowExportModal}
-            >
-              <Ionicons name="download-outline" size={20} color="#182d49" />
-            </TouchableOpacity>
-          )}
-
-          <ProtectedButton
-            requiredModule="germinaciones"
-            requiredAction="crear"
-            onPress={onShowForm}
-            style={styles.addButton}
-          >
-            <Ionicons name="add" size={20} color="#fff" />
-            <Text style={styles.addButtonText}>Nueva Germinación</Text>
-          </ProtectedButton>
-        </View>
-      </View>
-
-      {/* Barra de búsqueda - Estilo de Polinizaciones */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar por código, especie, género..."
-            placeholderTextColor="#9ca3af"
-            value={search}
-            onChangeText={onSearchChange}
-          />
-          {search && (
-            <TouchableOpacity
-              style={styles.clearSearchButton}
-              onPress={() => onSearchChange('')}
-            >
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          )}
-        </View>
+        <ProtectedButton
+          requiredModule="germinaciones"
+          requiredAction="crear"
+          onPress={onShowForm}
+          style={styles.newButton}
+        >
+          <Ionicons name="add" size={18} color={themeColors.text.inverse} />
+          <Text style={styles.newButtonText}>Nueva Germinación</Text>
+        </ProtectedButton>
       </View>
     </>
   );
 };
 
-const styles = StyleSheet.create({
-  header: {
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
+  breadcrumb: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  breadcrumbText: {
+    fontSize: 14,
+    color: colors.text.disabled,
+    fontWeight: '500',
+  },
+  breadcrumbSeparator: {
+    fontSize: 14,
+    color: colors.border.medium,
+  },
+  breadcrumbTextActive: {
+    fontSize: 14,
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  mainHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    marginBottom: 24,
   },
-  title: {
+  headerContent: {
+    flex: 1,
+    marginRight: 16,
+  },
+  mainTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#182d49',
-    marginBottom: 4,
+    fontWeight: '800',
+    color: colors.text.primary,
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
-  subtitle: {
+  mainSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
-    maxWidth: 280,
+    color: colors.text.tertiary,
     lineHeight: 20,
+    maxWidth: 600,
   },
-  headerButtons: {
+  newButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#F3F4F6',
-    position: 'relative',
-  },
-  filterBadge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#e9ad14',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  filterBadgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  exportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#F3F4F6',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#182d49',
+    backgroundColor: colors.primary.main,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 8,
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 10,
+    gap: 6,
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  searchContainer: {
-    marginBottom: 16,
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#1f2937',
-  },
-  clearSearchButton: {
-    padding: 4,
+  newButtonText: {
+    color: colors.text.inverse,
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

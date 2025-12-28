@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  totalCount?: number;
+  pageSize?: number;
   goToPage: (page: number) => void;
   nextPage: () => void;
   prevPage: () => void;
@@ -13,12 +15,18 @@ interface PaginationProps {
 export default function Pagination({
   currentPage,
   totalPages,
+  totalCount = 0,
+  pageSize = 20,
   goToPage,
   nextPage,
   prevPage,
 }: PaginationProps) {
   const pageNumbers = [];
-  const maxPageButtons = 5; // Número máximo de botones de página a mostrar
+  const maxPageButtons = 3; // Mostrar solo 3 botones de página
+
+  // Calcular el rango de resultados mostrados
+  const startResult = (currentPage - 1) * pageSize + 1;
+  const endResult = Math.min(currentPage * pageSize, totalCount);
 
   let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
   let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
@@ -33,51 +41,53 @@ export default function Pagination({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        onPress={prevPage}
-        disabled={currentPage === 1}
-        style={styles.button}
-      >
-        <Ionicons name="chevron-back" size={20} color={currentPage === 1 ? '#ccc' : '#000'} />
-      </TouchableOpacity>
+      {/* Texto de resultados */}
+      <View style={styles.resultsInfo}>
+        <Text style={styles.resultsText}>
+          Mostrando <Text style={styles.resultsTextBold}>{startResult}</Text> a{' '}
+          <Text style={styles.resultsTextBold}>{endResult}</Text> de{' '}
+          <Text style={styles.resultsTextBold}>{totalCount}</Text> resultados
+        </Text>
+      </View>
 
-      {startPage > 1 && (
-        <>
-          <TouchableOpacity onPress={() => goToPage(1)} style={styles.button}>
-            <Text style={styles.buttonText}>1</Text>
-          </TouchableOpacity>
-          {startPage > 2 && <Text style={styles.ellipsis}>...</Text>}
-        </>
-      )}
-
-      {pageNumbers.map((page) => (
+      {/* Botones de paginación */}
+      <View style={styles.paginationButtons}>
         <TouchableOpacity
-          key={page}
-          onPress={() => goToPage(page)}
-          style={[styles.button, currentPage === page && styles.activeButton]}
+          onPress={prevPage}
+          disabled={currentPage === 1}
+          style={[styles.navButton, currentPage === 1 && styles.navButtonDisabled]}
         >
-          <Text style={[styles.buttonText, currentPage === page && styles.activeButtonText]}>
-            {page}
-          </Text>
+          <Ionicons 
+            name="chevron-back" 
+            size={18} 
+            color={currentPage === 1 ? '#d1d5db' : '#6b7280'} 
+          />
         </TouchableOpacity>
-      ))}
 
-      {endPage < totalPages && (
-        <>
-          {endPage < totalPages - 1 && <Text style={styles.ellipsis}>...</Text>}
-          <TouchableOpacity onPress={() => goToPage(totalPages)} style={styles.button}>
-            <Text style={styles.buttonText}>{totalPages}</Text>
+        {pageNumbers.map((page) => (
+          <TouchableOpacity
+            key={page}
+            onPress={() => goToPage(page)}
+            style={[styles.pageButton, currentPage === page && styles.pageButtonActive]}
+          >
+            <Text style={[styles.pageButtonText, currentPage === page && styles.pageButtonTextActive]}>
+              {page}
+            </Text>
           </TouchableOpacity>
-        </>
-      )}
+        ))}
 
-      <TouchableOpacity
-        onPress={nextPage}
-        disabled={currentPage === totalPages}
-        style={styles.button}
-      >
-        <Ionicons name="chevron-forward" size={20} color={currentPage === totalPages ? '#ccc' : '#000'} />
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={nextPage}
+          disabled={currentPage === totalPages}
+          style={[styles.navButton, currentPage === totalPages && styles.navButtonDisabled]}
+        >
+          <Ionicons 
+            name="chevron-forward" 
+            size={18} 
+            color={currentPage === totalPages ? '#d1d5db' : '#6b7280'} 
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -85,29 +95,71 @@ export default function Pagination({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    backgroundColor: '#f9fafb',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
-  button: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginHorizontal: 4,
+  resultsInfo: {
+    flex: 1,
+  },
+  resultsText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  resultsTextBold: {
+    fontWeight: '700',
+    color: '#111827',
+  },
+  paginationButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  navButton: {
+    width: 36,
+    height: 36,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
-  activeButton: {
-    backgroundColor: '#007bff',
+  navButtonDisabled: {
+    backgroundColor: '#f9fafb',
+    borderColor: '#f3f4f6',
   },
-  buttonText: {
-    fontSize: 16,
-    color: '#000',
+  pageButton: {
+    minWidth: 36,
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
-  activeButtonText: {
-    color: '#fff',
+  pageButtonActive: {
+    backgroundColor: '#10b981',
+    borderColor: '#10b981',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  ellipsis: {
-    fontSize: 16,
-    marginHorizontal: 4,
+  pageButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  pageButtonTextActive: {
+    color: '#ffffff',
+    fontWeight: '700',
   },
 });

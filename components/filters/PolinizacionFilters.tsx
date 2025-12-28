@@ -61,10 +61,14 @@ export default function PolinizacionFilters({
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={true}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Filtros de Polinización</Text>
+        <Text style={styles.title}>Filtros</Text>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
           <Ionicons name="close" size={24} color="#64748b" />
         </TouchableOpacity>
@@ -252,8 +256,11 @@ export default function PolinizacionFilters({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#fff',
+    maxHeight: '100%',
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',

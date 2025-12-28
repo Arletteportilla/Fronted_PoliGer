@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useTheme } from '@/contexts/ThemeContext';
+import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 
 interface PolinizacionCardProps {
   item: any;
@@ -12,6 +14,272 @@ interface PolinizacionCardProps {
   onChangeStatus?: (item: any) => void;
 }
 
+// Definir createStyles antes del componente para que esté disponible
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
+  card: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  cardOverdue: {
+    borderColor: colors.status.error,
+    borderWidth: 2,
+    backgroundColor: colors.status.errorLight,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  tableCell: {
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    minWidth: 0,
+  },
+  cellFlex: {
+    flex: 1,
+    minWidth: 100,
+  },
+  cellFull: {
+    width: '100%',
+  },
+  codigoText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.accent.primary,
+    letterSpacing: 0.2,
+  },
+  rowText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.text.secondary,
+    lineHeight: 18,
+  },
+  labelText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.text.tertiary,
+    marginRight: 4,
+  },
+  valueText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.text.secondary,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flexShrink: 0,
+  },
+  badgeText: {
+    color: colors.text.inverse,
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  tipoBadge: {
+    // Estilos aplicados dinámicamente
+  },
+  statusBadge: {
+    // Estilos aplicados dinámicamente
+  },
+  climaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.accent.secondary,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 10,
+    gap: 4,
+  },
+  climaText: {
+    color: colors.text.inverse,
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  metaText: {
+    fontSize: 10,
+    color: colors.text.tertiary,
+    marginLeft: 4,
+    flex: 1,
+  },
+  overdueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.status.errorLight,
+    gap: 6,
+  },
+  overdueText: {
+    color: colors.status.error,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  prediccionSection: {
+    marginTop: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.default,
+    backgroundColor: colors.accent.infoLight,
+    borderRadius: 8,
+    padding: 10,
+  },
+  prediccionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 6,
+  },
+  prediccionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.accent.primary,
+    flex: 1,
+  },
+  metodoBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  metodoText: {
+    color: colors.text.inverse,
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  prediccionContent: {
+    gap: 6,
+  },
+  prediccionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  prediccionLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.text.tertiary,
+  },
+  prediccionValue: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.text.secondary,
+  },
+  diasFaltantes: {
+    color: colors.status.warning,
+    fontWeight: '700',
+  },
+  diasHoy: {
+    color: colors.status.success,
+    fontWeight: '700',
+  },
+  diasVencido: {
+    color: colors.status.error,
+    fontWeight: '700',
+  },
+  progressSection: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.default,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  progressLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.text.tertiary,
+  },
+  progressPercentage: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.text.secondary,
+  },
+  progressBarContainer: {
+    width: '100%',
+    height: 6,
+    backgroundColor: colors.border.default,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.default,
+    gap: 8,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 6,
+    borderWidth: 1,
+  },
+  actionButtonView: {
+    backgroundColor: colors.accent.infoLight,
+    borderColor: colors.accent.tertiary,
+  },
+  actionButtonEdit: {
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warning,
+  },
+  actionButtonDelete: {
+    backgroundColor: colors.status.errorLight,
+    borderColor: colors.status.error,
+  },
+  actionButtonStatus: {
+    backgroundColor: colors.accent.infoLight,
+    borderColor: colors.accent.tertiary,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  actionButtonTextView: {
+    color: colors.accent.secondary,
+  },
+  actionButtonTextEdit: {
+    color: colors.status.warning,
+  },
+  actionButtonTextDelete: {
+    color: colors.status.error,
+  },
+  actionButtonTextStatus: {
+    color: colors.accent.tertiary,
+  },
+});
+
 export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({ 
   item, 
   onPress,
@@ -21,6 +289,8 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
   onChangeStatus
 }) => {
   const responsive = useResponsive();
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
 
   // Determinar el estado actual de la polinización usando los campos de workflow
   const getCurrentStatus = () => {
@@ -39,21 +309,6 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
 
   const currentStatus = getCurrentStatus();
   const isOverdue = item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) < new Date() && !item.fechamad;
-
-  // Calcular el progreso de la polinización usando progreso_polinizacion
-  const calculateProgress = () => {
-    // Usar progreso_polinizacion si existe (0-100%)
-    if (item.progreso_polinizacion !== undefined && item.progreso_polinizacion !== null) {
-      return item.progreso_polinizacion;
-    }
-
-    // Fallback a lógica legacy si no existe progreso_polinizacion
-    if (item.fechamad) return 100; // Completado
-    if (item.fechapol) return 70; // En proceso
-    return 30; // Ingresado
-  };
-
-  const progress = calculateProgress();
 
   // Construir el nombre completo de la especie/híbrido
   const buildEspecieCompleta = () => {
@@ -121,25 +376,20 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
         <View style={styles.tableCell}>
           {item.tipo_polinizacion && (
             <View style={[responsiveStyles.badge, styles.tipoBadge, {
-              backgroundColor: item.tipo_polinizacion === 'SELF' ? '#3B82F6' : 
-                               item.tipo_polinizacion === 'SIBLING' ? '#8B5CF6' : '#F59E0B'
+              backgroundColor: item.tipo_polinizacion === 'SELF' ? themeColors.accent.secondary : 
+                               item.tipo_polinizacion === 'SIBLING' ? themeColors.accent.tertiary : themeColors.status.warning
             }]}>
               <Text style={responsiveStyles.badgeText}>{item.tipo_polinizacion}</Text>
             </View>
           )}
         </View>
-        <View style={[styles.tableCell, styles.cellFlex]}>
-          <Text style={styles.codigoText} numberOfLines={1} ellipsizeMode="tail">
-            {codigoCompleto}
-          </Text>
-        </View>
         <View style={styles.tableCell}>
           <View style={[responsiveStyles.badge, styles.statusBadge, {
             backgroundColor:
-              (currentStatus === 'Completado' || currentStatus === 'Finalizado') ? '#10B981' :
-              currentStatus === 'En Proceso' ? '#F59E0B' :
-              currentStatus === 'Inicial' ? '#3B82F6' :
-              '#6B7280'
+              (currentStatus === 'Completado' || currentStatus === 'Finalizado') ? themeColors.status.success :
+              currentStatus === 'En Proceso' ? themeColors.status.warning :
+              currentStatus === 'Inicial' ? themeColors.accent.secondary :
+              themeColors.text.tertiary
           }]}>
             <Text style={responsiveStyles.badgeText}>{currentStatus}</Text>
           </View>
@@ -173,14 +423,14 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
           {item.clima && (
             <View style={styles.tableCell}>
               <View style={styles.climaBadge}>
-                <Ionicons name="partly-sunny" size={10} color="#fff" />
+                <Ionicons name="partly-sunny" size={10} color={themeColors.text.inverse} />
                 <Text style={styles.climaText}>{item.clima}</Text>
               </View>
             </View>
           )}
           {(item.vivero || item.ubicacion) && (
             <View style={[styles.tableCell, styles.cellFlex]}>
-              <Ionicons name="location-outline" size={12} color="#94a3b8" />
+              <Ionicons name="location-outline" size={12} color={themeColors.text.tertiary} />
               <Text style={styles.metaText}>
                 {item.vivero ? `V-${item.vivero}` : item.ubicacion}
               </Text>
@@ -188,7 +438,7 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
           )}
           {item.responsable && (
             <View style={[styles.tableCell, styles.cellFlex]}>
-              <Ionicons name="person-outline" size={12} color="#94a3b8" />
+              <Ionicons name="person-outline" size={12} color={themeColors.text.tertiary} />
               <Text style={styles.metaText} numberOfLines={1}>
                 {typeof item.responsable === 'string' ? item.responsable : item.responsable?.username || ''}
               </Text>
@@ -201,11 +451,11 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
       {(item.dias_maduracion_predichos || item.fecha_maduracion_predicha) && !item.fechamad && (
         <View style={styles.prediccionSection}>
           <View style={styles.prediccionHeader}>
-            <Ionicons name="analytics-outline" size={14} color="#3B82F6" />
+            <Ionicons name="analytics-outline" size={14} color={themeColors.accent.secondary} />
             <Text style={styles.prediccionTitle}>Predicción de Maduración</Text>
             {item.metodo_prediccion && (
               <View style={[styles.metodoBadge, {
-                backgroundColor: item.metodo_prediccion === 'ML' ? '#10B981' : '#6B7280'
+                backgroundColor: item.metodo_prediccion === 'ML' ? themeColors.status.success : themeColors.text.tertiary
               }]}>
                 <Text style={styles.metodoText}>
                   {item.metodo_prediccion === 'ML' ? 'ML' : 'Heurístico'}
@@ -217,7 +467,7 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
           <View style={styles.prediccionContent}>
             {item.fecha_maduracion_predicha && (
               <View style={styles.prediccionRow}>
-                <Ionicons name="calendar-outline" size={12} color="#6B7280" />
+                <Ionicons name="calendar-outline" size={12} color={themeColors.text.tertiary} />
                 <Text style={styles.prediccionLabel}>Fecha estimada:</Text>
                 <Text style={styles.prediccionValue}>
                   {new Date(item.fecha_maduracion_predicha).toLocaleDateString('es-ES', {
@@ -231,7 +481,7 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
             
             {item.dias_maduracion_predichos && (
               <View style={styles.prediccionRow}>
-                <Ionicons name="time-outline" size={12} color="#6B7280" />
+                <Ionicons name="time-outline" size={12} color={themeColors.text.tertiary} />
                 <Text style={styles.prediccionLabel}>Días estimados:</Text>
                 <Text style={styles.prediccionValue}>{item.dias_maduracion_predichos} días</Text>
               </View>
@@ -246,7 +496,7 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
               
               return diasFaltantes > 0 ? (
                 <View style={styles.prediccionRow}>
-                  <Ionicons name="hourglass-outline" size={12} color="#F59E0B" />
+                  <Ionicons name="hourglass-outline" size={12} color={themeColors.status.warning} />
                   <Text style={styles.prediccionLabel}>Días faltantes:</Text>
                   <Text style={[styles.prediccionValue, styles.diasFaltantes]}>
                     {diasFaltantes} días
@@ -254,14 +504,14 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
                 </View>
               ) : diasFaltantes === 0 ? (
                 <View style={styles.prediccionRow}>
-                  <Ionicons name="checkmark-circle" size={12} color="#10B981" />
+                  <Ionicons name="checkmark-circle" size={12} color={themeColors.status.success} />
                   <Text style={[styles.prediccionValue, styles.diasHoy]}>
                     ¡Hoy es el día estimado!
                   </Text>
                 </View>
               ) : (
                 <View style={styles.prediccionRow}>
-                  <Ionicons name="alert-circle" size={12} color="#EF4444" />
+                  <Ionicons name="alert-circle" size={12} color={themeColors.status.error} />
                   <Text style={[styles.prediccionValue, styles.diasVencido]}>
                     Vencido hace {Math.abs(diasFaltantes)} días
                   </Text>
@@ -278,11 +528,11 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
               
               return (
                 <View style={styles.prediccionRow}>
-                  <Ionicons name="shield-checkmark-outline" size={12} color="#6B7280" />
+                  <Ionicons name="shield-checkmark-outline" size={12} color={themeColors.text.tertiary} />
                   <Text style={styles.prediccionLabel}>Confianza:</Text>
                   <Text style={[styles.prediccionValue, {
-                    color: confianza >= 80 ? '#10B981' : 
-                           confianza >= 60 ? '#F59E0B' : '#EF4444'
+                    color: confianza >= 80 ? themeColors.status.success : 
+                           confianza >= 60 ? themeColors.status.warning : themeColors.status.error
                   }]}>
                     {confianza.toFixed(0)}%
                   </Text>
@@ -293,30 +543,25 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
         </View>
       )}
 
-      {/* Barra de progreso */}
-      <View style={styles.progressSection}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Progreso</Text>
-          <Text style={styles.progressPercentage}>{progress}%</Text>
-        </View>
-        <View style={styles.progressBarContainer}>
-          <View 
-            style={[
-              styles.progressFill,
-              { 
-                width: `${progress}%`,
-                backgroundColor: currentStatus === 'Completado' ? '#10B981' : 
-                                currentStatus === 'En Proceso' ? '#F59E0B' : '#6B7280'
-              }
-            ]}
+      {/* Barra de progreso por etapas */}
+      {item.estado_polinizacion && (
+        <View style={{
+          marginTop: 8,
+          backgroundColor: '#f9fafb',
+          borderRadius: 12,
+          paddingVertical: 4
+        }}>
+          <EstadoProgressBar
+            estadoActual={item.estado_polinizacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
+            tipo="polinizacion"
           />
         </View>
-      </View>
+      )}
 
       {/* Advertencia de vencimiento */}
       {isOverdue && (
         <View style={styles.overdueRow}>
-          <Ionicons name="warning" size={14} color="#EF4444" />
+          <Ionicons name="warning" size={14} color={themeColors.status.error} />
           <Text style={styles.overdueText}>Vencido</Text>
         </View>
       )}
@@ -332,7 +577,7 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="eye-outline" size={18} color="#3B82F6" />
+            <Ionicons name="eye-outline" size={18} color={themeColors.accent.secondary} />
             <Text style={[styles.actionButtonText, styles.actionButtonTextView]}>
               Ver
             </Text>
@@ -348,7 +593,7 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="swap-horizontal-outline" size={18} color="#8B5CF6" />
+            <Ionicons name="swap-horizontal-outline" size={18} color={themeColors.accent.tertiary} />
             <Text style={[styles.actionButtonText, styles.actionButtonTextStatus]}>
               Estado
             </Text>
@@ -364,7 +609,7 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="create-outline" size={18} color="#F59E0B" />
+            <Ionicons name="create-outline" size={18} color={themeColors.status.warning} />
             <Text style={[styles.actionButtonText, styles.actionButtonTextEdit]}>
               Editar
             </Text>
@@ -380,7 +625,7 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="trash-outline" size={18} color="#EF4444" />
+            <Ionicons name="trash-outline" size={18} color={themeColors.status.error} />
             <Text style={[styles.actionButtonText, styles.actionButtonTextDelete]}>
               Eliminar
             </Text>
@@ -390,268 +635,3 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
-    marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  cardOverdue: {
-    borderColor: '#EF4444',
-    borderWidth: 2,
-    backgroundColor: '#FEF2F2',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  tableCell: {
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    minWidth: 0,
-  },
-  cellFlex: {
-    flex: 1,
-    minWidth: 100,
-  },
-  cellFull: {
-    width: '100%',
-  },
-  codigoText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#182d49',
-    letterSpacing: 0.2,
-  },
-  rowText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#374151',
-    lineHeight: 18,
-  },
-  labelText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginRight: 4,
-  },
-  valueText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#374151',
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    flexShrink: 0,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  tipoBadge: {
-    // Estilos aplicados dinámicamente
-  },
-  statusBadge: {
-    // Estilos aplicados dinámicamente
-  },
-  climaBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 10,
-    gap: 4,
-  },
-  climaText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: '600',
-  },
-  metaText: {
-    fontSize: 10,
-    color: '#6b7280',
-    marginLeft: 4,
-    flex: 1,
-  },
-  overdueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#FEE2E2',
-    gap: 6,
-  },
-  overdueText: {
-    color: '#EF4444',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  prediccionSection: {
-    marginTop: 10,
-    paddingTop: 10,
-    paddingBottom: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    backgroundColor: '#F0F9FF',
-    borderRadius: 8,
-    padding: 10,
-  },
-  prediccionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 6,
-  },
-  prediccionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1E40AF',
-    flex: 1,
-  },
-  metodoBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  metodoText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  prediccionContent: {
-    gap: 6,
-  },
-  prediccionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  prediccionLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  prediccionValue: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  diasFaltantes: {
-    color: '#F59E0B',
-    fontWeight: '700',
-  },
-  diasHoy: {
-    color: '#10B981',
-    fontWeight: '700',
-  },
-  diasVencido: {
-    color: '#EF4444',
-    fontWeight: '700',
-  },
-  progressSection: {
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  progressLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  progressPercentage: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#374151',
-  },
-  progressBarContainer: {
-    width: '100%',
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    gap: 8,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    gap: 6,
-    borderWidth: 1,
-  },
-  actionButtonView: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-  },
-  actionButtonEdit: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-  },
-  actionButtonDelete: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
-  },
-  actionButtonStatus: {
-    backgroundColor: '#F5F3FF',
-    borderColor: '#DDD6FE',
-  },
-  actionButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  actionButtonTextView: {
-    color: '#3B82F6',
-  },
-  actionButtonTextEdit: {
-    color: '#F59E0B',
-  },
-  actionButtonTextDelete: {
-    color: '#EF4444',
-  },
-  actionButtonTextStatus: {
-    color: '#8B5CF6',
-  },
-});

@@ -93,6 +93,20 @@ export const polinizacionService = {
         resultsCount: response.data?.results?.length
       });
       
+      // Debug: Log de predicciones en los primeros resultados
+      if (response.data?.results?.length > 0) {
+        console.log('🔮 Datos de predicción en primeros resultados del backend:');
+        response.data.results.slice(0, 3).forEach((item: any, index: number) => {
+          console.log(`  [${index}] ${item.codigo || item.numero}:`, {
+            fecha_maduracion_predicha: item.fecha_maduracion_predicha,
+            prediccion_fecha_estimada: item.prediccion_fecha_estimada,
+            metodo_prediccion: item.metodo_prediccion,
+            confianza_prediccion: item.confianza_prediccion,
+            dias_maduracion_predichos: item.dias_maduracion_predichos
+          });
+        });
+      }
+      
       return {
         results: response.data?.results || [],
         count: response.data?.count || 0,
@@ -790,10 +804,50 @@ export const polinizacionService = {
     }
   },
 
+  // Marcar polinización como revisada
+  marcarRevisado: async (
+    id: number,
+    estado?: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO',
+    progreso?: number,
+    diasProximaRevision?: number
+  ) => {
+    try {
+      console.log(`✅ Marcando polinización ${id} como revisada`);
+
+      const data: any = {};
+      if (estado) data.estado = estado;
+      if (progreso !== undefined) data.progreso = progreso;
+      if (diasProximaRevision) data.dias_proxima_revision = diasProximaRevision;
+
+      const response = await api.post(`polinizaciones/${id}/marcar-revisado/`, data);
+
+      console.log('✅ Polinización marcada como revisada:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error marcando polinización como revisada:', error);
+      throw error;
+    }
+  },
+
+  // Obtener polinizaciones pendientes de revisión
+  getPendientesRevision: async () => {
+    try {
+      console.log('🔍 Obteniendo polinizaciones pendientes de revisión...');
+
+      const response = await api.get('polinizaciones/pendientes-revision/');
+
+      console.log('✅ Polinizaciones pendientes obtenidas:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error obteniendo polinizaciones pendientes:', error);
+      throw error;
+    }
+  },
+
   // Cambiar estado de polinización
   cambiarEstadoPolinizacion: async (
     id: number,
-    estado: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO',
+    estado: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO',
     fechaMaduracion?: string
   ) => {
     try {

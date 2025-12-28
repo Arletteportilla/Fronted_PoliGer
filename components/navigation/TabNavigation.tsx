@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useSidebar, SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from '@/contexts/SidebarContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface TabNavigationProps {
   currentTab?: string;
@@ -11,6 +13,8 @@ interface TabNavigationProps {
 export const TabNavigation: React.FC<TabNavigationProps> = ({ currentTab }) => {
   const router = useRouter();
   const { canViewGerminaciones, canViewPolinizaciones, canViewReportes, isAdmin } = usePermissions();
+  const { isCollapsed, toggleSidebar } = useSidebar();
+  const { colors: themeColors } = useTheme();
 
   const allTabs = [
     { id: 'inicio', label: 'Dashboard', icon: 'grid-outline', route: '/(tabs)', alwaysVisible: true },
@@ -40,18 +44,23 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ currentTab }) => {
   });
 
   const handleTabPress = (route: string) => {
-    router.push(route);
+    router.push(route as any);
   };
 
+  const styles = createStyles(themeColors);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isCollapsed && styles.containerCollapsed]}>
+      {/* Navigation items */}
       <View style={styles.tabsContainer}>
         {tabs.map((tab) => (
           <TouchableOpacity
             key={tab.id}
             style={[
               styles.tab,
-              currentTab === tab.id && styles.activeTab
+              isCollapsed && styles.tabCollapsed,
+              currentTab === tab.id && styles.activeTab,
+              currentTab === tab.id && isCollapsed && styles.activeTabCollapsed
             ]}
             onPress={() => handleTabPress(tab.route)}
           >
@@ -59,64 +68,129 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ currentTab }) => {
               <Ionicons
                 name={tab.icon as any}
                 size={20}
-                color={currentTab === tab.id ? '#ffffff' : '#6b7280'}
+                color={
+                  currentTab === tab.id 
+                    ? (isCollapsed ? themeColors.background.primary : themeColors.primary.main)
+                    : themeColors.text.tertiary
+                }
               />
             </View>
-            <Text style={[
-              styles.tabText,
-              currentTab === tab.id && styles.activeTabText
-            ]}>
-              {tab.label}
-            </Text>
+            {!isCollapsed && (
+              <Text style={[
+                styles.tabText,
+                currentTab === tab.id && styles.activeTabText
+              ]}>
+                {tab.label}
+              </Text>
+            )}
           </TouchableOpacity>
         ))}
+      </View>
+
+      {/* Footer con botón de toggle */}
+      <View style={styles.footer}>
+        <TouchableOpacity 
+          style={styles.toggleButton}
+          onPress={toggleSidebar}
+        >
+          <Ionicons 
+            name={isCollapsed ? "chevron-forward" : "chevron-back"} 
+            size={20} 
+            color={themeColors.text.tertiary} 
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   container: {
-    backgroundColor: '#182d49',
-    paddingTop: 10,
-    paddingBottom: 10,
+    position: 'absolute',
+    left: 0,
+    top: 64, // Start below navbar
+    bottom: 0,
+    width: SIDEBAR_WIDTH,
+    backgroundColor: colors.background.primary,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 1000,
+  },
+  containerCollapsed: {
+    width: SIDEBAR_COLLAPSED_WIDTH,
+  },
+  tabsContainer: {
+    flex: 1,
+    paddingTop: 20,
     paddingHorizontal: 16,
-    shadowColor: '#000',
+  },
+  footer: {
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.default,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border.default,
   },
   tab: {
-    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 8,
-    marginHorizontal: 2,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: 'transparent',
+  },
+  tabCollapsed: {
+    paddingHorizontal: 12,
+    justifyContent: 'center',
   },
   activeTab: {
-    backgroundColor: '#e9ad14',
-    borderRadius: 8,
+    backgroundColor: colors.primary.light,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.primary.main,
+  },
+  activeTabCollapsed: {
+    borderLeftWidth: 0,
+    borderRadius: 12,
+    backgroundColor: colors.primary.main,
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   tabText: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginTop: 4,
-    textAlign: 'center',
+    fontSize: 15,
+    color: colors.text.tertiary,
+    marginLeft: 12,
     fontWeight: '500',
+    flex: 1,
   },
   activeTabText: {
-    color: '#ffffff',
+    color: colors.accent.primary,
     fontWeight: '600',
   },
   tabIconContainer: {
-    position: 'relative',
+    width: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -124,7 +198,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.status.error,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -133,7 +207,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   badgeText: {
-    color: '#ffffff',
+    color: colors.background.primary,
     fontSize: 10,
     fontWeight: '700',
   },

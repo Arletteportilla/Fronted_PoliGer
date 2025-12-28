@@ -58,6 +58,34 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   const [mesasFiltradas, setMesasFiltradas] = useState<string[]>([]);
   const [paredesFiltradas, setParedesFiltradas] = useState<string[]>([]);
 
+  // Estado para validación de cantidades
+  const [cantidadError, setCantidadError] = useState<string>('');
+
+  // Función para validar cantidades
+  const validarCantidades = (solicitada: string, disponible: string) => {
+    const numSolicitada = parseFloat(solicitada) || 0;
+    const numDisponible = parseFloat(disponible) || 0;
+
+    if (numDisponible > numSolicitada && numSolicitada > 0) {
+      setCantidadError('La cantidad disponible no puede ser mayor que la cantidad solicitada');
+      return false;
+    } else {
+      setCantidadError('');
+      return true;
+    }
+  };
+
+  // Manejadores para cambios en cantidades con validación
+  const handleCantidadSolicitadaChange = (value: string) => {
+    setForm((f: any) => ({ ...f, cantidad_solicitada: value }));
+    validarCantidades(value, form.cantidad_disponible);
+  };
+
+  const handleCantidadDisponibleChange = (value: string) => {
+    setForm((f: any) => ({ ...f, cantidad_disponible: value }));
+    validarCantidades(form.cantidad_solicitada, value);
+  };
+
   // Cargar códigos disponibles al montar el componente
   useEffect(() => {
     const cargarCodigos = async () => {
@@ -857,12 +885,12 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   <Text style={styles.sectionTitle}>Ubicación y Clima</Text>
                 </View>
                 
-                {/* Ubicación Específica */}
-                <View style={styles.sectionContainer}>
+                {/* Ubicación Específica - Container con overflow visible */}
+                <View style={[styles.sectionContainer, { overflow: 'visible', zIndex: 9000 }]}>
                   <Text style={styles.sectionSubtitle}>Ubicación Específica</Text>
-                  
-                  <View style={styles.inputRow}>
-                    {/* VIVERO CON AUTOCOMPLETADO */}
+
+                  {/* VIVERO CON AUTOCOMPLETADO - Fila separada */}
+                  <View style={[styles.inputRow, { zIndex: 9999, elevation: 9999 }, showViveros && viverosFiltrados.length > 0 && { marginBottom: 220 }]}>
                     <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
                       {renderFormField('Vivero', (
                         <View style={styles.autocompleteWrapper}>
@@ -877,12 +905,16 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                 setViverosFiltrados(filtrados);
                                 setShowViveros(true);
                               }}
-                              onBlur={() => setTimeout(() => setShowViveros(false), 200)}
+                              onBlur={() => setTimeout(() => setShowViveros(false), 300)}
                               placeholder="Ej: V-1, V-13"
                             />
                           </View>
                           {showViveros && viverosFiltrados.length > 0 && (
-                            <View style={styles.autocompleteDropdown}>
+                            <View
+                              style={styles.autocompleteDropdown}
+                              onStartShouldSetResponder={() => true}
+                              onMoveShouldSetResponder={() => true}
+                            >
                               {viverosFiltrados.slice(0, 10).map((vivero, index) => (
                                 <TouchableOpacity
                                   key={`vivero-${index}`}
@@ -894,6 +926,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                     setForm((f: any) => ({ ...f, vivero: vivero }));
                                     setShowViveros(false);
                                   }}
+                                  activeOpacity={0.7}
                                 >
                                   <Text style={styles.autocompleteOptionCodigo}>{vivero}</Text>
                                 </TouchableOpacity>
@@ -903,8 +936,10 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                         </View>
                       ), false)}
                     </View>
+                  </View>
 
-                    {/* MESA CON AUTOCOMPLETADO */}
+                  {/* MESA CON AUTOCOMPLETADO - Fila separada */}
+                  <View style={[styles.inputRow, { zIndex: 8888, elevation: 8888 }, showMesas && mesasFiltradas.length > 0 && { marginBottom: 220 }]}>
                     <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
                       {renderFormField('Mesa', (
                         <View style={styles.autocompleteWrapper}>
@@ -919,12 +954,16 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                 setMesasFiltradas(filtrados);
                                 setShowMesas(true);
                               }}
-                              onBlur={() => setTimeout(() => setShowMesas(false), 200)}
+                              onBlur={() => setTimeout(() => setShowMesas(false), 300)}
                               placeholder="Ej: M-1A, M-2B"
                             />
                           </View>
                           {showMesas && mesasFiltradas.length > 0 && (
-                            <View style={styles.autocompleteDropdown}>
+                            <View
+                              style={styles.autocompleteDropdown}
+                              onStartShouldSetResponder={() => true}
+                              onMoveShouldSetResponder={() => true}
+                            >
                               {mesasFiltradas.slice(0, 10).map((mesa, index) => (
                                 <TouchableOpacity
                                   key={`mesa-${index}`}
@@ -936,6 +975,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                     setForm((f: any) => ({ ...f, mesa: mesa }));
                                     setShowMesas(false);
                                   }}
+                                  activeOpacity={0.7}
                                 >
                                   <Text style={styles.autocompleteOptionCodigo}>{mesa}</Text>
                                 </TouchableOpacity>
@@ -947,9 +987,8 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                     </View>
                   </View>
 
-
-                  {/* PARED CON AUTOCOMPLETADO */}
-                  <View style={styles.inputRow}>
+                  {/* PARED CON AUTOCOMPLETADO - Fila separada */}
+                  <View style={[styles.inputRow, { zIndex: 7777, elevation: 7777 }, showParedes && paredesFiltradas.length > 0 && { marginBottom: 220 }]}>
                     <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
                       {renderFormField('Pared', (
                         <View style={styles.autocompleteWrapper}>
@@ -964,12 +1003,16 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                 setParedesFiltradas(filtrados);
                                 setShowParedes(true);
                               }}
-                              onBlur={() => setTimeout(() => setShowParedes(false), 200)}
+                              onBlur={() => setTimeout(() => setShowParedes(false), 300)}
                               placeholder="Ej: P-A, P-100"
                             />
                           </View>
                           {showParedes && paredesFiltradas.length > 0 && (
-                            <View style={styles.autocompleteDropdown}>
+                            <View
+                              style={styles.autocompleteDropdown}
+                              onStartShouldSetResponder={() => true}
+                              onMoveShouldSetResponder={() => true}
+                            >
                               {paredesFiltradas.slice(0, 10).map((pared, index) => (
                                 <TouchableOpacity
                                   key={`pared-${index}`}
@@ -981,6 +1024,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                     setForm((f: any) => ({ ...f, pared: pared }));
                                     setShowParedes(false);
                                   }}
+                                  activeOpacity={0.7}
                                 >
                                   <Text style={styles.autocompleteOptionCodigo}>{pared}</Text>
                                 </TouchableOpacity>
@@ -993,7 +1037,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   </View>
                 </View>
 
-                <View style={styles.inputRow}>
+                <View style={[styles.inputRow, { zIndex: 1 }]}>
                   <View style={styles.inputColumn}>
                     {renderFormField('Responsable', (
                       <View style={styles.inputContainer}>
@@ -1022,31 +1066,31 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   </View>
                   <Text style={styles.sectionTitle}>Cantidades</Text>
                 </View>
-                
+
                 <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad Solicitada', (
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="arrow-up-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                      <View style={[styles.inputContainer, cantidadError && styles.inputContainerError]}>
+                        <Ionicons name="arrow-up-outline" size={20} color={cantidadError ? "#ef4444" : "#e9ad14"} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.cantidad_solicitada}
-                          onChangeText={(v: string) => setForm((f: any) => ({ ...f, cantidad_solicitada: v }))}
+                          onChangeText={handleCantidadSolicitadaChange}
                           placeholder="Cantidad solicitada"
                           keyboardType="numeric"
                         />
                       </View>
                     ), false)}
                   </View>
-                  
+
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad Disponible', (
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="checkmark-circle-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                      <View style={[styles.inputContainer, cantidadError && styles.inputContainerError]}>
+                        <Ionicons name="checkmark-circle-outline" size={20} color={cantidadError ? "#ef4444" : "#e9ad14"} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.cantidad_disponible}
-                          onChangeText={(v: string) => setForm((f: any) => ({ ...f, cantidad_disponible: v }))}
+                          onChangeText={handleCantidadDisponibleChange}
                           placeholder="Cantidad disponible"
                           keyboardType="numeric"
                         />
@@ -1054,6 +1098,14 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                     ), false)}
                   </View>
                 </View>
+
+                {/* Mensaje de error */}
+                {cantidadError && (
+                  <View style={styles.errorContainer}>
+                    <Ionicons name="alert-circle" size={16} color="#ef4444" />
+                    <Text style={styles.errorText}>{cantidadError}</Text>
+                  </View>
+                )}
                 
                 {/* Nueva fila para Cantidad de Semilla */}
                 <View style={styles.inputRow}>
@@ -1160,13 +1212,17 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               {/* Botón de acción */}
               <View style={styles.actionButtons}>
                 <TouchableOpacity
-                  style={[styles.actionButton, styles.saveButton]}
+                  style={[
+                    styles.actionButton,
+                    styles.saveButton,
+                    (saving || cantidadError) && styles.saveButtonDisabled
+                  ]}
                   onPress={onSave}
-                  disabled={saving}
+                  disabled={saving || !!cantidadError}
                 >
                   <Ionicons name="save" size={20} color="#fff" />
                   <Text style={styles.actionButtonText}>
-                    {saving ? 'Guardando...' : 'Guardar'}
+                    {saving ? 'Guardando...' : cantidadError ? 'Corrige los errores' : 'Guardar'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1196,6 +1252,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 10,
+    zIndex: 1,
   },
   popupScrollView: {
     maxHeight: '100%',
@@ -1301,7 +1358,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   inputColumnWithAutocomplete: {
-    zIndex: 1000,
+    zIndex: 99999,
+    elevation: 99999,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -1407,24 +1465,56 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#182d49',
   },
+  saveButtonDisabled: {
+    backgroundColor: '#9ca3af',
+    opacity: 0.6,
+  },
   actionButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  inputContainerError: {
+    borderColor: '#ef4444',
+    borderWidth: 2,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 8,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#ef4444',
+    fontWeight: '500',
   },
   fieldContainer: {
     marginBottom: 16,
     position: 'relative',
     zIndex: 1,
   },
+  fieldContainerWithDropdown: {
+    marginBottom: 16,
+    position: 'relative',
+    zIndex: 99999,
+    elevation: 99999,
+  },
   autocompleteWrapper: {
     position: 'relative',
-    zIndex: 1000,
+    zIndex: 99999,
+    elevation: 99999,
   },
   fieldContainerWithAutocomplete: {
     marginBottom: 16,
     position: 'relative',
-    zIndex: 1000,
+    zIndex: 99999,
+    elevation: 99999,
   },
   fieldLabel: {
     fontSize: 14,
@@ -1462,9 +1552,33 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
-    elevation: 20,
+    elevation: 99999,
     zIndex: 99999,
     overflow: 'hidden',
+  },
+  autocompleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  autocompleteModalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '60%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 20,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  autocompleteModalScrollView: {
+    maxHeight: 300,
   },
   autocompleteOption: {
     paddingHorizontal: 16,

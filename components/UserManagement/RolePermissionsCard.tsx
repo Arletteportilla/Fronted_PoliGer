@@ -21,7 +21,7 @@ interface RoleInfo {
 export const ROLES: RoleInfo[] = [
   {
     code: 'TIPO_4',
-    name: 'Administrador',
+    name: 'Gestor del Sistema',
     description: 'Acceso completo al sistema',
     color: '#dc2626',
     icon: 'shield-checkmark',
@@ -34,7 +34,7 @@ export const ROLES: RoleInfo[] = [
   },
   {
     code: 'TIPO_1',
-    name: 'Técnico Senior',
+    name: 'Técnico de Laboratorio Senior',
     description: 'Gestión completa de procesos',
     color: '#2563eb',
     icon: 'person',

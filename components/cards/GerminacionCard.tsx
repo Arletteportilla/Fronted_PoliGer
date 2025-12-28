@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '@/hooks/useResponsive';
 import { calcularDiasRestantes, getEstadoPrediccion } from '@/utils/prediccionHelpers';
 import { ValidarPrediccionGerminacionModal } from '../modals/ValidarPrediccionGerminacionModal';
+import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 
 interface GerminacionCardProps {
   item: any;
@@ -34,46 +35,6 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
 
   const estadoPrediccion = getEstadoPrediccion(diasRestantes);
   const isOverdue = diasRestantes !== null && diasRestantes < 0;
-
-  // Determinar el estado actual de la germinación
-  const getCurrentStatus = () => {
-    const etapa = item.etapa_actual || item.estado || 'INGRESADO';
-    if (etapa === 'LISTA' || etapa === 'LISTO') return 'Completado';
-    if (etapa === 'EN_PROCESO') return 'En Proceso';
-    return 'Ingresado';
-  };
-
-  const currentStatus = getCurrentStatus();
-
-  // Calcular el progreso de la germinación basado en días transcurridos
-  const calculateProgress = () => {
-    // Si está marcada como completada, 100%
-    const etapa = item.etapa_actual || item.estado || 'INGRESADO';
-    if (etapa === 'LISTA' || etapa === 'LISTO') return 100;
-    if (etapa === 'CANCELADO') return 0;
-
-    // Si no hay fecha de siembra, usar progreso basado en estado
-    if (!item.fecha_siembra) {
-      return etapa === 'EN_PROCESO' ? 65 : 30;
-    }
-
-    // Calcular días transcurridos desde la siembra
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const fechaSiembra = new Date(item.fecha_siembra);
-    fechaSiembra.setHours(0, 0, 0, 0);
-    const diasTranscurridos = Math.ceil((hoy.getTime() - fechaSiembra.getTime()) / (1000 * 60 * 60 * 24));
-
-    // Obtener días totales estimados (de la predicción o por defecto 30)
-    const diasTotales = item.prediccion_dias_estimados || 30;
-
-    // Calcular progreso (mínimo 0%, máximo 100%)
-    const progreso = Math.min(Math.max((diasTranscurridos / diasTotales) * 100, 0), 100);
-
-    return Math.round(progreso);
-  };
-
-  const progress = calculateProgress();
 
   // Helper para limpiar valores "nan" o null
   const cleanValue = (value: any): string | null => {
@@ -234,25 +195,20 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
         </View>
       )}
 
-      {/* Barra de progreso */}
-      <View style={styles.progressSection}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Progreso</Text>
-          <Text style={styles.progressPercentage}>{progress}%</Text>
-        </View>
-        <View style={styles.progressBarContainer}>
-          <View 
-            style={[
-              styles.progressFill,
-              { 
-                width: `${progress}%`,
-                backgroundColor: currentStatus === 'Completado' ? '#10B981' : 
-                                currentStatus === 'En Proceso' ? '#F59E0B' : '#6B7280'
-              }
-            ]}
+      {/* Barra de progreso por etapas */}
+      {item.estado_germinacion && (
+        <View style={{
+          marginTop: 8,
+          backgroundColor: '#f9fafb',
+          borderRadius: 12,
+          paddingVertical: 4
+        }}>
+          <EstadoProgressBar
+            estadoActual={item.estado_germinacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
+            tipo="germinacion"
           />
         </View>
-      </View>
+      )}
 
       {/* Fecha estimada de germinación */}
       {(item.prediccion_fecha_estimada || item.fecha_germinacion_estimada) && (

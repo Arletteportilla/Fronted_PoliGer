@@ -301,10 +301,12 @@ export const germinacionService = {
     page_size?: number;
     search?: string;
     dias_recientes?: number;
+    excluir_importadas?: boolean;
   } = {}) => {
     const page = params.page || 1;
     const page_size = params.page_size || 20;
     const dias_recientes = params.dias_recientes !== undefined ? params.dias_recientes : 7; // Por defecto 7 días
+    const excluir_importadas = params.excluir_importadas !== undefined ? params.excluir_importadas : false;
 
     console.log('🔍 germinacionService.getMisGerminacionesPaginated() - Parámetros:', params);
     
@@ -331,6 +333,12 @@ export const germinacionService = {
         queryParams.dias_recientes = dias_recientes;
       }
 
+      if (excluir_importadas) {
+        queryParams.excluir_importadas = 'true';
+      }
+
+      console.log('🌐 Llamando a endpoint: germinaciones/mis-germinaciones/ con params:', queryParams);
+
       const response = await api.get('germinaciones/mis-germinaciones/', {
         params: queryParams,
         timeout: 30000,
@@ -339,13 +347,27 @@ export const germinacionService = {
           'Content-Type': 'application/json'
         }
       });
-      
+
       console.log('✅ Mis germinaciones paginadas recibidas:', {
         page,
         totalPages: response.data?.total_pages,
         count: response.data?.count,
         resultsCount: response.data?.results?.length
       });
+
+      // Log detallado de las primeras 3 germinaciones para debugging
+      if (response.data?.results && response.data.results.length > 0) {
+        console.log('📋 Primeras 3 germinaciones (muestra):',
+          response.data.results.slice(0, 3).map((g: any) => ({
+            id: g.id,
+            codigo: g.codigo,
+            creado_por_id: g.creado_por,
+            responsable_id: g.responsable
+          }))
+        );
+      } else {
+        console.warn('⚠️ No se recibieron germinaciones en la respuesta o el array está vacío');
+      }
       
       return {
         results: response.data?.results || [],
@@ -1062,7 +1084,7 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Cambiar estado de germinación (INICIAL, EN_PROCESO, FINALIZADO)
   cambiarEstadoGerminacion: async (
     id: number, 
-    estado: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO',
+    estado: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO',
     fechaGerminacion?: string
   ): Promise<any> => {
     try {
@@ -1223,6 +1245,46 @@ export const germinacionService = {
       }
 
       throw new Error('No se pudieron exportar los datos de reentrenamiento.');
+    }
+  },
+
+  // Marcar germinación como revisada
+  marcarRevisado: async (
+    id: number,
+    estado?: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO',
+    progreso?: number,
+    diasProximaRevision?: number
+  ) => {
+    try {
+      console.log(`✅ Marcando germinación ${id} como revisada`);
+
+      const data: any = {};
+      if (estado) data.estado = estado;
+      if (progreso !== undefined) data.progreso = progreso;
+      if (diasProximaRevision) data.dias_proxima_revision = diasProximaRevision;
+
+      const response = await api.post(`germinaciones/${id}/marcar-revisado/`, data);
+
+      console.log('✅ Germinación marcada como revisada:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error marcando germinación como revisada:', error);
+      throw error;
+    }
+  },
+
+  // Obtener germinaciones pendientes de revisión
+  getPendientesRevision: async () => {
+    try {
+      console.log('🔍 Obteniendo germinaciones pendientes de revisión...');
+
+      const response = await api.get('germinaciones/pendientes-revision/');
+
+      console.log('✅ Germinaciones pendientes obtenidas:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Error obteniendo germinaciones pendientes:', error);
+      throw error;
     }
   },
 };

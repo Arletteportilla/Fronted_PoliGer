@@ -1,19 +1,22 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { NotificationsScreen } from '@/components/alerts/NotificationsScreen';
-import { TabNavigation } from '@/components/navigation';
+import { ResponsiveLayout } from '@/components/layout';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function NotificacionesScreenWrapper() {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
+  
   return (
-    <View style={styles.container}>
-      <TabNavigation currentTab="notificaciones" />
+    <ResponsiveLayout currentTab="notificaciones" style={styles.container}>
       <NotificationsScreen />
-    </View>
+    </ResponsiveLayout>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   container: {
-    flex: 1,
+    backgroundColor: colors.background.secondary,
   },
 });

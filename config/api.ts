@@ -6,7 +6,7 @@
 // Configuración base de la API
 export const API_CONFIG = {
   // URL base del backend - puede ser configurada por variables de entorno
-  BASE_URL: process.env['EXPO_PUBLIC_API_URL'] || 'http://127.0.0.1:8000',
+  BASE_URL: process.env['EXPO_PUBLIC_API_URL'] || 'http://207.180.230.88',
   
   // Endpoints específicos
   ENDPOINTS: {

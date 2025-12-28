@@ -166,25 +166,6 @@ export function PrediccionMLPolinizacion({
     disabled
   ]);
 
-  const getNivelConfianza = (confianza?: number, nivelBackend?: string): 'alta' | 'media' | 'baja' => {
-    // Si viene del backend, usarlo
-    if (nivelBackend && (nivelBackend === 'alta' || nivelBackend === 'media' || nivelBackend === 'baja')) {
-      return nivelBackend as 'alta' | 'media' | 'baja';
-    }
-
-    // Usar confianza por defecto si no viene
-    const conf = confianza ?? 70;
-
-    // Calcular basado en el porcentaje
-    if (conf >= 85) return 'alta';
-    if (conf >= 70) return 'media';
-    return 'baja';
-  };
-
-  const getConfianzaColor = (nivel: 'alta' | 'media' | 'baja') => {
-    return polinizacionMLService.obtenerColorConfianza(nivel);
-  };
-
   const calcularDiasRestantes = (fechaEstimada: string) => {
     return polinizacionMLService.calcularDiasRestantes(fechaEstimada);
   };
@@ -257,42 +238,6 @@ export function PrediccionMLPolinizacion({
             <Text style={styles.diasRestantesText}>
               {calcularDiasRestantes(prediccion.fecha_estimada_maduracion)} días restantes
             </Text>
-          </View>
-
-          {/* Confianza */}
-          <View style={styles.confianzaContainer}>
-            <View style={styles.confianzaHeader}>
-              <Text style={styles.confianzaLabel}>Nivel de Confianza</Text>
-              <View
-                style={[
-                  styles.confianzaBadge,
-                  { backgroundColor: getConfianzaColor(getNivelConfianza(prediccion.confianza, prediccion.nivel_confianza)) }
-                ]}
-              >
-                <Text style={styles.confianzaBadgeText}>
-                  {prediccion.confianza ?? 70}% - {getNivelConfianza(prediccion.confianza, prediccion.nivel_confianza).toUpperCase()}
-                </Text>
-              </View>
-            </View>
-
-            {((prediccion.categorias_nuevas || 0) > 0 || getNivelConfianza(prediccion.confianza, prediccion.nivel_confianza) !== 'alta') && (
-              <View style={styles.warningBox}>
-                <Ionicons name="warning-outline" size={18} color="#FF9800" />
-                <View style={styles.warningContent}>
-                  {(prediccion.categorias_nuevas || 0) > 0 && (
-                    <Text style={styles.warningText}>
-                      {polinizacionMLService.obtenerMensajeCategorias(prediccion.categorias_nuevas || 0)}
-                    </Text>
-                  )}
-                  <Text style={styles.warningExplanation}>
-                    {polinizacionMLService.obtenerExplicacionConfianza(
-                      prediccion.confianza ?? 70,
-                      prediccion.categorias_nuevas || 0
-                    )}
-                  </Text>
-                </View>
-              </View>
-            )}
           </View>
         </View>
       )}
@@ -403,52 +348,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#F57C00',
     marginLeft: 8,
-  },
-  confianzaContainer: {
-    marginTop: 16,
-  },
-  confianzaHeader: {
-    marginBottom: 8,
-  },
-  confianzaLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  confianzaBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    alignSelf: 'flex-start',
-  },
-  confianzaBadgeText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  warningBox: {
-    flexDirection: 'row',
-    backgroundColor: '#FFF3CD',
-    padding: 12,
-    borderRadius: 6,
-    marginTop: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: '#FF9800',
-  },
-  warningContent: {
-    flex: 1,
-    marginLeft: 8,
-  },
-  warningText: {
-    fontSize: 12,
-    color: '#856404',
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  warningExplanation: {
-    fontSize: 11,
-    color: '#856404',
-    lineHeight: 16,
   },
 });

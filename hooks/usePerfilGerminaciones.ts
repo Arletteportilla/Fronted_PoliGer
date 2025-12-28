@@ -21,10 +21,12 @@ export function usePerfilGerminaciones() {
   const fetchGerminaciones = useCallback(async (page: number = 1, search: string = '') => {
     setLoading(true);
     try {
-      const response = await germinacionService.getGerminacionesUsuario({
+      const response = await germinacionService.getMisGerminacionesPaginated({
         page,
         page_size: 10,
         search,
+        dias_recientes: 0, // 0 = todas las germinaciones del usuario, no solo las recientes
+        excluir_importadas: true // Excluir germinaciones importadas desde CSV/Excel
       });
 
       setGerminaciones(response.results || []);
@@ -62,10 +64,10 @@ export function usePerfilGerminaciones() {
 
   const handleView = useCallback(async (item: Germinacion) => {
     try {
-      const itemId = item.numero || item.id;
+      const itemId = item.id;
       if (!itemId) throw new Error('ID no disponible');
 
-      const detalles = await germinacionService.getGerminacionDetalle(itemId);
+      const detalles = await germinacionService.getById(itemId);
       setSelectedItem(detalles);
       setShowDetailsModal(true);
     } catch (error) {
@@ -81,12 +83,12 @@ export function usePerfilGerminaciones() {
 
   const handleDelete = useCallback(async (item: Germinacion, onSuccess?: () => void) => {
     try {
-      const itemId = item.numero || item.id;
+      const itemId = item.id;
       if (!itemId) {
         throw new Error('No se pudo obtener el ID de la germinación');
       }
 
-      await germinacionService.deleteGerminacion(itemId);
+      await germinacionService.delete(itemId);
       await fetchGerminaciones(currentPage, searchText);
       onSuccess?.();
     } catch (error) {
@@ -107,12 +109,12 @@ export function usePerfilGerminaciones() {
 
   const handleChangeStatus = useCallback(async (
     itemId: number,
-    newStatus: 'INGRESADO' | 'EN_PROCESO' | 'FINALIZADO',
+    newStatus: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO',
     fechaGerminacion?: string,
     onSuccess?: () => void
   ) => {
     try {
-      await germinacionService.cambiarEtapaGerminacion(itemId, newStatus, fechaGerminacion);
+      await germinacionService.cambiarEstadoGerminacion(itemId, newStatus, fechaGerminacion);
       await fetchGerminaciones(currentPage, searchText);
       onSuccess?.();
     } catch (error) {

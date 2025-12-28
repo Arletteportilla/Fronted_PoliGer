@@ -141,8 +141,23 @@ class RBACService {
   }
   
   async createUser(userData: CreateUserRequest): Promise<UserWithProfile> {
-    const response = await api.post('user-management/', userData);
-    return response.data;
+    try {
+      console.log('🚀 rbacService.createUser - Enviando datos:', userData);
+      console.log('🌐 URL del endpoint:', 'user-management/');
+      
+      const response = await api.post('user-management/', userData);
+      
+      console.log('✅ rbacService.createUser - Respuesta exitosa:', response.data);
+      console.log('📊 Status:', response.status);
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ rbacService.createUser - Error:', error);
+      console.error('📊 Error status:', error.response?.status);
+      console.error('📝 Error data:', error.response?.data);
+      console.error('🔗 Error config:', error.config);
+      throw error;
+    }
   }
   
   async updateUser(userId: number, userData: Partial<UserWithProfile>): Promise<UserWithProfile> {
@@ -151,22 +166,27 @@ class RBACService {
   }
   
   async deleteUser(userId: number): Promise<void> {
-    await api.delete(`user-management/${userId}/`);
+    try {
+      const endpoint = `user-management/${userId}/`;
+      console.log('🌐 rbacService.deleteUser - Endpoint:', endpoint);
+      console.log('🔑 userId:', userId);
+      console.log('📡 Sending DELETE request...');
+
+      const response = await api.delete(endpoint);
+
+      console.log('✅ rbacService.deleteUser - Success');
+      console.log('📊 Response status:', response.status);
+      console.log('📝 Response data:', response.data);
+    } catch (error: any) {
+      console.error('❌ rbacService.deleteUser - Error:', error);
+      console.error('📊 Error status:', error.response?.status);
+      console.error('📝 Error data:', error.response?.data);
+      console.error('🔗 Error URL:', error.config?.url);
+      console.error('🔗 Error method:', error.config?.method);
+      throw error;
+    }
   }
-  
-  async changeUserRole(userId: number, newRole: string): Promise<{
-    message: string;
-    usuario: string;
-    rol_anterior: string;
-    rol_nuevo: string;
-    rol_display: string;
-  }> {
-    const response = await api.post(`user-management/${userId}/cambiar_rol/`, {
-      rol: newRole
-    });
-    return response.data;
-  }
-  
+
   async changeUserStatus(userId: number, active: boolean): Promise<{
     message: string;
     usuario: string;

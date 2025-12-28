@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { rbacService } from '@/services/rbac.service';
 import type { UserWithProfile } from '@/types/index';
-import type { CreateUserFormData } from '@/components/UserManagement/CreateUserModal';
+import type { UserFormData as CreateUserFormData } from '@/components/UserManagement/CreateUserModal';
 import type { UserFormData as EditUserFormData } from '@/components/UserManagement/EditUserModal';
 
 export function usePerfilUsuarios() {
@@ -24,14 +24,33 @@ export function usePerfilUsuarios() {
     }
   }, []);
 
-  const handleCreate = useCallback(async (userData: CreateUserFormData, onSuccess?: () => void) => {
+  const handleCreate = useCallback(async (userData: CreateUserFormData) => {
     try {
-      await rbacService.createUser(userData);
+      console.log('🚀 usePerfilUsuarios.handleCreate - Iniciando creación de usuario');
+      console.log('📋 Datos del usuario a crear:', userData);
+      
+      // Verificar token de autenticación
+      const token = await import('@/services/secureStore').then(m => m.secureStore.getItem('authToken'));
+      console.log('🔑 Token disponible:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
+      
+      // Verificar usuario actual
+      const { useAuth } = await import('@/contexts/AuthContext');
+      console.log('👤 Usuario actual en contexto disponible');
+      
+      console.log('🌐 Llamando a rbacService.createUser...');
+      const result = await rbacService.createUser(userData);
+      console.log('✅ Usuario creado exitosamente:', result);
+      
       await fetchUsuarios();
       setShowCreateModal(false);
-      onSuccess?.();
-    } catch (error) {
-      console.error('Error al crear usuario:', error);
+      
+      return result;
+    } catch (error: any) {
+      console.error('❌ Error al crear usuario:', error);
+      console.error('📊 Error status:', error.response?.status);
+      console.error('📝 Error data:', error.response?.data);
+      console.error('🔗 Error config URL:', error.config?.url);
+      console.error('🔑 Error config headers:', error.config?.headers);
       throw error;
     }
   }, [fetchUsuarios]);
@@ -41,7 +60,7 @@ export function usePerfilUsuarios() {
     setShowEditModal(true);
   }, []);
 
-  const handleUpdate = useCallback(async (userId: number, userData: EditUserFormData, onSuccess?: () => void) => {
+  const handleUpdate = useCallback(async (userId: number, userData: Partial<EditUserFormData>, onSuccess?: () => void) => {
     try {
       await rbacService.updateUser(userId, userData);
       await fetchUsuarios();
@@ -56,11 +75,15 @@ export function usePerfilUsuarios() {
 
   const handleDelete = useCallback(async (user: UserWithProfile, onSuccess?: () => void) => {
     try {
+      console.log('🗑️ Iniciando eliminación del usuario:', user.id);
       await rbacService.deleteUser(user.id);
+      console.log('✅ Usuario eliminado exitosamente');
       await fetchUsuarios();
       onSuccess?.();
-    } catch (error) {
-      console.error('Error al eliminar usuario:', error);
+    } catch (error: any) {
+      console.error('❌ Error al eliminar usuario:', error);
+      console.error('📊 Error response:', error.response?.data);
+      console.error('📊 Error status:', error.response?.status);
       throw error;
     }
   }, [fetchUsuarios]);

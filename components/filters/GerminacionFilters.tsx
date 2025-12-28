@@ -71,7 +71,11 @@ export default function GerminacionFilters({
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={true}
+    >
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Filtros</Text>
@@ -316,8 +320,11 @@ export default function GerminacionFilters({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#fff',
+    maxHeight: '100%',
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',

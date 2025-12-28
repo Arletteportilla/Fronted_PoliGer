@@ -575,26 +575,6 @@ export const DashboardWithCards: React.FC = () => {
       >
       <Text style={styles.pageTitle}>Dashboard</Text>
 
-      {/* Status Overview - Side by side */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Estado General</Text>
-        <View style={styles.statusGrid}>
-          {germinacionStats && renderStatusCard(
-            'Germinaciones',
-            germinacionStats,
-            'leaf-outline',
-            '#10B981',
-            () => router.push('/(tabs)/germinaciones')
-          )}
-          {polinizacionStats && renderStatusCard(
-            'Polinizaciones',
-            polinizacionStats,
-            'flower-outline',
-            '#F59E0B',
-            () => router.push('/(tabs)/polinizaciones')
-          )}
-        </View>
-      </View>
       {/* Notificaciones */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Notificaciones</Text>

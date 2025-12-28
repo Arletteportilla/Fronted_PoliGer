@@ -5,14 +5,16 @@ import * as Sharing from 'expo-sharing';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { germinacionService } from '@/services/germinacion.service';
 import { estadisticasService } from '@/services/estadisticas.service';
 import { prediccionValidacionService } from '@/services/prediccion-validacion.service';
+import { CONFIG } from '@/services/config';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useConfirmation, useModalState, useCRUDOperations } from '@/hooks';
 import * as SecureStore from '@/services/secureStore';
-import { TabNavigation } from '@/components/navigation';
+import { ResponsiveLayout } from '@/components/layout';
 import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
 import { CambiarEstadoModal } from '@/components/modals/CambiarEstadoModal';
@@ -28,12 +30,14 @@ import {
   PerfilUsuariosTab,
   type TabType
 } from '@/components/Perfil';
-import { styles } from '@/utils/Perfil/styles';
+import { createPerfilStyles } from '@/utils/Perfil/styles';
 import type { Polinizacion, Germinacion, EstadisticasUsuario } from '@/types/index';
 
 export default function PerfilScreen() {
-  const { user, forceLogout } = useAuth();
+  const { user, forceLogout, refreshUser } = useAuth();
   const toast = useToast();
+  const { colors: themeColors } = useTheme();
+  const styles = createPerfilStyles(themeColors);
   const { canViewGerminaciones, canViewPolinizaciones, isAdmin } = usePermissions();
   const { showConfirmation } = useConfirmation();
   const params = useLocalSearchParams();
@@ -139,7 +143,8 @@ export default function PerfilScreen() {
               page: germinacionesPage,
               page_size: 20,
               ...(searchGerminaciones && { search: searchGerminaciones }),
-              dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
+              dias_recientes: 0, // 0 = ver todas las germinaciones sin filtro de fecha
+              excluir_importadas: true // Excluir germinaciones importadas desde CSV/Excel
             });
             misGerminaciones = Array.isArray(result.results) ? result.results : [];
             setGerminacionesTotalPages(result.totalPages);
@@ -173,10 +178,14 @@ export default function PerfilScreen() {
           total_polinizaciones: misPolinizaciones.length,
           total_germinaciones: misGerminaciones.length,
           polinizaciones_actuales: misPolinizaciones.filter(p =>
-            p.estado_polinizacion === 'EN_PROCESO' || p.estado_polinizacion === 'INICIAL'
+            p.estado_polinizacion === 'INICIAL' ||
+            p.estado_polinizacion === 'EN_PROCESO_TEMPRANO' ||
+            p.estado_polinizacion === 'EN_PROCESO_AVANZADO'
           ).length,
           germinaciones_actuales: misGerminaciones.filter(g =>
-            g.estado_germinacion === 'EN_PROCESO' || g.estado_germinacion === 'INICIAL'
+            g.estado_germinacion === 'INICIAL' ||
+            g.estado_germinacion === 'EN_PROCESO_TEMPRANO' ||
+            g.estado_germinacion === 'EN_PROCESO_AVANZADO'
           ).length,
           usuario: user?.username || 'Usuario'
         };
@@ -338,7 +347,7 @@ export default function PerfilScreen() {
               const params = new URLSearchParams();
               if (search) params.append('search', search);
 
-              const url = `http://127.0.0.1:8000/api/${tipo}/mis-${tipo}-pdf/?${params.toString()}`;
+              const url = `${CONFIG.API_BASE_URL}/${tipo}/mis-${tipo}-pdf/?${params.toString()}`;
               console.log(`🔍 URL completa: ${url}`);
 
               // Crear nombre de archivo
@@ -478,6 +487,11 @@ export default function PerfilScreen() {
     setRefreshing(false);
   }, [fetchData]);
 
+  // Callback cuando se actualiza la foto de perfil
+  const handlePhotoUpdated = useCallback(async () => {
+    await refreshUser();
+  }, [refreshUser]);
+
   // Operaciones CRUD (usando useCRUDOperations)
   const { handleDelete: handleDeletePolinizacion } = useCRUDOperations(
     polinizacionService,
@@ -527,12 +541,12 @@ export default function PerfilScreen() {
     try {
       setLoading(true);
       // Mapear etapas antiguas a estados nuevos
-      const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO'> = {
+      const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'> = {
         'INGRESADO': 'INICIAL',
-        'EN_PROCESO': 'EN_PROCESO',
+        'EN_PROCESO': 'EN_PROCESO_TEMPRANO',
         'FINALIZADO': 'FINALIZADO'
       };
-      const nuevoEstado = estadoMap[nuevaEtapa] || 'EN_PROCESO';
+      const nuevoEstado = estadoMap[nuevaEtapa] || 'EN_PROCESO_TEMPRANO';
       await germinacionService.cambiarEstadoGerminacion(germinacionId, nuevoEstado, fechaGerminacion);
 
       // Actualizar la germinación seleccionada en el modal de edición con el nuevo estado
@@ -540,7 +554,10 @@ export default function PerfilScreen() {
         const updatedGerminacion: Germinacion = {
           ...germinacionEditModal.selectedItem,
           estado_germinacion: nuevoEstado,
-          progreso_germinacion: nuevoEstado === 'INICIAL' ? 0 : nuevoEstado === 'FINALIZADO' ? 100 : 50,
+          progreso_germinacion: nuevoEstado === 'INICIAL' ? 10 : 
+                                       nuevoEstado === 'EN_PROCESO_TEMPRANO' ? 35 : 
+                                       nuevoEstado === 'EN_PROCESO_AVANZADO' ? 75 : 
+                                       nuevoEstado === 'FINALIZADO' ? 100 : 50,
           ...(nuevoEstado === 'FINALIZADO' && { fecha_germinacion: new Date().toISOString().split('T')[0] })
         };
         germinacionEditControls.setSelectedItem(updatedGerminacion);
@@ -642,10 +659,10 @@ export default function PerfilScreen() {
     finalizarPolinizacionControls.open(item);
   };
 
-  const handleCambiarEstadoPolinizacion = async (polinizacionId: number, nuevoEstado: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO', fechaMaduracion?: string) => {
+  const handleCambiarEstadoPolinizacion = async (polinizacionId: number, nuevoEstado: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO', fechaMaduracion?: string) => {
     try {
       setLoading(true);
-      
+
       await polinizacionService.cambiarEstadoPolinizacion(polinizacionId, nuevoEstado, fechaMaduracion);
 
       // Actualizar la polinización en la lista local
@@ -655,7 +672,10 @@ export default function PerfilScreen() {
             ? {
                 ...p,
                 estado_polinizacion: nuevoEstado,
-                progreso_polinizacion: nuevoEstado === 'INICIAL' ? 0 : nuevoEstado === 'FINALIZADO' ? 100 : 50,
+                progreso_polinizacion: nuevoEstado === 'INICIAL' ? 10 : 
+                                              nuevoEstado === 'EN_PROCESO_TEMPRANO' ? 35 : 
+                                              nuevoEstado === 'EN_PROCESO_AVANZADO' ? 75 : 
+                                              nuevoEstado === 'FINALIZADO' ? 100 : 50,
                 ...(nuevoEstado === 'FINALIZADO' && fechaMaduracion && { fechamad: fechaMaduracion })
               }
             : p
@@ -667,7 +687,10 @@ export default function PerfilScreen() {
         const updatedPolinizacion: Polinizacion = {
           ...polinizacionEditModal.selectedItem,
           estado_polinizacion: nuevoEstado,
-          progreso_polinizacion: nuevoEstado === 'INICIAL' ? 0 : nuevoEstado === 'FINALIZADO' ? 100 : 50,
+          progreso_polinizacion: nuevoEstado === 'INICIAL' ? 10 : 
+                                        nuevoEstado === 'EN_PROCESO_TEMPRANO' ? 35 : 
+                                        nuevoEstado === 'EN_PROCESO_AVANZADO' ? 75 : 
+                                        nuevoEstado === 'FINALIZADO' ? 100 : 50,
           ...(nuevoEstado === 'FINALIZADO' && fechaMaduracion && { fechamad: fechaMaduracion })
         };
         polinizacionEditControls.setSelectedItem(updatedPolinizacion);
@@ -797,15 +820,15 @@ export default function PerfilScreen() {
 
   // Renderizado principal
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      <TabNavigation currentTab="perfil" />
+    <ResponsiveLayout currentTab="perfil" style={styles.mainContainer}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
 
       {/* Cabecera del usuario */}
-      <PerfilHeader user={user} onLogout={handleLogout} />
+      <PerfilHeader user={user} onLogout={handleLogout} onPhotoUpdated={handlePhotoUpdated} />
 
       {/* Navegación por pestañas */}
       <PerfilTabSelector
@@ -864,19 +887,8 @@ export default function PerfilScreen() {
         )}
         {tab === 'notificaciones' && canViewGerminaciones() && (
           <PerfilNotificacionesTab
-            polinizaciones={polinizaciones}
-            germinaciones={germinaciones}
-            loading={loading}
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            onViewPolinizacion={handleViewPolinizacion}
-            onEditPolinizacion={handleEditPolinizacion}
-            onDeletePolinizacion={handleDeletePolinizacion}
-            onChangeStatusPolinizacion={handleOpenChangeStatusPolinizacion}
-            onViewGerminacion={handleViewGerminacion}
-            onEditGerminacion={handleEditGerminacion}
-            onDeleteGerminacion={handleDeleteGerminacion}
             onChangeStatusGerminacion={handleOpenChangeStatus}
+            onChangeStatusPolinizacion={handleOpenChangeStatusPolinizacion}
           />
         )}
         {tab === 'usuarios' && isAdmin() && <PerfilUsuariosTab />}
@@ -1085,15 +1097,36 @@ export default function PerfilScreen() {
         onClose={() => {
           changeStatusGerminacionControls.close();
         }}
-        onCambiarEstado={(estado) => {
+        onCambiarEstado={async (estado) => {
           if (changeStatusGerminacionModal.selectedItem) {
             if (estado === 'FINALIZADO') {
               // Abrir modal de finalizar con calendario
               handleOpenFinalizarModal(changeStatusGerminacionModal.selectedItem);
             } else {
-              // Mapear INICIAL a INGRESADO para compatibilidad
-              const estadoMapeado = estado === 'INICIAL' ? 'INGRESADO' : estado;
-              handleCambiarEtapaGerminacion(changeStatusGerminacionModal.selectedItem.id, estadoMapeado as 'INGRESADO' | 'EN_PROCESO' | 'FINALIZADO');
+              // Mapear los estados del modal a los estados del backend
+              const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'> = {
+                'INICIAL': 'INICIAL',
+                'EN_PROCESO': 'EN_PROCESO_TEMPRANO',
+                'EN_PROCESO_AVANZADO': 'EN_PROCESO_AVANZADO',
+                'FINALIZADO': 'FINALIZADO'
+              };
+              const nuevoEstado = estadoMap[estado] || 'EN_PROCESO_TEMPRANO';
+
+              try {
+                setLoading(true);
+                await germinacionService.cambiarEstadoGerminacion(
+                  changeStatusGerminacionModal.selectedItem.id,
+                  nuevoEstado
+                );
+                changeStatusGerminacionControls.close();
+                await fetchData();
+                toast.success(`Estado cambiado a ${nuevoEstado.replace(/_/g, ' ')}`);
+              } catch (error) {
+                console.error('Error cambiando estado:', error);
+                toast.error('Error al cambiar el estado');
+              } finally {
+                setLoading(false);
+              }
             }
           }
         }}
@@ -1107,14 +1140,36 @@ export default function PerfilScreen() {
         onClose={() => {
           changeStatusPolinizacionControls.close();
         }}
-        onCambiarEstado={(estado) => {
+        onCambiarEstado={async (estado) => {
           if (changeStatusPolinizacionModal.selectedItem) {
             if (estado === 'FINALIZADO') {
               // Abrir modal de finalizar con calendario
               handleOpenFinalizarPolinizacionModal(changeStatusPolinizacionModal.selectedItem);
             } else {
-              // Cambiar estado directamente
-              handleCambiarEstadoPolinizacion(changeStatusPolinizacionModal.selectedItem.numero, estado);
+              // Mapear los estados del modal a los estados del backend
+              const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'> = {
+                'INICIAL': 'INICIAL',
+                'EN_PROCESO': 'EN_PROCESO_TEMPRANO',
+                'EN_PROCESO_AVANZADO': 'EN_PROCESO_AVANZADO',
+                'FINALIZADO': 'FINALIZADO'
+              };
+              const nuevoEstado = estadoMap[estado] || 'EN_PROCESO_TEMPRANO';
+
+              try {
+                setLoading(true);
+                await polinizacionService.cambiarEstadoPolinizacion(
+                  changeStatusPolinizacionModal.selectedItem.numero,
+                  nuevoEstado
+                );
+                changeStatusPolinizacionControls.close();
+                await fetchData();
+                toast.success(`Estado cambiado a ${nuevoEstado.replace(/_/g, ' ')}`);
+              } catch (error) {
+                console.error('Error cambiando estado:', error);
+                toast.error('Error al cambiar el estado');
+              } finally {
+                setLoading(false);
+              }
             }
           }
         }}
@@ -1144,6 +1199,7 @@ export default function PerfilScreen() {
         tipo="polinizacion"
       />
 
-    </ScrollView>
+      </ScrollView>
+    </ResponsiveLayout>
   );
 }

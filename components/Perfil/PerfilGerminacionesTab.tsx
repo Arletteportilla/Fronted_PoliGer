@@ -7,6 +7,7 @@ import { Colors } from '@/constants/Colors';
 import Pagination from '@/components/filters/Pagination';
 import type { Germinacion } from '@/types/index';
 import { getEstadoColor } from '@/utils/colorHelpers';
+import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 
 export interface PerfilGerminacionesTabProps {
   loading: boolean;
@@ -178,35 +179,6 @@ export function PerfilGerminacionesTab({
                 : '-';
               const estadoActual = item.etapa_actual || item.estado_capsula || 'En desarrollo';
 
-              // Calcular progreso de la germinación basado en días transcurridos
-              const calculateProgress = () => {
-                // Si está marcada como completada, 100%
-                const etapa = item.etapa_actual || item.estado || 'INGRESADO';
-                if (etapa === 'LISTA' || etapa === 'LISTO') return 100;
-                if (etapa === 'CANCELADO') return 0;
-
-                // Si no hay fecha de siembra, usar progreso basado en estado
-                if (!item.fecha_siembra) {
-                  return etapa === 'EN_PROCESO' ? 65 : 30;
-                }
-
-                // Calcular días transcurridos desde la siembra
-                const hoy = new Date();
-                hoy.setHours(0, 0, 0, 0);
-                const fechaSiembra = new Date(item.fecha_siembra);
-                fechaSiembra.setHours(0, 0, 0, 0);
-                const diasTranscurridos = Math.ceil((hoy.getTime() - fechaSiembra.getTime()) / (1000 * 60 * 60 * 24));
-
-                // Obtener días totales estimados (de la predicción o por defecto 30)
-                const diasTotales = item.prediccion_dias_estimados || 30;
-
-                // Calcular progreso (mínimo 0%, máximo 100%)
-                const progreso = Math.min(Math.max((diasTranscurridos / diasTotales) * 100, 0), 100);
-
-                return Math.round(progreso);
-              };
-              const progress = calculateProgress();
-
               const itemKey = item.id?.toString() || `germ-${index}`;
               const estadoColor = getEstadoColor(estadoActual);
               const isLastRow = index === filteredGerminaciones.length - 1;
@@ -310,30 +282,20 @@ export function PerfilGerminacionesTab({
                     </View>
                   </View>
 
-                  {/* Barra de progreso */}
-                  <View style={styles.progressRow}>
-                    <View style={styles.progressInfo}>
-                      <Ionicons
-                        name="stats-chart-outline"
-                        size={12}
-                        color={estadoColor}
-                        style={{ marginRight: 4 }}
-                      />
-                      <Text style={styles.progressLabel}>Progreso:</Text>
-                      <Text style={[styles.progressPercentage, { color: estadoColor }]}>{progress}%</Text>
-                    </View>
-                    <View style={styles.progressBarContainer}>
-                      <View
-                        style={[
-                          styles.progressBarFill,
-                          {
-                            width: `${progress}%`,
-                            backgroundColor: estadoColor
-                          }
-                        ]}
+                  {/* Barra de progreso por etapas */}
+                  {item.estado_germinacion && (
+                    <View style={{
+                      marginTop: 8,
+                      backgroundColor: '#f9fafb',
+                      borderRadius: 12,
+                      paddingVertical: 4
+                    }}>
+                      <EstadoProgressBar
+                        estadoActual={item.estado_germinacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
+                        tipo="germinacion"
                       />
                     </View>
-                  </View>
+                  )}
                 </View>
               );
             })}

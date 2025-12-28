@@ -7,11 +7,12 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 
 interface CambiarEstadoModalProps {
   visible: boolean;
   onClose: () => void;
-  onCambiarEstado: (estado: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO') => void;
+  onCambiarEstado: (estado: 'INICIAL' | 'EN_PROCESO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO') => void;
   item: {
     codigo?: string | null;
     nombre?: string | null;
@@ -20,8 +21,8 @@ interface CambiarEstadoModalProps {
     especie_variedad?: string | null;
     nueva_especie?: string | null;
     genero?: string | null;
-    estado_germinacion?: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO';
-    estado_polinizacion?: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO';
+    estado_germinacion?: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO';
+    estado_polinizacion?: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO';
   } | null;
   tipo: 'germinacion' | 'polinizacion';
 }
@@ -36,7 +37,7 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
   if (!item) return null;
 
   // Obtener el estado actual según el tipo
-  const estadoActual = tipo === 'germinacion' 
+  const estadoActual = tipo === 'germinacion'
     ? (item.estado_germinacion || 'INICIAL')
     : (item.estado_polinizacion || 'INICIAL');
 
@@ -46,7 +47,7 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
     ? item.especie_variedad
     : (item.nueva_especie || item.especie);
 
-  const titulo = tipo === 'germinacion' 
+  const titulo = tipo === 'germinacion'
     ? 'Cambiar Estado de Germinación'
     : 'Cambiar Estado de Polinización';
 
@@ -80,48 +81,22 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
                 <Text style={styles.infoValue}>{especie}</Text>
               </View>
             )}
-
-            <View style={styles.infoCard}>
-              <Text style={styles.infoLabel}>Estado Actual:</Text>
-              <View style={[styles.estadoBadge, {
-                backgroundColor: 
-                  estadoActual === 'FINALIZADO' ? '#d1fae5' :
-                  estadoActual === 'EN_PROCESO' ? '#fef3c7' :
-                  '#e2e8f0'
-              }]}>
-                <Ionicons
-                  name={
-                    estadoActual === 'FINALIZADO' ? 'checkmark-circle' :
-                    estadoActual === 'EN_PROCESO' ? 'time' :
-                    'ellipse'
-                  }
-                  size={16}
-                  color={
-                    estadoActual === 'FINALIZADO' ? '#059669' :
-                    estadoActual === 'EN_PROCESO' ? '#f59e0b' :
-                    '#64748b'
-                  }
-                />
-                <Text style={[styles.estadoText, {
-                  color:
-                    estadoActual === 'FINALIZADO' ? '#059669' :
-                    estadoActual === 'EN_PROCESO' ? '#f59e0b' :
-                    '#64748b'
-                }]}>
-                  {estadoActual === 'FINALIZADO' ? 'Finalizado' :
-                   estadoActual === 'EN_PROCESO' ? 'En Proceso' :
-                   'Inicial'}
-                </Text>
-              </View>
-            </View>
           </View>
+
+          {/* Barra de progreso por etapas */}
+          <View style={styles.progressSection}>
+            <EstadoProgressBar estadoActual={estadoActual} tipo={tipo} />
+          </View>
+
+          {/* Separador */}
+          <View style={styles.separator} />
 
           {/* Opciones de cambio de estado */}
           <View style={styles.optionsSection}>
             <Text style={styles.optionsTitle}>Selecciona el nuevo estado:</Text>
 
             <View style={styles.buttonsContainer}>
-              {/* Solo mostrar "Iniciar Proceso" si está en INICIAL */}
+              {/* INICIAL → EN_PROCESO_TEMPRANO */}
               {estadoActual === 'INICIAL' && (
                 <TouchableOpacity
                   style={[styles.stateButton, styles.stateButtonProcess]}
@@ -135,8 +110,22 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
                 </TouchableOpacity>
               )}
 
-              {/* Solo mostrar "Finalizar" si está en EN_PROCESO */}
-              {estadoActual === 'EN_PROCESO' && (
+              {/* EN_PROCESO_TEMPRANO → EN_PROCESO_AVANZADO */}
+              {estadoActual === 'EN_PROCESO_TEMPRANO' && (
+                <TouchableOpacity
+                  style={[styles.stateButton, styles.stateButtonAdvance]}
+                  onPress={() => {
+                    onCambiarEstado('EN_PROCESO_AVANZADO');
+                    onClose();
+                  }}
+                >
+                  <Ionicons name="arrow-forward-circle" size={20} color="#ffffff" />
+                  <Text style={styles.stateButtonText}>Avanzar Proceso</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* EN_PROCESO_AVANZADO → FINALIZADO */}
+              {estadoActual === 'EN_PROCESO_AVANZADO' && (
                 <TouchableOpacity
                   style={[styles.stateButton, styles.stateButtonFinish]}
                   onPress={() => {
@@ -154,7 +143,7 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
                 <View style={styles.completedContainer}>
                   <Ionicons name="checkmark-circle" size={24} color="#059669" />
                   <Text style={styles.completedText}>
-                    {tipo === 'germinacion' 
+                    {tipo === 'germinacion'
                       ? 'Esta germinación ya está finalizada'
                       : 'Esta polinización ya está finalizada'}
                   </Text>
@@ -267,8 +256,11 @@ const styles = StyleSheet.create({
   stateButtonProcess: {
     backgroundColor: '#0ea5e9',
   },
+  stateButtonAdvance: {
+    backgroundColor: '#f59e0b',
+  },
   stateButtonFinish: {
-    backgroundColor: '#0ea5e9',
+    backgroundColor: '#10b981',
   },
   stateButtonText: {
     color: '#ffffff',
@@ -302,5 +294,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#64748b',
+  },
+  progressSection: {
+    marginVertical: 16,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    paddingVertical: 8,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginVertical: 16,
   },
 });

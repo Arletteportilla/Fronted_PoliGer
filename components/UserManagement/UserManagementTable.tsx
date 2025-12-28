@@ -1,8 +1,47 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { UserWithProfile } from '@/types/index';
+
+// Componente Tooltip simple para web
+const TooltipWrapper: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  if (Platform.OS !== 'web') {
+    return <>{children}</>;
+  }
+
+  return (
+    <View
+      style={{ position: 'relative', alignItems: 'center' }}
+      // @ts-ignore - onMouseEnter/onMouseLeave existen en React Native Web
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {children}
+      {showTooltip && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: '100%',
+            marginBottom: 4,
+            backgroundColor: '#1f2937',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            zIndex: 9999,
+            alignSelf: 'center',
+          }}
+        >
+          <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '500' }}>
+            {text}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
 
 interface UserManagementTableProps {
   usuarios: UserWithProfile[];
@@ -10,7 +49,9 @@ interface UserManagementTableProps {
   onEditUser: (user: UserWithProfile) => void;
   onDeleteUser: (user: UserWithProfile) => void;
   onToggleStatus?: (user: UserWithProfile) => void;
+  onChangePassword?: (user: UserWithProfile) => void;
   onCreateUser: () => void;
+  onRefresh?: () => void;
   currentUser?: any;
 }
 
@@ -20,14 +61,21 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
   onEditUser,
   onDeleteUser,
   onToggleStatus,
+  onChangePassword,
   onCreateUser,
+  onRefresh,
   currentUser
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
   const [searchText, setSearchText] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showRoleFilter, setShowRoleFilter] = useState(false);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
+  const [bulkOperationLoading, setBulkOperationLoading] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState<number | null>(null);
 
   // Obtener roles únicos
   const uniqueRoles = Array.from(new Set(usuarios.map(u => u.profile?.rol).filter(Boolean)));
@@ -51,9 +99,9 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
   const getRoleDisplayName = (role: string) => {
     const roleNames: { [key: string]: string } = {
       'TIPO_1': 'Técnico de Laboratorio Senior',
-      'TIPO_2': 'Técnico de Laboratorio Junior',
-      'TIPO_3': 'Técnico de Laboratorio',
-      'TIPO_4': 'Administrador'
+      'TIPO_2': 'Especialista en Polinización',
+      'TIPO_3': 'Especialista en Germinación',
+      'TIPO_4': 'Gestor del Sistema'
     };
     return roleNames[role] || role;
   };
@@ -69,10 +117,157 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
     }
   };
 
+  // Manejar eliminación con confirmación
+  const handleDeleteUser = async (user: UserWithProfile) => {
+    console.log('🔍 handleDeleteUser called for user:', user.id, user.username);
+    console.log('👤 Current user:', currentUser?.id, currentUser?.username);
+    console.log('🚫 Is same user?', user.id === currentUser?.id);
+
+    const userName = user.first_name && user.last_name
+      ? `${user.first_name} ${user.last_name}`
+      : user.username;
+
+    console.log('💬 Mostrando confirmación para:', userName);
+
+    // Usar window.confirm para web (compatible con React Native Web)
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        `¿Estás seguro de eliminar al usuario "${userName}"?\n\nEsta acción no se puede deshacer.`
+      );
+
+      if (!confirmed) {
+        console.log('❌ Eliminación cancelada por el usuario');
+        return;
+      }
+
+      // Usuario confirmó la eliminación
+      try {
+        console.log('🗑️ CONFIRMADO - Eliminando usuario:', user.id, userName);
+        console.log('📞 Llamando a onDeleteUser...');
+        await onDeleteUser(user);
+        console.log('✅ onDeleteUser completado exitosamente');
+        alert(`Usuario "${userName}" eliminado correctamente`);
+      } catch (error: any) {
+        console.error('❌ Error al eliminar usuario:', error);
+        console.error('📊 Error completo:', {
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          url: error.config?.url,
+          method: error.config?.method
+        });
+        alert(
+          'Error al eliminar: ' + (
+            error.response?.data?.detail ||
+            error.response?.data?.error ||
+            error.message ||
+            'No se pudo eliminar el usuario. Por favor, intenta de nuevo.'
+          )
+        );
+      }
+    } else {
+      // Para móvil, usar Alert.alert
+      Alert.alert(
+        '¿Estás seguro?',
+        `¿Deseas eliminar al usuario "${userName}"? Esta acción no se puede deshacer.`,
+        [
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+            onPress: () => console.log('❌ Eliminación cancelada por el usuario')
+          },
+          {
+            text: 'Eliminar',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                console.log('🗑️ CONFIRMADO - Eliminando usuario:', user.id, userName);
+                console.log('📞 Llamando a onDeleteUser...');
+                await onDeleteUser(user);
+                console.log('✅ onDeleteUser completado exitosamente');
+                Alert.alert('Éxito', `Usuario "${userName}" eliminado correctamente`);
+              } catch (error: any) {
+                console.error('❌ Error al eliminar usuario:', error);
+                Alert.alert(
+                  'Error al eliminar',
+                  error.response?.data?.detail ||
+                  error.response?.data?.error ||
+                  error.message ||
+                  'No se pudo eliminar el usuario. Por favor, intenta de nuevo.'
+                );
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  // Manejadores de selección múltiple
+  const toggleUserSelection = (userId: number) => {
+    const newSelection = new Set(selectedUsers);
+    if (newSelection.has(userId)) {
+      newSelection.delete(userId);
+    } else {
+      newSelection.add(userId);
+    }
+    setSelectedUsers(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.size === filteredUsers.length) {
+      setSelectedUsers(new Set());
+    } else {
+      const allIds = filteredUsers
+        .filter(u => u.id !== currentUser?.id) // No permitir seleccionar el usuario actual
+        .map(u => u.id);
+      setSelectedUsers(new Set(allIds));
+    }
+  };
+
+  const handleBulkToggleStatus = async (newStatus: boolean) => {
+    if (selectedUsers.size === 0) return;
+
+    const { Alert } = require('react-native');
+    const action = newStatus ? 'activar' : 'desactivar';
+
+    Alert.alert(
+      `${action.charAt(0).toUpperCase() + action.slice(1)} usuarios`,
+      `¿Está seguro de ${action} ${selectedUsers.size} usuario(s)?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Confirmar',
+          onPress: async () => {
+            setBulkOperationLoading(true);
+            try {
+              const { userManagementService } = await import('@/services/user-management.service');
+              await userManagementService.bulkToggleStatus(Array.from(selectedUsers), newStatus);
+
+              // Recargar usuarios
+              if (onRefresh) {
+                onRefresh();
+              }
+
+              setSelectedUsers(new Set());
+              Alert.alert('Éxito', `Usuarios ${action}dos exitosamente`);
+            } catch (error: any) {
+              Alert.alert('Error', error.message || `No se pudo ${action} los usuarios`);
+            } finally {
+              setBulkOperationLoading(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Ionicons name="people" size={48} color="#d1d5db" />
+        <Ionicons name="people" size={48} color={themeColors.text.disabled} />
         <Text style={styles.loadingText}>Cargando usuarios...</Text>
       </View>
     );
@@ -84,14 +279,14 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerTitleContainer}>
-            <Ionicons name="people" size={28} color="#1f2937" />
+            <Ionicons name="people" size={28} color={themeColors.text.primary} />
             <View style={styles.headerTextContainer}>
               <Text style={styles.title}>Gestión de Usuarios del Sistema</Text>
               <Text style={styles.subtitle}>Administra usuarios, roles, metas y permisos del laboratorio</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.createButton} onPress={onCreateUser}>
-            <Ionicons name="add" size={20} color={Colors.light.background} />
+            <Ionicons name="add" size={20} color={themeColors.text.inverse} />
             <Text style={styles.createButtonText}>Crear Usuario</Text>
           </TouchableOpacity>
         </View>
@@ -100,11 +295,11 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
       {/* Barra de búsqueda y filtros */}
       <View style={styles.searchAndFiltersContainer}>
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#6b7280" />
+          <Ionicons name="search" size={20} color={themeColors.text.tertiary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar por nombre, email o especialización..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={themeColors.text.disabled}
             value={searchText}
             onChangeText={setSearchText}
           />
@@ -120,11 +315,11 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                 setShowStatusFilter(false);
               }}
             >
-              <Ionicons name="filter" size={16} color="#6b7280" />
+              <Ionicons name="filter" size={16} color={themeColors.text.tertiary} />
               <Text style={styles.filterButtonText}>
                 {filterRole === 'all' ? 'Todos los roles' : getRoleDisplayName(filterRole)}
               </Text>
-              <Ionicons name="chevron-down" size={16} color="#6b7280" />
+              <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
             </TouchableOpacity>
             
             {showRoleFilter && (
@@ -169,7 +364,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
               <Text style={styles.filterButtonText}>
                 {filterStatus === 'all' ? 'Todos' : filterStatus === 'active' ? 'Activos' : 'Inactivos'}
               </Text>
-              <Ionicons name="chevron-down" size={16} color="#6b7280" />
+              <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
             </TouchableOpacity>
             
             {showStatusFilter && (
@@ -207,10 +402,52 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
         </View>
       </View>
 
-      {/* Tabla de usuarios */}
+      {/* Barra de acciones en lote */}
+      {selectedUsers.size > 0 && (
+        <View style={styles.bulkActionsBar}>
+          <View style={styles.bulkActionsLeft}>
+            <TouchableOpacity onPress={toggleSelectAll} style={styles.selectAllButton}>
+              <Ionicons
+                name={selectedUsers.size === filteredUsers.filter(u => u.id !== currentUser?.id).length ? "checkbox" : "square-outline"}
+                size={20}
+                color={themeColors.text.primary}
+              />
+              <Text style={styles.bulkActionsText}>
+                {selectedUsers.size} usuario(s) seleccionado(s)
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.bulkActionsRight}>
+            <TouchableOpacity
+              style={[styles.bulkActionButton, styles.bulkActivateButton]}
+              onPress={() => handleBulkToggleStatus(true)}
+              disabled={bulkOperationLoading}
+            >
+              <Ionicons name="checkmark-circle-outline" size={18} color={themeColors.status.success} />
+              <Text style={[styles.bulkActionButtonText, styles.bulkActivateText]}>Activar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.bulkActionButton, styles.bulkDeactivateButton]}
+              onPress={() => handleBulkToggleStatus(false)}
+              disabled={bulkOperationLoading}
+            >
+              <Ionicons name="close-circle-outline" size={18} color={themeColors.status.error} />
+              <Text style={[styles.bulkActionButtonText, styles.bulkDeactivateText]}>Desactivar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bulkClearButton}
+              onPress={() => setSelectedUsers(new Set())}
+            >
+              <Ionicons name="close" size={18} color={themeColors.text.tertiary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Grid de tarjetas de usuarios */}
       {filteredUsers.length === 0 ? (
         <View style={styles.emptyState}>
-          <Ionicons name="people-outline" size={64} color="#d1d5db" />
+          <Ionicons name="people-outline" size={64} color={themeColors.text.disabled} />
           <Text style={styles.emptyTitle}>
             {searchText ? 'No se encontraron usuarios' : 'No hay usuarios registrados'}
           </Text>
@@ -220,127 +457,207 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
         </View>
       ) : (
         <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={true}
-          style={styles.tableScrollHorizontal}
-          nestedScrollEnabled={true}
+          style={styles.cardsContainer}
+          contentContainerStyle={styles.cardsContent}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.tableWrapper}>
-            <View style={styles.tableContainer}>
-              {/* Encabezados de tabla */}
-              <View style={styles.tableHeader}>
-                <View style={[styles.tableHeaderCell, styles.cellUsuario]}>
-                  <Text style={styles.tableHeaderText}>Usuario</Text>
-                </View>
-                <View style={[styles.tableHeaderCell, styles.cellRolEstado]}>
-                  <Text style={styles.tableHeaderText}>Rol & Estado</Text>
-                </View>
-                <View style={[styles.tableHeaderCell, styles.cellEspecializacion]}>
-                  <Text style={styles.tableHeaderText}>Especialización</Text>
-                </View>
-                <View style={[styles.tableHeaderCell, styles.cellFechaIngreso]}>
-                  <Text style={styles.tableHeaderText}>Fecha Ingreso</Text>
-                </View>
-                <View style={[styles.tableHeaderCell, styles.cellAcciones]}>
-                  <Text style={styles.tableHeaderText}>Acciones</Text>
-                </View>
-              </View>
+          <View style={styles.cardsGrid}>
+            {filteredUsers.map((user) => {
+              const initials = user.first_name && user.last_name
+                ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+                : user.username.substring(0, 2).toUpperCase();
+              
+              const avatarColors = [
+                themeColors.accent.tertiary,
+                themeColors.primary.light,
+                themeColors.accent.secondary,
+                themeColors.status.warningLight,
+                themeColors.primary.dark
+              ];
+              const avatarColor = avatarColors[user.id % avatarColors.length];
+              
+              const roleDisplay = user.profile?.rol_display || getRoleDisplayName(user.profile?.rol || '') || 'Sin rol';
+              const isEspecialista = roleDisplay.includes('Especialista');
+              const especialidad = isEspecialista 
+                ? (roleDisplay.includes('Polinización') ? 'Polinización' : 'Germinación')
+                : null;
 
-              {/* Filas de usuarios */}
-              {filteredUsers.map((user) => {
-                return (
-                  <View key={user.id} style={styles.tableRow}>
-                    {/* Columna Usuario */}
-                    <View style={[styles.tableCell, styles.cellUsuario]}>
-                      <Text style={styles.userName}>
-                        {user.first_name && user.last_name 
-                          ? `${user.first_name} ${user.last_name}` 
-                          : user.username}
-                      </Text>
-                      <Text style={styles.userEmail}>{user.email || 'Sin email'}</Text>
-                      {user.profile?.telefono && (
-                        <Text style={styles.userPhone}>{user.profile.telefono}</Text>
-                      )}
+              // Formatear fecha de ingreso
+              const fechaIngreso = user.profile?.fecha_ingreso 
+                ? (() => {
+                    const date = new Date(user.profile.fecha_ingreso);
+                    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                    return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+                  })()
+                : 'N/A';
+
+              return (
+                <View key={user.id} style={styles.userCard}>
+                  {/* Header con avatar y estado */}
+                  <View style={styles.cardHeader}>
+                    <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
+                      <Text style={styles.avatarText}>{initials}</Text>
                     </View>
-
-                    {/* Columna Rol & Estado */}
-                    <View style={[styles.tableCell, styles.cellRolEstado]}>
-                      <View style={[
-                        styles.roleBadge,
-                        { backgroundColor: '#f3f4f6' }
+                    <View style={[
+                      styles.statusBadge,
+                      { backgroundColor: user.profile?.activo ? themeColors.status.successLight : themeColors.status.errorLight }
+                    ]}>
+                      <View style={[styles.statusDot, { backgroundColor: user.profile?.activo ? themeColors.status.success : themeColors.status.error }]} />
+                      <Text style={[
+                        styles.statusBadgeText,
+                        { color: user.profile?.activo ? themeColors.status.success : themeColors.status.error }
                       ]}>
-                        <Text style={[
-                          styles.roleText,
-                          { color: '#374151' }
-                        ]}>
-                          {user.profile?.rol_display || getRoleDisplayName(user.profile?.rol || '') || 'Sin rol'}
-                        </Text>
-                      </View>
-                      <View style={[
-                        styles.statusBadge,
-                        { backgroundColor: user.profile?.activo ? '#dcfce7' : '#fee2e2' }
-                      ]}>
-                        <Text style={[
-                          styles.statusText,
-                          { color: user.profile?.activo ? '#16a34a' : '#dc2626' }
-                        ]}>
-                          {user.profile?.activo ? 'Activo' : 'Inactivo'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Columna Especialización */}
-                    <View style={[styles.tableCell, styles.cellEspecializacion]}>
-                      <Text style={styles.especializacionText}>
-                        {user.profile?.departamento || 'N/A'}
+                        {user.profile?.activo ? 'Activo' : 'Inactivo'}
                       </Text>
                     </View>
+                  </View>
 
-                    {/* Columna Fecha Ingreso */}
-                    <View style={[styles.tableCell, styles.cellFechaIngreso]}>
-                      <Text style={styles.fechaIngresoText}>
-                        {formatDate(user.profile?.fecha_ingreso)}
-                      </Text>
-                    </View>
+                  {/* Información del usuario */}
+                  <View style={styles.cardBody}>
+                    <Text style={styles.cardUserName}>
+                      {user.first_name && user.last_name 
+                        ? `${user.first_name} ${user.last_name}` 
+                        : user.username}
+                    </Text>
+                    <Text style={styles.cardUserEmail}>{user.email || 'Sin email'}</Text>
 
-                    {/* Columna Acciones */}
-                    <View style={[styles.tableCell, styles.cellAcciones]}>
-                      <View style={styles.actionsIcons}>
-                        <TouchableOpacity
-                          style={styles.actionIcon}
-                          onPress={() => onEditUser(user)}
-                          accessibilityLabel="Editar usuario"
-                        >
-                          <Ionicons name="create-outline" size={18} color="#3B82F6" />
-                        </TouchableOpacity>
-                        {onToggleStatus && user.id !== currentUser?.id && (
-                          <TouchableOpacity
-                            style={styles.actionIcon}
-                            onPress={() => onToggleStatus(user)}
-                            accessibilityLabel={user.profile?.activo ? "Desactivar usuario" : "Activar usuario"}
-                          >
-                            <Ionicons 
-                              name={user.profile?.activo ? "pause-circle-outline" : "play-circle-outline"} 
-                              size={18} 
-                              color={user.profile?.activo ? "#F59E0B" : "#10B981"} 
-                            />
-                          </TouchableOpacity>
-                        )}
-                        {user.id !== currentUser?.id && (
-                          <TouchableOpacity
-                            style={styles.actionIcon}
-                            onPress={() => onDeleteUser(user)}
-                            accessibilityLabel="Eliminar usuario"
-                          >
-                            <Ionicons name="trash-outline" size={18} color="#dc2626" />
-                          </TouchableOpacity>
-                        )}
+                    {/* Detalles en contenedores */}
+                    <View style={styles.cardDetails}>
+                      <View style={styles.detailContainer}>
+                        <View style={styles.detailRow}>
+                          <Ionicons 
+                            name={isEspecialista ? (especialidad === 'Polinización' ? 'flower-outline' : 'leaf-outline') : 'shield-outline'} 
+                            size={16} 
+                            color={isEspecialista && especialidad === 'Germinación' ? themeColors.module.germinacion.primary : themeColors.text.tertiary} 
+                          />
+                          <Text style={styles.detailLabel}>
+                            {isEspecialista ? 'Especialidad' : 'Rol'}
+                          </Text>
+                          <Text style={styles.detailValue} numberOfLines={1}>
+                            {isEspecialista ? especialidad : roleDisplay}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.detailContainer}>
+                        <View style={styles.detailRow}>
+                          <Ionicons name="calendar-outline" size={16} color={themeColors.text.tertiary} />
+                          <Text style={styles.detailLabel}>Ingreso</Text>
+                          <Text style={styles.detailValue}>{fechaIngreso}</Text>
+                        </View>
                       </View>
                     </View>
                   </View>
-                );
-              })}
-            </View>
+
+                  {/* Acciones con separadores */}
+                  <View style={styles.cardActions}>
+                    <TooltipWrapper text="Editar usuario">
+                      <TouchableOpacity
+                        style={styles.cardActionButton}
+                        onPress={() => onEditUser(user)}
+                      >
+                        <Ionicons name="create-outline" size={18} color={themeColors.text.tertiary} />
+                      </TouchableOpacity>
+                    </TooltipWrapper>
+                    <View style={styles.actionSeparator} />
+                    {onChangePassword && user.id !== currentUser?.id && (
+                      <>
+                        <TooltipWrapper text="Cambiar contraseña">
+                          <TouchableOpacity
+                            style={styles.cardActionButton}
+                            onPress={() => onChangePassword(user)}
+                          >
+                            <Ionicons name="key-outline" size={18} color={themeColors.text.tertiary} />
+                          </TouchableOpacity>
+                        </TooltipWrapper>
+                        <View style={styles.actionSeparator} />
+                      </>
+                    )}
+                    {onToggleStatus && user.id !== currentUser?.id && (
+                      <>
+                        <TooltipWrapper text={user.profile?.activo ? 'Desactivar usuario' : 'Activar usuario'}>
+                          <TouchableOpacity
+                            style={styles.cardActionButton}
+                            onPress={() => onToggleStatus(user)}
+                          >
+                            <Ionicons 
+                              name={user.profile?.activo ? "pause-outline" : "play-outline"} 
+                              size={18} 
+                              color={themeColors.text.tertiary} 
+                            />
+                          </TouchableOpacity>
+                        </TooltipWrapper>
+                        <View style={styles.actionSeparator} />
+                      </>
+                    )}
+                    {user.id !== currentUser?.id && (
+                      <TooltipWrapper text="Eliminar usuario">
+                        <TouchableOpacity
+                          style={styles.cardActionButton}
+                          onPress={() => {
+                            console.log('🗑️ DELETE BUTTON CLICKED for user:', user.id, user.username);
+                            handleDeleteUser(user);
+                          }}
+                        >
+                          <Ionicons name="trash-outline" size={18} color={themeColors.text.tertiary} />
+                        </TouchableOpacity>
+                      </TooltipWrapper>
+                    )}
+                    {/* Botón de más opciones - siempre visible */}
+                    <View style={styles.actionSeparator} />
+                    <TooltipWrapper text="Más opciones">
+                      <TouchableOpacity
+                        style={styles.cardActionButton}
+                        onPress={() => {
+                        // Mostrar menú con opciones adicionales
+                        const options: any[] = [];
+                        
+                        if (onChangePassword && user.id !== currentUser?.id) {
+                          options.push({
+                            text: 'Cambiar contraseña',
+                            onPress: () => onChangePassword(user),
+                          });
+                        }
+                        
+                        if (onToggleStatus && user.id !== currentUser?.id) {
+                          options.push({
+                            text: user.profile?.activo ? 'Desactivar usuario' : 'Activar usuario',
+                            onPress: () => onToggleStatus(user),
+                          });
+                        }
+                        
+                        if (user.id !== currentUser?.id) {
+                          options.push({
+                            text: 'Eliminar usuario',
+                            style: 'destructive',
+                            onPress: () => handleDeleteUser(user),
+                          });
+                        }
+                        
+                        if (options.length > 0) {
+                          Alert.alert(
+                            user.first_name && user.last_name
+                              ? `${user.first_name} ${user.last_name}`
+                              : user.username,
+                            'Selecciona una opción',
+                            options.concat([{ text: 'Cancelar', style: 'cancel' }])
+                          );
+                        }
+                      }}
+                    >
+                      <Ionicons name="ellipsis-horizontal-outline" size={18} color={themeColors.text.tertiary} />
+                    </TouchableOpacity>
+                    </TooltipWrapper>
+                  </View>
+                </View>
+              );
+            })}
+
+            {/* Tarjeta de añadir nuevo usuario */}
+            <TouchableOpacity style={styles.addUserCard} onPress={onCreateUser}>
+              <Ionicons name="add" size={48} color={themeColors.text.tertiary} />
+              <Text style={styles.addUserTitle}>Añadir Nuevo Usuario</Text>
+              <Text style={styles.addUserSubtitle}>Configure el acceso para un nuevo miembro del equipo</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       )}
@@ -348,10 +665,10 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.secondary,
   },
   loadingContainer: {
     flex: 1,
@@ -362,14 +679,14 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6b7280',
+    color: colors.text.tertiary,
     textAlign: 'center',
   },
   header: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: colors.border.default,
   },
   headerContent: {
     flexDirection: 'row',
@@ -387,38 +704,38 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1f2937',
+    color: colors.text.primary,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.text.tertiary,
   },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#374151',
+    backgroundColor: colors.primary.main,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
   },
   createButtonText: {
-    color: Colors.light.background,
+    color: colors.text.inverse,
     fontWeight: '600',
     fontSize: 14,
   },
   searchAndFiltersContainer: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background.primary,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: colors.border.default,
     zIndex: 10,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.background.secondary,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -428,7 +745,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     fontSize: 16,
-    color: '#1f2937',
+    color: colors.text.primary,
   },
   filtersRow: {
     flexDirection: 'row',
@@ -443,7 +760,7 @@ const styles = StyleSheet.create({
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.background.secondary,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -452,15 +769,15 @@ const styles = StyleSheet.create({
   },
   filterButtonText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
     fontWeight: '500',
   },
   filterDropdown: {
     position: 'absolute',
     top: 40,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 8,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -468,7 +785,7 @@ const styles = StyleSheet.create({
     zIndex: 10000,
     minWidth: 200,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.border.default,
     maxHeight: 300,
     overflow: 'hidden',
   },
@@ -482,15 +799,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    backgroundColor: '#ffffff',
+    borderBottomColor: colors.border.light,
+    backgroundColor: colors.background.primary,
   },
   filterOptionLast: {
     borderBottomWidth: 0,
   },
   filterOptionText: {
     fontSize: 14,
-    color: '#1f2937',
+    color: colors.text.primary,
     fontWeight: '500',
   },
   emptyState: {
@@ -502,92 +819,192 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text.primary,
     marginTop: 16,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.text.tertiary,
     marginTop: 8,
     textAlign: 'center',
   },
-  tableScrollHorizontal: {
+  cardsContainer: {
     flex: 1,
-    zIndex: 1,
+    width: '100%',
   },
-  tableWrapper: {
-    flexDirection: 'column',
+  cardsContent: {
+    padding: 20,
   },
-  tableContainer: {
-    backgroundColor: Colors.light.background,
-    minWidth: 1200,
-    zIndex: 1,
-  },
-  tableHeader: {
+  cardsGrid: {
     flexDirection: 'row',
-    backgroundColor: '#f9fafb',
-    borderBottomWidth: 2,
-    borderBottomColor: '#e5e7eb',
-    paddingVertical: 12,
+    flexWrap: 'wrap',
+    gap: 20,
+    justifyContent: 'flex-start',
   },
-  tableHeaderCell: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRightWidth: 1,
-    borderRightColor: '#e5e7eb',
+  userCard: {
+    width: '30%',
+    minWidth: 280,
+    maxWidth: 320,
+    backgroundColor: colors.background.primary,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border.light,
   },
-  tableHeaderText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#374151',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  tableRow: {
+  cardHeader: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    paddingVertical: 16,
-  },
-  tableCell: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRightWidth: 1,
-    borderRightColor: '#f3f4f6',
     justifyContent: 'center',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+    position: 'relative',
+    width: '100%',
   },
-  // Anchos de columnas
-  cellUsuario: {
-    width: 200,
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  cellRolEstado: {
-    width: 180,
+  avatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text.primary,
   },
-  cellEspecializacion: {
-    width: 180,
+  statusBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  cellFechaIngreso: {
-    width: 140,
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  cellAcciones: {
-    width: 120,
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  cardBody: {
+    marginBottom: 20,
+    alignItems: 'center',
+    width: '100%',
+  },
+  cardUserName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text.primary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  cardUserEmail: {
+    fontSize: 14,
+    color: colors.text.tertiary,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  cardDetails: {
+    width: '100%',
+    gap: 8,
+  },
+  detailContainer: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  detailLabel: {
+    fontSize: 13,
+    color: colors.text.tertiary,
+    flex: 1,
+  },
+  detailValue: {
+    fontSize: 13,
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+    gap: 0,
+  },
+  cardActionButton: {
+    padding: 8,
+    flex: 1,
+    alignItems: 'center',
+  },
+  actionSeparator: {
+    width: 1,
+    height: 20,
+    backgroundColor: colors.border.default,
+  },
+  addUserCard: {
+    width: '30%',
+    minWidth: 280,
+    maxWidth: 320,
+    backgroundColor: colors.background.primary,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: colors.border.default,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 300,
+  },
+  addUserTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text.primary,
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  addUserSubtitle: {
+    fontSize: 13,
+    color: colors.text.tertiary,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   // Estilos de contenido de celdas
   userName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1f2937',
+    color: colors.text.primary,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 13,
-    color: '#6b7280',
+    color: colors.text.tertiary,
     marginBottom: 2,
   },
   userPhone: {
     fontSize: 13,
-    color: '#6b7280',
+    color: colors.text.tertiary,
   },
   roleBadge: {
     paddingHorizontal: 10,
@@ -600,23 +1017,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
   statusText: {
     fontSize: 12,
     fontWeight: '500',
+    color: '#374151',
   },
   especializacionText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
   },
   fechaIngresoText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
   },
   actionsIcons: {
     flexDirection: 'row',
@@ -625,6 +1037,76 @@ const styles = StyleSheet.create({
   },
   actionIcon: {
     padding: 4,
+  },
+  // Estilos para bulk operations
+  bulkActionsBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.background.secondary,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  bulkActionsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bulkActionsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  bulkActionsRight: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  bulkActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  bulkActivateButton: {
+    backgroundColor: colors.status.successLight,
+    borderColor: colors.status.success,
+  },
+  bulkDeactivateButton: {
+    backgroundColor: colors.status.errorLight,
+    borderColor: colors.status.error,
+  },
+  bulkActionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  bulkActivateText: {
+    color: colors.status.success,
+  },
+  bulkDeactivateText: {
+    color: colors.status.error,
+  },
+  bulkClearButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: colors.background.secondary,
+  },
+  // Estilos para checkbox
+  cellCheckbox: {
+    width: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

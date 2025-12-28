@@ -320,7 +320,14 @@ export const useGerminaciones = (user: any) => {
 
       console.log('✅ Germinación creada exitosamente:', result);
 
-      toast.success(`Germinación "${germinacionData.codigo}" creada exitosamente`);
+      // Mostrar notificación de éxito detallada
+      const especieInfo = germinacionData.especie_variedad
+        ? ` - ${germinacionData.especie_variedad}`
+        : '';
+      toast.success(
+        `Germinación "${germinacionData.codigo}"${especieInfo} registrada correctamente. La verás en la lista después de refrescar.`,
+        6000 // 6 segundos de duración
+      );
 
       // Reset form
       setForm({ ...initialFormState, responsable: getResponsableName(user) });

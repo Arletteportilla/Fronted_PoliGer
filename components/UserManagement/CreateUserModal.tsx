@@ -113,57 +113,103 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   };
 
   const validateForm = (): boolean => {
+    console.log('🔍 Iniciando validación del formulario...');
+    console.log('📋 Datos a validar:', formData);
+    
     const newErrors: Partial<Record<keyof UserFormData, string>> = {};
 
     // Validar campos requeridos
     if (!formData.username.trim()) {
       newErrors.username = 'El nombre de usuario es requerido';
+      console.log('❌ Username: vacío');
     } else if (formData.username.length < 3) {
       newErrors.username = 'Mínimo 3 caracteres';
+      console.log('❌ Username: muy corto (', formData.username.length, 'caracteres)');
+    } else {
+      console.log('✅ Username: válido');
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'El email es requerido';
+      console.log('❌ Email: vacío');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email inválido';
+      console.log('❌ Email: formato inválido');
+    } else {
+      console.log('✅ Email: válido');
     }
 
     if (!formData.first_name.trim()) {
       newErrors.first_name = 'El nombre es requerido';
+      console.log('❌ First name: vacío');
+    } else {
+      console.log('✅ First name: válido');
     }
 
     if (!formData.last_name.trim()) {
       newErrors.last_name = 'El apellido es requerido';
+      console.log('❌ Last name: vacío');
+    } else {
+      console.log('✅ Last name: válido');
     }
 
     if (!formData.password) {
       newErrors.password = 'La contraseña es requerida';
+      console.log('❌ Password: vacío');
     } else if (formData.password.length < 8) {
       newErrors.password = 'Mínimo 8 caracteres';
+      console.log('❌ Password: muy corto (', formData.password.length, 'caracteres, necesita 8)');
+    } else {
+      console.log('✅ Password: válido');
     }
 
     if (formData.password !== formData.password_confirm) {
       newErrors.password_confirm = 'Las contraseñas no coinciden';
+      console.log('❌ Password confirm: no coincide');
+    } else {
+      console.log('✅ Password confirm: válido');
     }
+
+    console.log('📊 Errores encontrados:', newErrors);
+    console.log('🎯 Validación', Object.keys(newErrors).length === 0 ? 'EXITOSA' : 'FALLÓ');
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
+    console.log('🔘 CreateUserModal.handleSubmit - Botón presionado');
+    console.log('📋 Datos del formulario:', formData);
+    console.log('🔄 Loading actual:', loading);
+    
     if (!validateForm()) {
-      Alert.alert('Error', 'Por favor corrige los errores en el formulario');
+      console.log('❌ Validación falló, mostrando errores al usuario');
+      const errorMessages = Object.entries(errors)
+        .map(([field, message]) => `${field}: ${message}`)
+        .join('\n');
+      console.log('📝 Mensajes de error:', errorMessages);
+      
+      Alert.alert(
+        'Errores en el formulario', 
+        'Por favor corrige los siguientes errores:\n\n' + errorMessages
+      );
       return;
     }
 
+    console.log('✅ Validación exitosa, iniciando creación...');
     setLoading(true);
+    
     try {
+      console.log('🚀 Llamando a onCreateUser...');
       await onCreateUser(formData);
+      console.log('✅ onCreateUser completado exitosamente');
 
       // Reset form y cerrar modal
       resetForm();
       onClose();
     } catch (error: any) {
+      console.error('❌ Error en handleSubmit:', error);
+      
       let errorMessage = 'Error al crear usuario';
 
       if (error.response?.data) {
@@ -187,6 +233,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
       Alert.alert('Error al crear usuario', errorMessage);
     } finally {
+      console.log('🏁 Finalizando handleSubmit, setting loading to false');
       setLoading(false);
     }
   };
@@ -217,15 +264,18 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.modalOverlay}
       >
-        <TouchableOpacity
-          style={styles.modalOverlayTouchable}
-          activeOpacity={1}
-          onPress={() => {
-            resetForm();
-            onClose();
-          }}
-        >
-          <View style={styles.modalContainer} onStartShouldSetResponder={() => true}>
+        <View style={styles.modalOverlayBackground}>
+          <TouchableOpacity
+            style={styles.modalOverlayTouchable}
+            activeOpacity={1}
+            onPress={() => {
+              resetForm();
+              onClose();
+            }}
+          />
+          <View
+            style={styles.modalContainer}
+          >
             {/* Header */}
             <View style={styles.modalHeader}>
               <View style={styles.headerLeft}>
@@ -269,6 +319,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     key={`first_name-${formKey}`}
                     style={[styles.input, errors.first_name && styles.inputError]}
                     placeholder="Juan"
+                    placeholderTextColor="#9ca3af"
                     value={formData.first_name || ''}
                     defaultValue=""
                     onChangeText={(value) => updateField('first_name', value)}
@@ -296,6 +347,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     key={`last_name-${formKey}`}
                     style={[styles.input, errors.last_name && styles.inputError]}
                     placeholder="Pérez"
+                    placeholderTextColor="#9ca3af"
                     value={formData.last_name || ''}
                     defaultValue=""
                     onChangeText={(value) => updateField('last_name', value)}
@@ -323,6 +375,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   key={`email-${formKey}`}
                   style={[styles.input, errors.email && styles.inputError]}
                   placeholder="usuario@ejemplo.com"
+                  placeholderTextColor="#9ca3af"
                   value={formData.email || ''}
                   defaultValue=""
                   onChangeText={(value) => updateField('email', value.toLowerCase())}
@@ -359,6 +412,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   key={`username-${formKey}`}
                   style={[styles.input, errors.username && styles.inputError]}
                   placeholder="usuario123"
+                  placeholderTextColor="#9ca3af"
                   value={formData.username || ''}
                   defaultValue=""
                   onChangeText={(value) => updateField('username', value.toLowerCase())}
@@ -387,6 +441,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     key={`password-${formKey}`}
                     style={[styles.passwordInput, errors.password && styles.inputError]}
                     placeholder="••••••••"
+                    placeholderTextColor="#9ca3af"
                     value={formData.password || ''}
                     defaultValue=""
                     onChangeText={(value) => updateField('password', value)}
@@ -427,6 +482,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     key={`password_confirm-${formKey}`}
                     style={[styles.passwordInput, errors.password_confirm && styles.inputError]}
                     placeholder="••••••••"
+                    placeholderTextColor="#9ca3af"
                     value={formData.password_confirm || ''}
                     defaultValue=""
                     onChangeText={(value) => updateField('password_confirm', value)}
@@ -528,7 +584,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.createButton, loading && styles.createButtonDisabled]}
-                onPress={handleSubmit}
+                onPress={() => {
+                  console.log('🔘 Botón "Crear Usuario" presionado');
+                  console.log('🔄 Loading state:', loading);
+                  console.log('📋 Form data:', formData);
+                  handleSubmit();
+                }}
                 disabled={loading}
               >
                 {loading ? (
@@ -542,7 +603,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               </TouchableOpacity>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -555,11 +616,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalOverlayTouchable: {
+  modalOverlayBackground: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  modalOverlayTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
   },
   modalContainer: {
     backgroundColor: Colors.light.background,
@@ -573,6 +643,8 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 15,
     overflow: 'hidden',
+    zIndex: 2,
+    position: 'relative',
   },
   modalHeader: {
     flexDirection: 'row',

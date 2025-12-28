@@ -56,6 +56,7 @@ export interface NotificationFilters {
   favorita?: boolean;
   archivada?: boolean;
   search?: string;
+  categoria?: string;  // 'germinacion' o 'polinizacion'
 }
 
 export interface NotificationStats {
@@ -63,6 +64,13 @@ export interface NotificationStats {
   no_leidas: number;
   favoritas: number;
   archivadas: number;
+  usuarios_con_notificaciones?: number;
+  es_admin?: boolean;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  adminStats?: NotificationStats;
 }
 
 export const notificacionesService = {
@@ -86,6 +94,9 @@ export const notificacionesService = {
       if (filters?.tipo) {
         params.append('tipo', filters.tipo);
       }
+      if (filters?.categoria) {
+        params.append('categoria', filters.categoria);
+      }
       if (filters?.search) {
         params.append('search', filters.search);
       }
@@ -97,18 +108,27 @@ export const notificacionesService = {
       console.log('🔔 Obteniendo notificaciones con filtros:', filters, '| URL:', url);
 
       const response = await api.get(url);
-      
-      // El backend devuelve un array directo
+
+      // El backend puede devolver:
+      // - Un array directo para usuarios normales
+      // - Un objeto con { notificaciones: [], estadisticas_admin: {} } para admins
+      // - Un objeto paginado con { results: [] }
       let results = response.data;
-      if (response.data.results) {
+
+      if (response.data.notificaciones) {
+        // Caso admin: extraer el array de notificaciones
+        results = response.data.notificaciones;
+      } else if (response.data.results) {
+        // Caso paginación
         results = response.data.results;
       } else if (!Array.isArray(response.data)) {
+        // Si no es ninguno de los casos anteriores y no es array, devolver vacío
         results = [];
       }
-      
+
       const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
       console.log('✅ Notificaciones obtenidas:', notifications.length);
-      
+
       return notifications;
     } catch (error) {
       console.error('❌ Error obteniendo notificaciones:', error);

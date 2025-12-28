@@ -33,9 +33,14 @@ export interface Germinacion {
   semillas_stock?: number;
   disponibles?: number;
   
-  // Estado de germinación (INICIAL, EN_PROCESO, FINALIZADO)
-  estado_germinacion?: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO';
+  // Estado de germinación (INICIAL, EN_PROCESO_TEMPRANO, EN_PROCESO_AVANZADO, FINALIZADO)
+  estado_germinacion?: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO';
   progreso_germinacion?: number; // 0-100%
+  
+  // Sistema de alertas de revisión
+  fecha_proxima_revision?: string;
+  alerta_revision_enviada?: boolean;
+  fecha_ultima_revision?: string;
   
   // NUEVOS CAMPOS DE PREDICCIÓN MEJORADA - Disponibles en backend pero faltantes en frontend
   fecha_germinacion_estimada?: string | null;
@@ -152,8 +157,13 @@ export interface Polinizacion {
   prediccion_parametros_usados?: string;
   
   // Estado y progreso de polinización
-  estado_polinizacion?: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO';
+  estado_polinizacion?: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO';
   progreso_polinizacion?: number;
+  
+  // Sistema de alertas de revisión
+  fecha_proxima_revision?: string;
+  alerta_revision_enviada?: boolean;
+  fecha_ultima_revision?: string;
 }
 
 export interface User {
@@ -162,6 +172,8 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  is_active: boolean;
+  date_joined?: string; // Fecha de creación del usuario
 }
 
 export interface UserProfile {
@@ -170,6 +182,7 @@ export interface UserProfile {
   usuario_info: User;
   rol: 'TIPO_1' | 'TIPO_2' | 'TIPO_3' | 'TIPO_4';
   rol_display: string;
+  foto: string | null;
   telefono: string;
   departamento: string;
   fecha_ingreso: string | null;
@@ -223,10 +236,15 @@ export interface UserWithProfile extends User {
 export interface AuthContextType {
   user: UserWithProfile | null;
   login: (username: string, password: string) => Promise<void>;
+  register: (userData: { username: string; email: string; password: string }) => Promise<void>;
   logout: () => void;
+  forceLogout: () => void;
   isLoading: boolean;
   permissions: UserPermissions | null;
   hasPermission: (module: string, action: string) => boolean;
+  refreshPermissions: () => Promise<void>;
+  refreshUser: () => Promise<boolean>;
+  token: string | null;
 }
 
 export interface EstadisticasUsuario {

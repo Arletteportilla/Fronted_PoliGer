@@ -134,12 +134,13 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.modalOverlay}
       >
-        <TouchableOpacity
-          style={styles.modalOverlayTouchable}
-          activeOpacity={1}
-          onPress={onClose}
-        >
-          <View style={styles.modalContainer} onStartShouldSetResponder={() => true}>
+        <View style={styles.modalOverlayBackground}>
+          <TouchableOpacity
+            style={styles.modalOverlayTouchable}
+            activeOpacity={1}
+            onPress={onClose}
+          />
+          <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.modalHeader}>
             <View>
@@ -318,7 +319,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             </TouchableOpacity>
           </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -331,11 +332,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalOverlayTouchable: {
+  modalOverlayBackground: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  modalOverlayTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
   },
   modalContainer: {
     backgroundColor: '#FFFFFF',
@@ -348,6 +358,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 10,
+    zIndex: 2,
+    position: 'relative',
   },
   modalHeader: {
     flexDirection: 'row',

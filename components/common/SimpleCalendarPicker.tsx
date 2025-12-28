@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   View, 
-  Text, 
-  TextInput,
+  Text,
   StyleSheet, 
   TouchableOpacity, 
-  Modal, 
   ScrollView,
   Dimensions,
-  Platform 
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/utils/colors';
 
 interface SimpleCalendarPickerProps {
   value?: string; // Formato YYYY-MM-DD
@@ -105,7 +104,7 @@ export function SimpleCalendarPicker({
     
     for (const format of formats) {
       const match = text.match(format);
-      if (match) {
+      if (match && match[1] && match[2] && match[3]) {
         const day = parseInt(match[1], 10);
         const month = parseInt(match[2], 10) - 1; // Los meses son 0-indexed
         const year = parseInt(match[3], 10);
@@ -243,7 +242,7 @@ export function SimpleCalendarPicker({
             style={styles.navButton}
             onPress={() => navigateMonth('prev')}
           >
-            <Ionicons name="chevron-back" size={20} color="#182d49" />
+            <Ionicons name="chevron-back" size={20} color={colors.accent.primary} />
           </TouchableOpacity>
           
           <Text style={styles.monthYear}>
@@ -257,7 +256,7 @@ export function SimpleCalendarPicker({
             style={styles.navButton}
             onPress={() => navigateMonth('next')}
           >
-            <Ionicons name="chevron-forward" size={20} color="#182d49" />
+            <Ionicons name="chevron-forward" size={20} color={colors.accent.primary} />
           </TouchableOpacity>
         </View>
 
@@ -311,81 +310,69 @@ export function SimpleCalendarPicker({
         </Text>
       )}
       
-      <View style={[styles.inputContainer, style, disabled && styles.disabled]}>
+      <View style={styles.inputWrapper}>
         <TouchableOpacity
           onPress={handleIconPress}
           disabled={disabled}
           activeOpacity={0.7}
-          style={styles.iconButton}
+          style={[styles.inputContainer, style, disabled && styles.disabled]}
         >
-          <Ionicons
-            name="calendar"
-            size={26}
-            color={disabled ? '#9CA3AF' : '#e9ad14'}
-          />
-        </TouchableOpacity>
-        <TextInput
-          style={[
+          <View style={styles.iconButton}>
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={disabled ? colors.text.disabled : colors.text.tertiary}
+            />
+          </View>
+          <Text style={[
             styles.textInput,
             disabled && styles.inputTextDisabled,
             !textValue && styles.placeholderText
-          ]}
-          value={textValue}
-          onChangeText={handleTextChange}
-          onBlur={handleTextBlur}
-          placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
-          editable={!disabled}
-          keyboardType="default"
-        />
-      </View>
+          ]}>
+            {textValue || placeholder}
+          </Text>
+        </TouchableOpacity>
 
-      <Modal
-        visible={isVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={handleCancel}
-      >
-        <View style={styles.modalOverlay}>
-          <View 
-            style={[
-              styles.modalContent,
-              responsive.isTablet && styles.modalContentTablet,
-              responsive.isSmallScreen && styles.modalContentSmall
-            ]}
+        {/* Dropdown Calendar - Usando Modal para evitar problemas de z-index */}
+        <Modal
+          visible={isVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={handleCancel}
+        >
+          <TouchableOpacity 
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={handleCancel}
           >
-            <View style={styles.modalHeader}>
-              <Text style={[
-                styles.modalTitle,
-                responsive.isTablet && styles.modalTitleTablet
-              ]}>🗓️ Seleccionar Fecha</Text>
-              <TouchableOpacity onPress={handleCancel}>
-                <Ionicons name="close" size={24} color="#182d49" />
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={styles.calendarScrollView}>
-              {renderCalendar()}
-            </ScrollView>
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={styles.cancelButton}
-                onPress={handleCancel}
-              >
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
-              </TouchableOpacity>
+            <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+              <View style={styles.dropdownHeader}>
+                <Text style={styles.dropdownTitle}>Seleccionar Fecha</Text>
+              </View>
               
-              <TouchableOpacity 
-                style={styles.confirmButton}
-                onPress={handleConfirm}
-              >
-                <Text style={styles.confirmButtonText}>Confirmar</Text>
-              </TouchableOpacity>
+              <ScrollView style={styles.calendarScrollView}>
+                {renderCalendar()}
+              </ScrollView>
+              
+              <View style={styles.dropdownButtons}>
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.confirmButton}
+                  onPress={handleConfirm}
+                >
+                  <Text style={styles.confirmButtonText}>Confirmar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </View>
-      </Modal>
+          </TouchableOpacity>
+        </Modal>
+      </View>
     </View>
   );
 }
@@ -393,158 +380,132 @@ export function SimpleCalendarPicker({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    zIndex: 999999,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#182d49',
+    color: colors.accent.primary,
     marginBottom: 8,
     marginLeft: 4,
   },
   required: {
-    color: '#e9ad14',
+    color: colors.primary.main,
     fontWeight: 'bold',
+  },
+  inputWrapper: {
+    position: 'relative',
+    zIndex: 999999,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#e9ad14',
-    shadowColor: '#182d49',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    minHeight: 56,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    minHeight: 52,
   },
   iconButton: {
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: 'rgba(233, 173, 20, 0.15)',
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(233, 173, 20, 0.3)',
-    shadowColor: '#e9ad14',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
   },
   textInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#182d49',
+    fontSize: 15,
+    color: colors.text.primary,
     fontWeight: '500',
-    paddingVertical: 0,
-    minHeight: 24,
   },
   placeholderText: {
-    color: '#9CA3AF',
+    color: colors.text.disabled,
+    fontWeight: '400',
   },
   disabled: {
-    backgroundColor: '#f8f9fa',
-    borderColor: '#dee2e6',
+    backgroundColor: colors.background.secondary,
+    borderColor: colors.border.default,
   },
   inputText: {
-    fontSize: 16,
-    color: '#182d49',
+    fontSize: 15,
+    color: '#1f2937',
     fontWeight: '500',
   },
   inputTextDisabled: {
-    color: '#6c757d',
+    color: '#9ca3af',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(24, 45, 73, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 16,
     width: '100%',
     maxWidth: 400,
-    maxHeight: '85%',
+    maxHeight: '80%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-    borderWidth: 2,
-    borderColor: '#e9ad14',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 20,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
-  modalContentTablet: {
-    maxWidth: 500,
-    width: '90%',
+  dropdownHeader: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
-  modalContentSmall: {
-    maxWidth: '100%',
-    width: '100%',
-    margin: 10,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: '#e9ad14',
-    backgroundColor: '#f8f9fa',
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#182d49',
-  },
-  modalTitleTablet: {
-    fontSize: 20,
+  dropdownTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#111827',
   },
   calendarScrollView: {
-    maxHeight: 400,
+    maxHeight: 260,
   },
   calendarContainer: {
-    padding: 20,
+    padding: 10,
   },
   calendarHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   navButton: {
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#f8f9fa',
+    padding: 5,
+    borderRadius: 6,
+    backgroundColor: '#f3f4f6',
     borderWidth: 1,
-    borderColor: '#e9ad14',
+    borderColor: '#e5e7eb',
   },
   monthYear: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#182d49',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#111827',
+    textTransform: 'capitalize',
   },
   weekDaysContainer: {
     flexDirection: 'row',
-    marginBottom: 12,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    paddingVertical: 8,
+    marginBottom: 6,
+    paddingVertical: 2,
   },
   weekDay: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#182d49',
-    paddingVertical: 8,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#6b7280',
+    paddingVertical: 2,
   },
   daysGrid: {
     flexDirection: 'row',
@@ -552,79 +513,79 @@ const styles = StyleSheet.create({
   },
   dayButton: {
     width: '14.28%',
-    aspectRatio: 1,
+    height: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 12,
-    marginBottom: 4,
+    borderRadius: 5,
+    marginBottom: 2,
   },
   dayButtonInactive: {
     opacity: 0.3,
   },
   dayButtonSelected: {
-    backgroundColor: '#e9ad14',
-    shadowColor: '#e9ad14',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: colors.primary.main,
   },
   dayButtonToday: {
-    backgroundColor: '#f8f9fa',
-    borderWidth: 2,
-    borderColor: '#e9ad14',
+    backgroundColor: colors.background.tertiary,
+    borderWidth: 1,
+    borderColor: colors.primary.main,
   },
   dayText: {
-    fontSize: 16,
-    color: '#182d49',
-    fontWeight: '500',
+    fontSize: 11,
+    color: '#374151',
+    fontWeight: '600',
   },
   dayTextInactive: {
-    color: '#6c757d',
+    color: '#9ca3af',
   },
   dayTextSelected: {
-    color: '#182d49',
-    fontWeight: 'bold',
+    color: '#ffffff',
+    fontWeight: '700',
   },
   dayTextToday: {
-    color: '#e9ad14',
-    fontWeight: 'bold',
+    color: colors.primary.main,
+    fontWeight: '700',
   },
-  modalButtons: {
+  dropdownButtons: {
     flexDirection: 'row',
-    padding: 20,
-    gap: 15,
-    backgroundColor: '#f8f9fa',
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
+    padding: 10,
+    gap: 8,
+    backgroundColor: '#f9fafb',
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   cancelButton: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#6c757d',
+    paddingVertical: 8,
+    borderRadius: 7,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#495057',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   cancelButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6b7280',
   },
   confirmButton: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#e9ad14',
+    paddingVertical: 8,
+    borderRadius: 7,
+    backgroundColor: colors.primary.main,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#182d49',
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
   },
   confirmButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#182d49',
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.background.primary,
   },
 });
 export default SimpleCalendarPicker;

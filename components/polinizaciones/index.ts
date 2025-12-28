@@ -1,2 +1,2 @@
-// Componentes de polinización
-export { PrediccionMLPolinizacion } from './PrediccionMLPolinizacion';
+export { PolinizacionesHeader } from './PolinizacionesHeader';
+export { PolinizacionesContent } from './PolinizacionesContent';

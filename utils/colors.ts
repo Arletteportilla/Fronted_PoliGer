@@ -1,9 +1,9 @@
 /**
  * Sistema de colores centralizado para PoliGer
- * Define todos los colores utilizados en la aplicación
+ * Define todos los colores utilizados en la aplicación con soporte para tema claro y oscuro
  */
 
-// Colores primarios del sistema
+// Colores primarios del sistema (no cambian con el tema)
 export const PRIMARY = {
   main: '#e9ad14',       // Amarillo/dorado principal
   dark: '#c89512',       // Variante oscura
@@ -11,16 +11,24 @@ export const PRIMARY = {
   contrast: '#ffffff',   // Color de contraste (texto sobre primario)
 };
 
-// Colores de fondo y superficie
-export const BACKGROUND = {
+// Colores de fondo y superficie - Tema Claro
+const BACKGROUND_LIGHT = {
   primary: '#ffffff',    // Fondo principal
   secondary: '#f8fafc',  // Fondo secundario
   tertiary: '#f3f4f6',   // Fondo terciario
   modal: 'rgba(0, 0, 0, 0.5)', // Overlay de modales
 };
 
-// Colores de texto
-export const TEXT = {
+// Colores de fondo y superficie - Tema Oscuro
+const BACKGROUND_DARK = {
+  primary: '#1e293b',    // Fondo principal (slate-800)
+  secondary: '#0f172a',  // Fondo secundario (slate-900)
+  tertiary: '#334155',   // Fondo terciario (slate-700)
+  modal: 'rgba(0, 0, 0, 0.7)', // Overlay de modales
+};
+
+// Colores de texto - Tema Claro
+const TEXT_LIGHT = {
   primary: '#121212',    // Texto principal
   secondary: '#374151',  // Texto secundario
   tertiary: '#6b7280',   // Texto terciario
@@ -28,7 +36,16 @@ export const TEXT = {
   inverse: '#ffffff',    // Texto inverso (sobre fondos oscuros)
 };
 
-// Colores de acento y estado
+// Colores de texto - Tema Oscuro
+const TEXT_DARK = {
+  primary: '#f1f5f9',    // Texto principal (slate-100)
+  secondary: '#cbd5e1',  // Texto secundario (slate-300)
+  tertiary: '#94a3b8',   // Texto terciario (slate-400)
+  disabled: '#64748b',   // Texto deshabilitado (slate-500)
+  inverse: '#121212',    // Texto inverso (sobre fondos claros)
+};
+
+// Colores de acento y estado (no cambian mucho con el tema)
 export const ACCENT = {
   primary: '#182d49',    // Azul oscuro principal
   secondary: '#3B82F6',  // Azul estándar
@@ -37,30 +54,46 @@ export const ACCENT = {
 
 // Colores de estado (success, warning, error, info)
 export const STATUS = {
-  success: '#10B981',    // Verde éxito
-  successLight: '#D1FAE5',
+  success: '#e9ad14',    // Amarillo/dorado para éxito
+  successLight: '#fef3c7',
   warning: '#F59E0B',    // Amarillo/naranja advertencia
   warningLight: '#FEF3C7',
   error: '#EF4444',      // Rojo error
   errorLight: '#FEE2E2',
-  info: '#3B82F6',       // Azul info
-  infoLight: '#DBEAFE',
+  info: '#182d49',       // Azul oscuro para info
+  infoLight: '#e0e7ff',
 };
 
-// Colores de botones y elementos interactivos
-export const INTERACTIVE = {
+// Colores de botones y elementos interactivos - Tema Claro
+const INTERACTIVE_LIGHT = {
   hover: '#f0f0f0',      // Hover general
   pressed: '#e0e0e0',    // Pressed general
   disabled: '#e5e7eb',   // Deshabilitado
   focus: '#3B82F6',      // Focus
 };
 
-// Colores de bordes
-export const BORDER = {
+// Colores de botones y elementos interactivos - Tema Oscuro
+const INTERACTIVE_DARK = {
+  hover: '#334155',      // Hover general
+  pressed: '#475569',    // Pressed general
+  disabled: '#475569',   // Deshabilitado
+  focus: '#60A5FA',      // Focus
+};
+
+// Colores de bordes - Tema Claro
+const BORDER_LIGHT = {
   light: '#f0f0f0',      // Borde claro
   default: '#e5e7eb',    // Borde por defecto
   medium: '#d1d5db',     // Borde medio
   dark: '#9ca3af',       // Borde oscuro
+};
+
+// Colores de bordes - Tema Oscuro
+const BORDER_DARK = {
+  light: '#475569',      // Borde claro
+  default: '#334155',    // Borde por defecto
+  medium: '#475569',     // Borde medio
+  dark: '#64748b',       // Borde oscuro
 };
 
 // Colores de sombras
@@ -75,27 +108,27 @@ export const SHADOW = {
 export const MODULE = {
   // Germinaciones
   germinacion: {
-    primary: '#10B981',    // Verde
-    light: '#D1FAE5',
-    icon: '#059669',
+    primary: '#e9ad14',    // Amarillo/dorado
+    light: '#fef3c7',
+    icon: '#d97706',
   },
   // Polinizaciones
   polinizacion: {
-    primary: '#F59E0B',    // Naranja
-    light: '#FEF3C7',
-    icon: '#D97706',
+    primary: '#182d49',    // Azul oscuro
+    light: '#e0e7ff',
+    icon: '#1e40af',
   },
   // Reportes
   reporte: {
-    primary: '#3B82F6',    // Azul
-    light: '#DBEAFE',
-    icon: '#2563EB',
+    primary: '#182d49',    // Azul oscuro
+    light: '#e0e7ff',
+    icon: '#1e40af',
   },
   // Notificaciones
   notificacion: {
-    primary: '#8B5CF6',    // Púrpura
-    light: '#EDE9FE',
-    icon: '#7C3AED',
+    primary: '#e9ad14',    // Amarillo/dorado
+    light: '#fef3c7',
+    icon: '#d97706',
   },
 };
 
@@ -118,8 +151,8 @@ export const CLIMA = {
 // Colores para gráficos y visualizaciones
 export const CHART = {
   colors: [
-    '#3B82F6',  // Azul
-    '#10B981',  // Verde
+    '#e9ad14',  // Amarillo/dorado principal
+    '#182d49',  // Azul oscuro
     '#F59E0B',  // Naranja
     '#EF4444',  // Rojo
     '#8B5CF6',  // Púrpura
@@ -139,22 +172,27 @@ export const SPECIAL = {
   overlay: 'rgba(0, 0, 0, 0.5)', // Overlay general
 };
 
-// Exportar objeto completo de colores para fácil acceso
-export const colors = {
-  primary: PRIMARY,
-  background: BACKGROUND,
-  text: TEXT,
-  accent: ACCENT,
-  status: STATUS,
-  interactive: INTERACTIVE,
-  border: BORDER,
-  shadow: SHADOW,
-  module: MODULE,
-  capsulaStates: CAPSULA_STATES,
-  clima: CLIMA,
-  chart: CHART,
-  special: SPECIAL,
-};
+// Función para obtener colores según el tema
+export function getColors(theme: 'light' | 'dark' = 'light') {
+  return {
+    primary: PRIMARY,
+    background: theme === 'dark' ? BACKGROUND_DARK : BACKGROUND_LIGHT,
+    text: theme === 'dark' ? TEXT_DARK : TEXT_LIGHT,
+    accent: ACCENT,
+    status: STATUS,
+    interactive: theme === 'dark' ? INTERACTIVE_DARK : INTERACTIVE_LIGHT,
+    border: theme === 'dark' ? BORDER_DARK : BORDER_LIGHT,
+    shadow: SHADOW,
+    module: MODULE,
+    capsulaStates: CAPSULA_STATES,
+    clima: CLIMA,
+    chart: CHART,
+    special: SPECIAL,
+  };
+}
+
+// Exportar objeto completo de colores para fácil acceso (tema claro por defecto)
+export const colors = getColors('light');
 
 // Colores planos para uso directo (mantener compatibilidad con código existente)
 export default {
@@ -164,15 +202,15 @@ export default {
   primaryLight: PRIMARY.light,
 
   // Fondos
-  background: BACKGROUND.primary,
-  backgroundSecondary: BACKGROUND.secondary,
-  backgroundTertiary: BACKGROUND.tertiary,
+  background: BACKGROUND_LIGHT.primary,
+  backgroundSecondary: BACKGROUND_LIGHT.secondary,
+  backgroundTertiary: BACKGROUND_LIGHT.tertiary,
 
   // Textos
-  text: TEXT.primary,
-  textSecondary: TEXT.secondary,
-  textTertiary: TEXT.tertiary,
-  textDisabled: TEXT.disabled,
+  text: TEXT_LIGHT.primary,
+  textSecondary: TEXT_LIGHT.secondary,
+  textTertiary: TEXT_LIGHT.tertiary,
+  textDisabled: TEXT_LIGHT.disabled,
 
   // Acentos
   accent: ACCENT.primary,
@@ -185,9 +223,9 @@ export default {
   info: STATUS.info,
 
   // Bordes
-  border: BORDER.default,
-  borderLight: BORDER.light,
-  borderDark: BORDER.dark,
+  border: BORDER_LIGHT.default,
+  borderLight: BORDER_LIGHT.light,
+  borderDark: BORDER_LIGHT.dark,
 
   // Especiales
   star: SPECIAL.star,

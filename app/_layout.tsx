@@ -1,10 +1,12 @@
-import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { SidebarProvider } from '@/contexts/SidebarContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const RootLayoutNav = memo(() => {
   const { token, isLoading } = useAuth();
@@ -99,12 +101,16 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={DefaultTheme}>
-      <ToastProvider>
-        <AuthProvider>
-          <RootLayoutNav />
-        </AuthProvider>
-      </ToastProvider>
-    </ThemeProvider>
+    <NavigationThemeProvider value={DefaultTheme}>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <SidebarProvider>
+              <RootLayoutNav />
+            </SidebarProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </NavigationThemeProvider>
   );
 }

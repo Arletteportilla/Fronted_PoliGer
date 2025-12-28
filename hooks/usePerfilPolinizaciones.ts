@@ -21,10 +21,11 @@ export function usePerfilPolinizaciones() {
   const fetchPolinizaciones = useCallback(async (page: number = 1, search: string = '') => {
     setLoading(true);
     try {
-      const response = await polinizacionService.getPolinizacionesUsuario({
+      const response = await polinizacionService.getMisPolinizacionesPaginated({
         page,
         page_size: 10,
         search,
+        dias_recientes: 0, // 0 = todas las polinizaciones del usuario, no solo las recientes
       });
 
       setPolinizaciones(response.results || []);
@@ -77,7 +78,7 @@ export function usePerfilPolinizaciones() {
         throw new Error('No se pudo obtener el ID de la polinización');
       }
 
-      await polinizacionService.deletePolinizacion(itemId);
+      await polinizacionService.delete(itemId);
       await fetchPolinizaciones(currentPage, searchText);
       onSuccess?.();
     } catch (error) {
@@ -98,7 +99,7 @@ export function usePerfilPolinizaciones() {
 
   const handleChangeStatus = useCallback(async (
     itemId: number,
-    newStatus: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO',
+    newStatus: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO',
     fechaMaduracion?: string,
     onSuccess?: () => void
   ) => {
