@@ -63,6 +63,23 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   const [mesasFiltradas, setMesasFiltradas] = useState<string[]>([]);
   const [paredesFiltradas, setParedesFiltradas] = useState<string[]>([]);
 
+  // Estado para tipo de ubicación secundaria (mesa o pared)
+  const [tipoUbicacionSecundaria, setTipoUbicacionSecundaria] = useState<'mesa' | 'pared' | ''>('');
+
+  // Sincronizar el estado inicial y cuando cambia el form
+  useEffect(() => {
+    if (form.mesa && form.mesa.trim() !== '') {
+      setTipoUbicacionSecundaria('mesa');
+    } else if (form.pared && form.pared.trim() !== '') {
+      setTipoUbicacionSecundaria('pared');
+    } else {
+      // Solo resetear si ambos están vacíos
+      if (!form.mesa && !form.pared) {
+        setTipoUbicacionSecundaria('');
+      }
+    }
+  }, [form.mesa, form.pared]);
+
   // Estado para validación de cantidades
   const [cantidadError, setCantidadError] = useState<string>('');
 
@@ -276,15 +293,31 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
     setShowViveros(filtrados.length > 0);
   };
 
+  const handleTipoUbicacionSecundariaChange = (tipo: 'mesa' | 'pared' | '') => {
+    setTipoUbicacionSecundaria(tipo);
+    if (tipo === 'mesa') {
+      // Limpiar pared cuando se selecciona mesa
+      setForm((f: any) => ({ ...f, pared: '', mesa: f.mesa || '' }));
+    } else if (tipo === 'pared') {
+      // Limpiar mesa cuando se selecciona pared
+      setForm((f: any) => ({ ...f, mesa: '', pared: f.pared || '' }));
+    } else {
+      // Limpiar ambos cuando no hay selección
+      setForm((f: any) => ({ ...f, mesa: '', pared: '' }));
+    }
+  };
+
   const handleMesaChange = (texto: string) => {
-    setForm((f: any) => ({ ...f, mesa: texto }));
+    setForm((f: any) => ({ ...f, mesa: texto, pared: '' })); // Limpiar pared al cambiar mesa
+    setTipoUbicacionSecundaria('mesa');
     const filtrados = filtrarMesas(texto);
     setMesasFiltradas(filtrados);
     setShowMesas(filtrados.length > 0);
   };
 
   const handleParedChange = (texto: string) => {
-    setForm((f: any) => ({ ...f, pared: texto }));
+    setForm((f: any) => ({ ...f, pared: texto, mesa: '' })); // Limpiar mesa al cambiar pared
+    setTipoUbicacionSecundaria('pared');
     const filtrados = filtrarParedes(texto);
     setParedesFiltradas(filtrados);
     setShowParedes(filtrados.length > 0);
@@ -749,8 +782,8 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                             </View>
                           ), false)}
                         </View>
-                      </View>
                     </View>
+                  </View>
                   )}
 
                   {/* Nueva Planta - Mostrar siempre */}
@@ -895,6 +928,55 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                 <View style={[styles.sectionContainer, { overflow: 'visible', zIndex: 9000 }]}>
                   <Text style={styles.sectionSubtitle}>Ubicación Específica</Text>
 
+                  {/* Selector de tipo Mesa/Pared */}
+                  <View style={styles.inputRow}>
+                    <View style={styles.inputColumn}>
+                      {renderFormField('Tipo de Ubicación Secundaria', (
+                        <View style={styles.tipoUbicacionSelector}>
+                          <TouchableOpacity
+                            style={[
+                              styles.tipoUbicacionButton,
+                              tipoUbicacionSecundaria === 'mesa' && styles.tipoUbicacionButtonActive
+                            ]}
+                            onPress={() => handleTipoUbicacionSecundariaChange('mesa')}
+                          >
+                            <Ionicons 
+                              name="grid-outline" 
+                              size={18} 
+                              color={tipoUbicacionSecundaria === 'mesa' ? themeColors.text.inverse : themeColors.text.tertiary} 
+                            />
+                            <Text style={[
+                              styles.tipoUbicacionButtonText,
+                              tipoUbicacionSecundaria === 'mesa' && styles.tipoUbicacionButtonTextActive
+                            ]}>
+                              Mesa
+                            </Text>
+                          </TouchableOpacity>
+                          
+                          <TouchableOpacity
+                            style={[
+                              styles.tipoUbicacionButton,
+                              tipoUbicacionSecundaria === 'pared' && styles.tipoUbicacionButtonActive
+                            ]}
+                            onPress={() => handleTipoUbicacionSecundariaChange('pared')}
+                          >
+                            <Ionicons 
+                              name="square-outline" 
+                              size={18} 
+                              color={tipoUbicacionSecundaria === 'pared' ? themeColors.text.inverse : themeColors.text.tertiary} 
+                            />
+                            <Text style={[
+                              styles.tipoUbicacionButtonText,
+                              tipoUbicacionSecundaria === 'pared' && styles.tipoUbicacionButtonTextActive
+                            ]}>
+                              Pared
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ), false)}
+                    </View>
+                  </View>
+
                   {/* VIVERO CON AUTOCOMPLETADO - Fila separada */}
                   <View style={[styles.inputRow, { zIndex: 9999, elevation: 9999 }, showViveros && viverosFiltrados.length > 0 && { marginBottom: 220 }]}>
                     <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
@@ -945,25 +1027,26 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   </View>
 
                   {/* MESA CON AUTOCOMPLETADO - Fila separada */}
-                  <View style={[styles.inputRow, { zIndex: 8888, elevation: 8888 }, showMesas && mesasFiltradas.length > 0 && { marginBottom: 220 }]}>
-                    <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
-                      {renderFormField('Mesa', (
-                        <View style={styles.autocompleteWrapper}>
-                          <View style={styles.inputContainer}>
-                            <Ionicons name="grid-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
-                            <TextInput
-                              style={styles.modernInput}
-                              value={form.mesa}
-                              onChangeText={handleMesaChange}
-                              onFocus={() => {
-                                const filtrados = filtrarMesas(form.mesa || '');
-                                setMesasFiltradas(filtrados);
-                                setShowMesas(true);
-                              }}
-                              onBlur={() => setTimeout(() => setShowMesas(false), 300)}
-                              placeholder="Ej: M-1A, M-2B"
-                            />
-                          </View>
+                  {tipoUbicacionSecundaria === 'mesa' && (
+                    <View style={[styles.inputRow, { zIndex: 8888, elevation: 8888 }, showMesas && mesasFiltradas.length > 0 && { marginBottom: 220 }]}>
+                      <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
+                        {renderFormField('Mesa', (
+                          <View style={styles.autocompleteWrapper}>
+                            <View style={styles.inputContainer}>
+                              <Ionicons name="grid-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
+                              <TextInput
+                                style={styles.modernInput}
+                                value={form.mesa}
+                                onChangeText={handleMesaChange}
+                                onFocus={() => {
+                                  const filtrados = filtrarMesas(form.mesa || '');
+                                  setMesasFiltradas(filtrados);
+                                  setShowMesas(true);
+                                }}
+                                onBlur={() => setTimeout(() => setShowMesas(false), 300)}
+                                placeholder="Ej: M-1A, M-2B"
+                              />
+                            </View>
                           {showMesas && mesasFiltradas.length > 0 && (
                             <View
                               style={styles.autocompleteDropdown}
@@ -992,55 +1075,58 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       ), false)}
                     </View>
                   </View>
+                  )}
 
                   {/* PARED CON AUTOCOMPLETADO - Fila separada */}
-                  <View style={[styles.inputRow, { zIndex: 7777, elevation: 7777 }, showParedes && paredesFiltradas.length > 0 && { marginBottom: 220 }]}>
-                    <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
-                      {renderFormField('Pared', (
-                        <View style={styles.autocompleteWrapper}>
-                          <View style={styles.inputContainer}>
-                            <Ionicons name="square-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
-                            <TextInput
-                              style={styles.modernInput}
-                              value={form.pared}
-                              onChangeText={handleParedChange}
-                              onFocus={() => {
-                                const filtrados = filtrarParedes(form.pared || '');
-                                setParedesFiltradas(filtrados);
-                                setShowParedes(true);
-                              }}
-                              onBlur={() => setTimeout(() => setShowParedes(false), 300)}
-                              placeholder="Ej: P-A, P-100"
-                            />
-                          </View>
-                          {showParedes && paredesFiltradas.length > 0 && (
-                            <View
-                              style={styles.autocompleteDropdown}
-                              onStartShouldSetResponder={() => true}
-                              onMoveShouldSetResponder={() => true}
-                            >
-                              {paredesFiltradas.slice(0, 10).map((pared, index) => (
-                                <TouchableOpacity
-                                  key={`pared-${index}`}
-                                  style={[
-                                    styles.autocompleteOption,
-                                    index === Math.min(9, paredesFiltradas.length - 1) && styles.autocompleteOptionLast
-                                  ]}
-                                  onPress={() => {
-                                    setForm((f: any) => ({ ...f, pared: pared }));
-                                    setShowParedes(false);
-                                  }}
-                                  activeOpacity={0.7}
-                                >
-                                  <Text style={styles.autocompleteOptionCodigo}>{pared}</Text>
-                                </TouchableOpacity>
-                              ))}
+                  {tipoUbicacionSecundaria === 'pared' && (
+                    <View style={[styles.inputRow, { zIndex: 7777, elevation: 7777 }, showParedes && paredesFiltradas.length > 0 && { marginBottom: 220 }]}>
+                      <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
+                        {renderFormField('Pared', (
+                          <View style={styles.autocompleteWrapper}>
+                            <View style={styles.inputContainer}>
+                              <Ionicons name="square-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
+                              <TextInput
+                                style={styles.modernInput}
+                                value={form.pared}
+                                onChangeText={handleParedChange}
+                                onFocus={() => {
+                                  const filtrados = filtrarParedes(form.pared || '');
+                                  setParedesFiltradas(filtrados);
+                                  setShowParedes(true);
+                                }}
+                                onBlur={() => setTimeout(() => setShowParedes(false), 300)}
+                                placeholder="Ej: P-A, P-100"
+                              />
                             </View>
-                          )}
-                        </View>
-                      ), false)}
+                            {showParedes && paredesFiltradas.length > 0 && (
+                              <View
+                                style={styles.autocompleteDropdown}
+                                onStartShouldSetResponder={() => true}
+                                onMoveShouldSetResponder={() => true}
+                              >
+                                {paredesFiltradas.slice(0, 10).map((pared, index) => (
+                                  <TouchableOpacity
+                                    key={`pared-${index}`}
+                                    style={[
+                                      styles.autocompleteOption,
+                                      index === Math.min(9, paredesFiltradas.length - 1) && styles.autocompleteOptionLast
+                                    ]}
+                                    onPress={() => {
+                                      setForm((f: any) => ({ ...f, pared: pared }));
+                                      setShowParedes(false);
+                                    }}
+                                    activeOpacity={0.7}
+                                  >
+                                    <Text style={styles.autocompleteOptionCodigo}>{pared}</Text>
+                                  </TouchableOpacity>
+                                ))}
+                              </View>
+                            )}
+                          </View>
+                        ), false)}
+                      </View>
                     </View>
-                  </View>
+                  )}
                 </View>
 
                 <View style={[styles.inputRow, { zIndex: 1 }]}>
@@ -1606,5 +1692,34 @@ const createStyles = (colors: ReturnType<typeof getColors>) => StyleSheet.create
     fontSize: 13,
     color: colors.text.tertiary,
     lineHeight: 18,
+  },
+  tipoUbicacionSelector: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  tipoUbicacionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    backgroundColor: colors.background.primary,
+  },
+  tipoUbicacionButtonActive: {
+    backgroundColor: colors.accent.primary,
+    borderColor: colors.accent.primary,
+  },
+  tipoUbicacionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.secondary,
+  },
+  tipoUbicacionButtonTextActive: {
+    color: colors.text.inverse,
   },
 });
