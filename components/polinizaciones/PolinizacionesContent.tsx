@@ -58,6 +58,7 @@ interface PolinizacionesContentProps {
   onSearchChange: (text: string) => void;
   onClearSearch: () => void;
   onShowFilters: () => void;
+  onShowDateFilter?: () => void;
   onShowExportModal: () => void;
 }
 
@@ -71,6 +72,7 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
   onSearchChange,
   onClearSearch,
   onShowFilters,
+  onShowDateFilter,
   onShowExportModal,
 }) => {
   const { colors: themeColors } = useTheme();
@@ -143,7 +145,10 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={onShowDateFilter}
+          >
             <Ionicons name="calendar-outline" size={18} color={themeColors.text.tertiary} />
             <Text style={styles.actionButtonText}>Fecha</Text>
           </TouchableOpacity>

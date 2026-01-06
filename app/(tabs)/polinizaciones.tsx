@@ -9,6 +9,7 @@ import { usePolinizacionesWithFilters } from '@/hooks/usePolinizacionesWithFilte
 import { usePolinizaciones } from '@/hooks/usePolinizaciones';
 import { getInitialFormState } from '@/utils/polinizacionConstants';
 import PolinizacionFilters from '@/components/filters/PolinizacionFilters';
+import { DateFilterModal } from '@/components/filters/DateFilterModal';
 import Pagination from '@/components/filters/Pagination';
 import type { PolinizacionFilterParams } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -142,6 +143,7 @@ export default function PolinizacionesScreen() {
   const [form, setForm] = useState(() => getInitialFormState(getUserFullName));
   const [detalle, setDetalle] = useState(null);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [showDateFilterModal, setShowDateFilterModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Funciones para manejar el formulario
@@ -208,6 +210,14 @@ export default function PolinizacionesScreen() {
   const handleApplyFilters = (newFilters: PolinizacionFilterParams) => {
     setFilters(newFilters);
     setShowFiltersModal(false);
+  };
+
+  const handleApplyDateFilter = (fechaDesde?: string, fechaHasta?: string) => {
+    setFilters({
+      ...filters,
+      fechapol_desde: fechaDesde,
+      fechapol_hasta: fechaHasta,
+    });
   };
 
   // Funciones auxiliares para el modal
@@ -289,6 +299,7 @@ export default function PolinizacionesScreen() {
           onSearchChange={handleSearchChange}
           onClearSearch={() => setFilters({ ...filters, search: '' })}
           onShowFilters={() => setShowFiltersModal(true)}
+          onShowDateFilter={() => setShowDateFilterModal(true)}
           onShowExportModal={() => handleExport()}
         />
 
@@ -785,6 +796,16 @@ export default function PolinizacionesScreen() {
             </View>
           </View>
         </Modal>
+
+        {/* Modal de Filtro por Fecha */}
+        <DateFilterModal
+          visible={showDateFilterModal}
+          onClose={() => setShowDateFilterModal(false)}
+          onApply={handleApplyDateFilter}
+          tipo="polinizacion"
+          fechaDesde={filters.fechapol_desde}
+          fechaHasta={filters.fechapol_hasta}
+        />
 
         {/* Formulario de polinización */}
         <PolinizacionForm

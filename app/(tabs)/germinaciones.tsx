@@ -18,6 +18,7 @@ import { useGerminacionesWithFilters } from '@/hooks/useGerminacionesWithFilters
 import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { GerminacionesHeader, GerminacionesContent } from '@/components/germinaciones';
 import GerminacionFilters from '@/components/filters/GerminacionFilters';
+import { DateFilterModal } from '@/components/filters/DateFilterModal';
 
 export default function GerminacionesScreen() {
   const { user } = useAuth();
@@ -135,6 +136,7 @@ export default function GerminacionesScreen() {
   // Local state for UI
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showDateFilterModal, setShowDateFilterModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [detalle, setDetalle] = useState(null);
 
@@ -299,7 +301,10 @@ export default function GerminacionesScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => setShowDateFilterModal(true)}
+              >
                 <Ionicons name="calendar-outline" size={18} color={themeColors.text.tertiary} />
                 <Text style={styles.actionButtonText}>Fecha</Text>
               </TouchableOpacity>
@@ -335,31 +340,36 @@ export default function GerminacionesScreen() {
           </View>
         </ScrollView>
 
-        {/* Form Modal - Popup Centrado */}
+        {/* Form Modal - Popup desde lateral derecho */}
         <Modal
           visible={showForm}
-          animationType="fade"
+          animationType="slide"
           transparent={true}
           onRequestClose={() => setShowForm(false)}
+          presentationStyle="overFullScreen"
         >
-          <View style={styles.formModalOverlay}>
-            <View style={styles.formModalContent}>
+          <View style={styles.formModalOverlayRight}>
+            <View style={styles.formModalContentRight}>
               {/* Header del Modal */}
-              <View style={styles.formModalHeader}>
-                <View>
-                  <Text style={styles.formModalTitle}>Nueva Germinación</Text>
-                  <Text style={styles.formModalSubtitle}>Completa los datos del formulario</Text>
+              <View style={styles.formModalHeaderRight}>
+                <View style={styles.closeButtonRight}>
+                  <TouchableOpacity
+                    onPress={() => setShowForm(false)}
+                    style={styles.closeButtonInnerRight}
+                  >
+                    <Ionicons name="close" size={24} color={themeColors.text.primary} />
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity 
-                  style={styles.formModalCloseButton}
-                  onPress={() => setShowForm(false)}
-                >
-                  <Ionicons name="close" size={24} color={themeColors.text.tertiary} />
-                </TouchableOpacity>
+                <Text style={styles.formModalTitleRight}>Nueva Germinación</Text>
+                <View style={styles.placeholderRight} />
               </View>
 
               {/* Formulario */}
-              <ScrollView style={styles.formModalScrollView}>
+              <ScrollView 
+                style={styles.formModalScrollViewRight} 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.formModalScrollContentRight}
+              >
                 <GerminacionForm
                   visible={true}
                   onClose={() => setShowForm(false)}
@@ -410,6 +420,22 @@ export default function GerminacionesScreen() {
             </View>
           </View>
         </Modal>
+
+        {/* Modal de Filtro por Fecha */}
+        <DateFilterModal
+          visible={showDateFilterModal}
+          onClose={() => setShowDateFilterModal(false)}
+          onApply={(fechaDesde, fechaHasta) => {
+            setFilters({
+              ...filters,
+              fecha_siembra_desde: fechaDesde,
+              fecha_siembra_hasta: fechaHasta,
+            });
+          }}
+          tipo="germinacion"
+          fechaDesde={filters.fecha_siembra_desde}
+          fechaHasta={filters.fecha_siembra_hasta}
+        />
 
         {/* Modal de detalle */}
         <Modal
@@ -764,5 +790,64 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     shadowRadius: 20,
     elevation: 10,
     overflow: 'hidden',
+  },
+  formModalOverlayRight: {
+    flex: 1,
+    backgroundColor: colors.background.modal,
+    justifyContent: 'flex-end',
+    flexDirection: 'row',
+  },
+  formModalContentRight: {
+    backgroundColor: colors.background.primary,
+    width: '85%',
+    maxWidth: 600,
+    height: '100%',
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: colors.shadow.opacity,
+    shadowRadius: 10,
+    elevation: 10,
+    zIndex: 1,
+  },
+  formModalHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.background.secondary,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  closeButtonRight: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background.tertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonInnerRight: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  formModalTitleRight: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+    textAlign: 'center',
+  },
+  placeholderRight: {
+    width: 40,
+  },
+  formModalScrollViewRight: {
+    maxHeight: '100%',
+  },
+  formModalScrollContentRight: {
+    paddingBottom: 20,
   },
 });

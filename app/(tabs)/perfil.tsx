@@ -814,6 +814,8 @@ export default function PerfilScreen() {
         germinaciones={germinaciones}
         onViewPolinizacion={handleViewPolinizacion}
         onViewGerminacion={handleViewGerminacion}
+        onVerTodasPolinizaciones={() => setTab('polinizaciones')}
+        onVerTodasGerminaciones={() => setTab('germinaciones')}
       />
     );
   };
