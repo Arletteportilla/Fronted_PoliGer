@@ -7,6 +7,8 @@ import { PrediccionMLPolinizacion } from '@/components/polinizaciones/Prediccion
 import { TIPOS_POLINIZACION, CLIMAS, CANTIDAD_SEMILLA } from '@/utils/polinizacionConstants';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { polinizacionPrediccionService } from '@/services/polinizacion-prediccion.service';
+import { useTheme } from '@/contexts/ThemeContext';
+import { getColors } from '@/utils/colors';
 
 interface PolinizacionFormProps {
   visible: boolean;
@@ -31,6 +33,9 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   isPredicting,
   prediccion
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
+  
   const [showTipoPicker, setShowTipoPicker] = useState(false);
   const [showCantidadSemillaPicker, setShowCantidadSemillaPicker] = useState(false);
   const [buscandoPlanta, setBuscandoPlanta] = useState<string | null>(null);
@@ -407,9 +412,10 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
+      presentationStyle="overFullScreen"
     >
       <View style={styles.popupOverlay}>
         <View style={styles.popupContainer}>
@@ -425,7 +431,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   onPress={onClose}
                   style={styles.closeButtonInner}
                 >
-                  <Ionicons name="close" size={24} color="#182d49" />
+                  <Ionicons name="close" size={24} color={themeColors.text.primary} />
                 </TouchableOpacity>
               </View>
               <Text style={styles.popupTitle}>Nueva Polinización</Text>
@@ -438,7 +444,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               <View style={styles.formSection}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="calendar-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="calendar-outline" size={20} color={themeColors.status.success} />
                   </View>
                   <Text style={styles.sectionTitle}>Fechas</Text>
                 </View>
@@ -460,7 +466,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               <View style={styles.formSection}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="flower-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="flower-outline" size={20} color={themeColors.status.success} />
                   </View>
                   <Text style={styles.sectionTitle}>Tipo de Polinización</Text>
                 </View>
@@ -469,7 +475,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Tipo de Polinización', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="list-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="list-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                         <TouchableOpacity
                           style={styles.modernInput}
                           onPress={() => setShowTipoPicker(true)}
@@ -483,7 +489,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                               : 'Seleccionar tipo de polinización'
                             }
                           </Text>
-                          <Ionicons name="chevron-down" size={16} color="#666" />
+                          <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
                         </TouchableOpacity>
                       </View>
                     ), true)}
@@ -522,7 +528,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                 <View style={styles.formSection}>
                   <View style={styles.sectionHeader}>
                     <View style={styles.sectionIcon}>
-                      <Ionicons name="leaf-outline" size={20} color="#e9ad14" />
+                      <Ionicons name="leaf-outline" size={20} color={themeColors.status.success} />
                     </View>
                     <Text style={styles.sectionTitle}>Información de Plantas</Text>
                   </View>
@@ -536,7 +542,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                         {renderFormField('Código Madre', (
                           <View style={styles.autocompleteWrapper}>
                             <View style={styles.inputContainer}>
-                              <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                              <Ionicons name="barcode-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                               <TextInput
                                 style={styles.modernInput}
                                 value={form.madre_codigo}
@@ -557,7 +563,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                 placeholder="Código de la planta madre"
                               />
                               {buscandoPlanta === 'madre' && (
-                                <Ionicons name="hourglass-outline" size={16} color="#e9ad14" style={styles.loadingIcon} />
+                                <Ionicons name="hourglass-outline" size={16} color={themeColors.status.success} style={styles.loadingIcon} />
                               )}
                             </View>
                             {showCodigosMadre && codigosFiltrados.length > 0 && (
@@ -589,7 +595,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       <View style={styles.inputColumn}>
                         {renderFormField('Género Madre', (
                           <View style={styles.inputContainer}>
-                            <Ionicons name="flask-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="flask-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <TextInput
                               style={styles.modernInput}
                               value={form.madre_genero}
@@ -605,7 +611,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       <View style={styles.inputColumn}>
                         {renderFormField('Especie Madre', (
                           <View style={styles.inputContainer}>
-                            <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="leaf-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <TextInput
                               style={styles.modernInput}
                               value={form.madre_especie}
@@ -619,7 +625,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       <View style={styles.inputColumn}>
                         {renderFormField('Clima Madre', (
                           <View style={styles.pickerContainer}>
-                            <Ionicons name="partly-sunny-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="partly-sunny-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <Picker
                               selectedValue={form.madre_clima}
                               onValueChange={(v: string) => setForm((f: any) => ({ ...f, madre_clima: v }))}
@@ -646,7 +652,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                           {renderFormField('Código Padre', (
                             <View style={styles.autocompleteWrapper}>
                               <View style={styles.inputContainer}>
-                                <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                                <Ionicons name="barcode-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                                 <TextInput
                                   style={styles.modernInput}
                                   value={form.padre_codigo}
@@ -667,7 +673,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                   placeholder="Código de la planta padre"
                                 />
                                 {buscandoPlanta === 'padre' && (
-                                  <Ionicons name="hourglass-outline" size={16} color="#e9ad14" style={styles.loadingIcon} />
+                                  <Ionicons name="hourglass-outline" size={16} color={themeColors.status.success} style={styles.loadingIcon} />
                                 )}
                               </View>
                               {showCodigosPadre && codigosFiltrados.length > 0 && (
@@ -699,7 +705,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                         <View style={styles.inputColumn}>
                           {renderFormField('Género Padre', (
                             <View style={styles.inputContainer}>
-                              <Ionicons name="flask-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                              <Ionicons name="flask-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                               <TextInput
                                 style={styles.modernInput}
                                 value={form.padre_genero}
@@ -715,7 +721,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                         <View style={styles.inputColumn}>
                           {renderFormField('Especie Padre', (
                             <View style={styles.inputContainer}>
-                              <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                              <Ionicons name="leaf-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                               <TextInput
                                 style={styles.modernInput}
                                 value={form.padre_especie}
@@ -729,7 +735,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                         <View style={styles.inputColumn}>
                           {renderFormField('Clima Padre', (
                             <View style={styles.pickerContainer}>
-                              <Ionicons name="partly-sunny-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                              <Ionicons name="partly-sunny-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                               <Picker
                                 selectedValue={form.padre_clima}
                                 onValueChange={(v: string) => setForm((f: any) => ({ ...f, padre_clima: v }))}
@@ -758,7 +764,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                         {renderFormField('Código Nueva Planta', (
                           <View style={styles.autocompleteWrapper}>
                             <View style={styles.inputContainer}>
-                              <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                              <Ionicons name="barcode-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                               <TextInput
                                 style={[
                                   styles.modernInput,
@@ -783,7 +789,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                                 editable={form.tipo_polinizacion === 'HIBRIDA'}
                               />
                               {buscandoPlanta === 'nueva' && (
-                                <Ionicons name="hourglass-outline" size={16} color="#e9ad14" style={styles.loadingIcon} />
+                                <Ionicons name="hourglass-outline" size={16} color={themeColors.status.success} style={styles.loadingIcon} />
                               )}
                             </View>
                             {form.tipo_polinizacion === 'HIBRIDA' && showCodigosNueva && codigosFiltrados.length > 0 && (
@@ -815,7 +821,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       <View style={styles.inputColumn}>
                         {renderFormField('Género Nueva Planta', (
                           <View style={styles.inputContainer}>
-                            <Ionicons name="flask-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="flask-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <TextInput
                               style={[
                                 styles.modernInput,
@@ -835,7 +841,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       <View style={styles.inputColumn}>
                         {renderFormField('Especie Nueva Planta', (
                           <View style={styles.inputContainer}>
-                            <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="leaf-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <TextInput
                               style={[
                                 styles.modernInput,
@@ -853,7 +859,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       <View style={styles.inputColumn}>
                         {renderFormField('Clima Nueva Planta', (
                           <View style={styles.pickerContainer}>
-                            <Ionicons name="partly-sunny-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="partly-sunny-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <Picker
                               selectedValue={form.nueva_clima}
                               onValueChange={(v: string) => setForm((f: any) => ({ ...f, nueva_clima: v }))}
@@ -880,7 +886,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               <View style={styles.formSection}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="location-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="location-outline" size={20} color={themeColors.status.success} />
                   </View>
                   <Text style={styles.sectionTitle}>Ubicación y Clima</Text>
                 </View>
@@ -895,7 +901,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       {renderFormField('Vivero', (
                         <View style={styles.autocompleteWrapper}>
                           <View style={styles.inputContainer}>
-                            <Ionicons name="home-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="home-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <TextInput
                               style={styles.modernInput}
                               value={form.vivero}
@@ -944,7 +950,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       {renderFormField('Mesa', (
                         <View style={styles.autocompleteWrapper}>
                           <View style={styles.inputContainer}>
-                            <Ionicons name="grid-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="grid-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <TextInput
                               style={styles.modernInput}
                               value={form.mesa}
@@ -993,7 +999,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       {renderFormField('Pared', (
                         <View style={styles.autocompleteWrapper}>
                           <View style={styles.inputContainer}>
-                            <Ionicons name="square-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <Ionicons name="square-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                             <TextInput
                               style={styles.modernInput}
                               value={form.pared}
@@ -1041,7 +1047,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Responsable', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="person-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="person-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                         <TextInput
                           style={[styles.modernInput, styles.autoFilledInput]}
                           value={form.responsable}
@@ -1050,7 +1056,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                           editable={true}
                         />
                         <View style={styles.autoFillIndicator}>
-                          <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                            <Ionicons name="checkmark-circle" size={16} color={themeColors.status.success} />
                         </View>
                       </View>
                     ), false)}
@@ -1062,7 +1068,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               <View style={styles.formSection}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="calculator-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="calculator-outline" size={20} color={themeColors.status.success} />
                   </View>
                   <Text style={styles.sectionTitle}>Cantidades</Text>
                 </View>
@@ -1071,7 +1077,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad Solicitada', (
                       <View style={[styles.inputContainer, cantidadError && styles.inputContainerError]}>
-                        <Ionicons name="arrow-up-outline" size={20} color={cantidadError ? "#ef4444" : "#e9ad14"} style={styles.inputIcon} />
+                        <Ionicons name="arrow-up-outline" size={20} color={cantidadError ? themeColors.status.error : themeColors.status.success} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.cantidad_solicitada}
@@ -1086,7 +1092,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad Disponible', (
                       <View style={[styles.inputContainer, cantidadError && styles.inputContainerError]}>
-                        <Ionicons name="checkmark-circle-outline" size={20} color={cantidadError ? "#ef4444" : "#e9ad14"} style={styles.inputIcon} />
+                        <Ionicons name="checkmark-circle-outline" size={20} color={cantidadError ? themeColors.status.error : themeColors.status.success} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.cantidad_disponible}
@@ -1102,7 +1108,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                 {/* Mensaje de error */}
                 {cantidadError && (
                   <View style={styles.errorContainer}>
-                    <Ionicons name="alert-circle" size={16} color="#ef4444" />
+                    <Ionicons name="alert-circle" size={16} color={themeColors.status.error} />
                     <Text style={styles.errorText}>{cantidadError}</Text>
                   </View>
                 )}
@@ -1112,7 +1118,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad de Semilla', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="leaf-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                         <TouchableOpacity
                           style={styles.modernInput}
                           onPress={() => setShowCantidadSemillaPicker(true)}
@@ -1126,7 +1132,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                               : 'Seleccionar cantidad de semilla'
                             }
                           </Text>
-                          <Ionicons name="chevron-down" size={16} color="#666" />
+                          <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
                         </TouchableOpacity>
                       </View>
                     ), false)}
@@ -1164,7 +1170,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               <View style={styles.formSection}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="document-text-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="document-text-outline" size={20} color={themeColors.status.success} />
                   </View>
                   <Text style={styles.sectionTitle}>Observaciones</Text>
                 </View>
@@ -1173,7 +1179,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Observaciones', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="document-text-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="document-text-outline" size={20} color={themeColors.status.success} style={styles.inputIcon} />
                         <TextInput
                           style={[styles.modernInput, styles.textAreaInput]}
                           value={form.observaciones}
@@ -1192,7 +1198,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               <View style={styles.formSection}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="analytics-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="analytics-outline" size={20} color={themeColors.status.success} />
                   </View>
                   <Text style={styles.sectionTitle}>Predicción de Maduración</Text>
                 </View>
@@ -1230,27 +1236,26 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
           </ScrollView>
         </View>
       </View>
-
     </Modal>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof getColors>) => StyleSheet.create({
   popupOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(156, 163, 175, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.background.modal,
+    justifyContent: 'flex-end',
+    flexDirection: 'row',
   },
   popupContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    width: '95%',
-    maxHeight: '90%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
+    backgroundColor: colors.background.primary,
+    width: '85%',
+    maxWidth: 600,
+    height: '100%',
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: colors.shadow.opacity,
+    shadowRadius: 10,
     elevation: 10,
     zIndex: 1,
   },
@@ -1267,8 +1272,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB',
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.background.secondary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -1276,7 +1281,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background.tertiary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1289,7 +1294,7 @@ const styles = StyleSheet.create({
   popupTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#182d49',
+    color: colors.text.primary,
     textAlign: 'center',
   },
   placeholder: {
@@ -1307,13 +1312,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border.default,
   },
   sectionIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(233, 173, 20, 0.1)',
+    backgroundColor: colors.status.success + '1A',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -1321,20 +1326,20 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#182d49',
+    color: colors.text.primary,
   },
   sectionContainer: {
     marginBottom: 12,
     padding: 12,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.background.secondary,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border.default,
   },
   sectionSubtitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text.secondary,
     marginBottom: 12,
   },
   dateRow: {
@@ -1364,10 +1369,10 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -1380,15 +1385,15 @@ const styles = StyleSheet.create({
   modernInput: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
     paddingVertical: 8,
   },
   inputDisabled: {
-    backgroundColor: '#f3f4f6',
-    color: '#9ca3af',
+    backgroundColor: colors.background.tertiary,
+    color: colors.text.disabled,
   },
   autoFilledInput: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: colors.accent.secondary + '10',
   },
   autoFillIndicator: {
     marginLeft: 8,
@@ -1400,34 +1405,34 @@ const styles = StyleSheet.create({
   pickerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     paddingHorizontal: 12,
   },
   modernPicker: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
   },
   pickerText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
   },
   placeholderText: {
-    color: '#9ca3af',
+    color: colors.text.disabled,
     fontSize: 14,
   },
   integratedDropdown: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     marginTop: 4,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: colors.shadow.opacity,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -1435,17 +1440,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: colors.border.light,
   },
   integratedDropdownOptionSelected: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: colors.accent.secondary + '10',
   },
   integratedDropdownOptionText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
   },
   integratedDropdownOptionTextSelected: {
-    color: '#182d49',
+    color: colors.text.primary,
     fontWeight: '600',
   },
   actionButtons: {
@@ -1463,25 +1468,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveButton: {
-    backgroundColor: '#182d49',
+    backgroundColor: colors.accent.primary,
   },
   saveButtonDisabled: {
-    backgroundColor: '#9ca3af',
+    backgroundColor: colors.text.disabled,
     opacity: 0.6,
   },
   actionButtonText: {
-    color: '#fff',
+    color: colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
   inputContainerError: {
-    borderColor: '#ef4444',
+    borderColor: colors.status.error,
     borderWidth: 2,
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fee2e2',
+    backgroundColor: colors.status.error + '15',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
@@ -1491,7 +1496,7 @@ const styles = StyleSheet.create({
   errorText: {
     flex: 1,
     fontSize: 13,
-    color: '#ef4444',
+    color: colors.status.error,
     fontWeight: '500',
   },
   fieldContainer: {
@@ -1519,14 +1524,14 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text.secondary,
     marginBottom: 8,
   },
   fieldLabelRequired: {
-    color: '#182d49',
+    color: colors.text.primary,
   },
   requiredAsterisk: {
-    color: '#EF4444',
+    color: colors.status.error,
     fontWeight: 'bold',
   },
   modalOverlay: {
@@ -1542,15 +1547,15 @@ const styles = StyleSheet.create({
     top: '100%',
     left: 0,
     right: 0,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.border.default,
     marginTop: 4,
     maxHeight: 250,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: colors.shadow.opacity,
     shadowRadius: 12,
     elevation: 99999,
     zIndex: 99999,
@@ -1558,24 +1563,24 @@ const styles = StyleSheet.create({
   },
   autocompleteModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.background.modal,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   autocompleteModalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     width: '100%',
     maxWidth: 400,
     maxHeight: '60%',
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: colors.shadow.opacity,
     shadowRadius: 12,
     elevation: 20,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.border.default,
   },
   autocompleteModalScrollView: {
     maxHeight: 300,
@@ -1584,8 +1589,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    backgroundColor: '#ffffff',
+    borderBottomColor: colors.border.light,
+    backgroundColor: colors.background.primary,
     minHeight: 50,
   },
   autocompleteOptionLast: {
@@ -1594,12 +1599,12 @@ const styles = StyleSheet.create({
   autocompleteOptionCodigo: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1f2937',
+    color: colors.text.primary,
     marginBottom: 4,
   },
   autocompleteOptionDetalle: {
     fontSize: 13,
-    color: '#6b7280',
+    color: colors.text.tertiary,
     lineHeight: 18,
   },
 });

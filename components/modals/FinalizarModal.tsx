@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Calendar } from 'react-native-calendars';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface FinalizarModalProps {
   visible: boolean;
@@ -37,8 +38,16 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
   item,
   tipo,
 }) => {
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Resetear fecha al abrir el modal
+  useEffect(() => {
+    if (visible) {
+      setSelectedDate(new Date());
+    }
+  }, [visible]);
 
   if (!item) return null;
 
@@ -48,14 +57,13 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
     ? item.especie_variedad
     : (item.nueva_especie || item.especie);
   const fechaInicio = tipo === 'germinacion' ? item.fecha_siembra : item.fechapol;
-  const fechaPredicha = tipo === 'germinacion' 
-    ? item.prediccion_fecha_estimada 
+
+  // Intentar múltiples campos de predicción
+  const fechaPredicha = tipo === 'germinacion'
+    ? (item.prediccion_fecha_estimada || item.fecha_germinacion_estimada)
     : (item.fecha_maduracion_predicha || item.prediccion_fecha_estimada);
 
-  const hoy = new Date().toISOString().split('T')[0];
-  const fechaSeleccionada = selectedDate || hoy;
-
-  const titulo = tipo === 'germinacion' 
+  const titulo = tipo === 'germinacion'
     ? 'Finalizar Germinación'
     : 'Finalizar Polinización';
 
@@ -64,15 +72,10 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
     : 'Fecha de polinización';
 
   const handleConfirm = async () => {
-    if (!fechaSeleccionada) {
-      alert('Por favor selecciona una fecha');
-      return;
-    }
-
     setLoading(true);
     try {
-      await onConfirm(fechaSeleccionada);
-      setSelectedDate('');
+      const fechaISO = selectedDate.toISOString().split('T')[0];
+      await onConfirm(fechaISO);
       onClose();
     } catch (error) {
       console.error('Error finalizando:', error);
@@ -83,61 +86,18 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
   };
 
   const handleCancel = () => {
-    setSelectedDate('');
+    setSelectedDate(new Date());
     onClose();
   };
 
-  // Calcular diferencia de días
-  const calcularDiferenciaDias = () => {
-    if (!fechaPredicha || !fechaSeleccionada) return null;
-
-    const fechaPred = new Date(fechaPredicha);
-    const fechaSel = new Date(fechaSeleccionada);
-    const diffTime = fechaSel.getTime() - fechaPred.getTime();
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays;
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (date) {
+      setSelectedDate(date);
+    }
   };
-
-  const diferenciaDias = calcularDiferenciaDias();
-
-  // Marcar fechas en el calendario
-  const markedDates: any = {};
-
-  if (fechaPredicha) {
-    markedDates[fechaPredicha] = {
-      marked: true,
-      dotColor: '#3B82F6',
-      customStyles: {
-        container: {
-          backgroundColor: '#EFF6FF',
-          borderColor: '#3B82F6',
-          borderWidth: 2,
-        },
-        text: {
-          color: '#1E40AF',
-          fontWeight: 'bold',
-        },
-      },
-    };
-  }
-
-  if (fechaSeleccionada) {
-    markedDates[fechaSeleccionada] = {
-      ...markedDates[fechaSeleccionada],
-      selected: true,
-      selectedColor: '#10B981',
-      customStyles: {
-        container: {
-          backgroundColor: '#10B981',
-        },
-        text: {
-          color: '#FFFFFF',
-          fontWeight: 'bold',
-        },
-      },
-    };
-  }
 
   return (
     <Modal
@@ -152,7 +112,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerIcon}>
-                <Ionicons name="checkmark-circle" size={32} color="#10B981" />
+                <Ionicons name="checkmark-circle" size={40} color="#10B981" />
               </View>
               <Text style={styles.title}>{titulo}</Text>
               <Text style={styles.subtitle}>{codigo}</Text>
@@ -162,109 +122,71 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
             <View style={styles.infoSection}>
               {especie && (
                 <View style={styles.infoRow}>
-                  <Ionicons name="leaf-outline" size={16} color="#6B7280" />
+                  <Ionicons name="leaf-outline" size={18} color="#6B7280" />
                   <Text style={styles.infoLabel}>Especie:</Text>
                   <Text style={styles.infoValue}>{especie}</Text>
                 </View>
               )}
               {fechaInicio && (
                 <View style={styles.infoRow}>
-                  <Ionicons name="calendar-outline" size={16} color="#6B7280" />
+                  <Ionicons name="calendar-outline" size={18} color="#6B7280" />
                   <Text style={styles.infoLabel}>{labelFechaInicio}:</Text>
                   <Text style={styles.infoValue}>
-                    {new Date(fechaInicio).toLocaleDateString('es-ES')}
+                    {new Date(fechaInicio).toLocaleDateString('es-ES', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    })}
                   </Text>
                 </View>
               )}
             </View>
 
-            {/* Predicción vs Realidad */}
-            {fechaPredicha && (
-              <View style={styles.comparisonSection}>
-                <Text style={styles.comparisonTitle}>Predicción vs Realidad</Text>
-                
-                <View style={styles.comparisonRow}>
-                  <View style={styles.comparisonItem}>
-                    <Ionicons name="analytics-outline" size={20} color="#3B82F6" />
-                    <Text style={styles.comparisonLabel}>Predicción</Text>
-                    <Text style={styles.comparisonValue}>
-                      {new Date(fechaPredicha).toLocaleDateString('es-ES')}
-                    </Text>
-                  </View>
-
-                  <Ionicons name="arrow-forward" size={24} color="#9CA3AF" />
-
-                  <View style={styles.comparisonItem}>
-                    <Ionicons name="calendar-outline" size={20} color="#10B981" />
-                    <Text style={styles.comparisonLabel}>Realidad</Text>
-                    <Text style={styles.comparisonValue}>
-                      {fechaSeleccionada
-                        ? new Date(fechaSeleccionada).toLocaleDateString('es-ES')
-                        : 'Seleccionar'}
-                    </Text>
-                  </View>
+            {/* Fechas - Lado a lado */}
+            <View style={styles.datesContainer}>
+              {/* Fecha de Finalización */}
+              <View style={styles.dateColumn}>
+                <Text style={styles.dateLabel}>Fecha de Finalización</Text>
+                <TouchableOpacity
+                  style={styles.dateInputButton}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Text style={styles.dateInputText}>
+                    {selectedDate.toLocaleDateString('es-ES', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
+                </TouchableOpacity>
+                <View style={styles.autoTextContainer}>
+                  <Ionicons name="information-circle-outline" size={12} color="#6B7280" />
+                  <Text style={styles.autoText}>Automático: Hoy.</Text>
                 </View>
+              </View>
 
-                {diferenciaDias !== null && (
-                  <View style={styles.differenceContainer}>
-                    <Text style={styles.differenceLabel}>Diferencia:</Text>
-                    <Text
-                      style={[
-                        styles.differenceValue,
-                        {
-                          color:
-                            diferenciaDias === 0
-                              ? '#10B981'
-                              : Math.abs(diferenciaDias) <= 3
-                              ? '#F59E0B'
-                              : '#EF4444',
-                        },
-                      ]}
-                    >
-                      {diferenciaDias === 0
-                        ? '¡Exacto!'
-                        : diferenciaDias > 0
-                        ? `+${diferenciaDias} días`
-                        : `${diferenciaDias} días`}
+              {/* Fecha de Predicción */}
+              <View style={styles.dateColumn}>
+                <Text style={styles.dateLabel}>Fecha de Predicción</Text>
+                {fechaPredicha ? (
+                  <View style={styles.datePredictedBox}>
+                    <Text style={styles.datePredictedText}>
+                      {new Date(fechaPredicha).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.datePredictedBox}>
+                    <Text style={[styles.datePredictedText, { color: '#9CA3AF' }]}>
+                      Sin predicción
                     </Text>
                   </View>
                 )}
               </View>
-            )}
-
-            {/* Calendario */}
-            <View style={styles.calendarSection}>
-              <Text style={styles.calendarTitle}>Selecciona la fecha</Text>
-              <Calendar
-                current={hoy}
-                maxDate={hoy}
-                onDayPress={(day) => setSelectedDate(day.dateString)}
-                markedDates={markedDates}
-                markingType="custom"
-                theme={{
-                  todayTextColor: '#10B981',
-                  selectedDayBackgroundColor: '#10B981',
-                  selectedDayTextColor: '#FFFFFF',
-                  arrowColor: '#3B82F6',
-                  monthTextColor: '#1F2937',
-                  textMonthFontWeight: 'bold',
-                  textDayFontSize: 14,
-                  textMonthFontSize: 16,
-                }}
-              />
-              
-              {fechaPredicha && (
-                <View style={styles.legendContainer}>
-                  <View style={styles.legendItem}>
-                    <View style={[styles.legendDot, { backgroundColor: '#3B82F6' }]} />
-                    <Text style={styles.legendText}>Fecha predicha</Text>
-                  </View>
-                  <View style={styles.legendItem}>
-                    <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-                    <Text style={styles.legendText}>Fecha seleccionada</Text>
-                  </View>
-                </View>
-              )}
             </View>
 
             {/* Botones */}
@@ -280,7 +202,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
               <TouchableOpacity
                 style={[styles.button, styles.confirmButton]}
                 onPress={handleConfirm}
-                disabled={loading || !fechaSeleccionada}
+                disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator color="#FFFFFF" />
@@ -293,6 +215,30 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
               </TouchableOpacity>
             </View>
           </ScrollView>
+
+          {/* DateTimePicker */}
+          {showDatePicker && (
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              maximumDate={new Date()}
+              locale="es-ES"
+            />
+          )}
+
+          {/* iOS DatePicker Done Button */}
+          {showDatePicker && Platform.OS === 'ios' && (
+            <View style={styles.iosPickerButtonContainer}>
+              <TouchableOpacity
+                style={styles.iosPickerButton}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={styles.iosPickerButtonText}>Listo</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
@@ -309,11 +255,11 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     width: '100%',
-    maxWidth: 500,
-    maxHeight: '90%',
-    padding: 20,
+    maxWidth: 480,
+    maxHeight: '85%',
+    padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -322,27 +268,27 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   headerIcon: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#6B7280',
     fontWeight: '600',
   },
   infoSection: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F3F4F6',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 24,
     gap: 12,
   },
   infoRow: {
@@ -353,97 +299,73 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 14,
     color: '#6B7280',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   infoValue: {
     fontSize: 14,
     color: '#1F2937',
-    fontWeight: '500',
+    fontWeight: '600',
     flex: 1,
   },
-  comparisonSection: {
-    backgroundColor: '#EFF6FF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  comparisonTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1E40AF',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  comparisonRow: {
+  datesContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
+    gap: 16,
   },
-  comparisonItem: {
-    alignItems: 'center',
-    gap: 8,
+  dateColumn: {
+    flex: 1,
   },
-  comparisonLabel: {
-    fontSize: 12,
-    color: '#6B7280',
+  dateLabel: {
+    fontSize: 13,
     fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
   },
-  comparisonValue: {
-    fontSize: 14,
+  dateInputButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    minHeight: 44,
+  },
+  dateInputText: {
+    fontSize: 13,
     color: '#1F2937',
-    fontWeight: 'bold',
+    fontWeight: '400',
+    flex: 1,
   },
-  differenceContainer: {
+  autoTextContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#BFDBFE',
+    gap: 4,
+    marginTop: 8,
   },
-  differenceLabel: {
-    fontSize: 14,
+  autoText: {
+    fontSize: 11,
     color: '#6B7280',
-    fontWeight: '600',
   },
-  differenceValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  datePredictedBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    minHeight: 44,
+    justifyContent: 'center',
   },
-  calendarSection: {
-    marginBottom: 20,
-  },
-  calendarTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  datePredictedText: {
+    fontSize: 13,
     color: '#1F2937',
-    marginBottom: 12,
-  },
-  legendContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
-    marginTop: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  legendText: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontWeight: '400',
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 8,
   },
   button: {
     flex: 1,
@@ -451,16 +373,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 10,
     gap: 8,
   },
   cancelButton: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#D1D5DB',
   },
   cancelButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#6B7280',
   },
@@ -468,8 +390,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
   },
   confirmButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  iosPickerButtonContainer: {
+    backgroundColor: '#F9FAFB',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'flex-end',
+  },
+  iosPickerButton: {
+    backgroundColor: '#10B981',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  iosPickerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

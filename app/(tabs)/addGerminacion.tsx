@@ -190,6 +190,7 @@ export default function AddGerminacionScreen() {
       visible={true}
       transparent
       animationType="slide"
+      presentationStyle="overFullScreen"
       onRequestClose={() => router.back()}
     >
       <TouchableOpacity
@@ -422,8 +423,8 @@ export default function AddGerminacionScreen() {
                 {isLoading ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear')}
               </Text>
             </TouchableOpacity>
-            </View>
-            </View>
+          </View>
+          </View>
           </ScrollView>
         </TouchableOpacity>
       </TouchableOpacity>
@@ -436,31 +437,29 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(24, 45, 73, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    justifyContent: 'flex-end',
+    flexDirection: 'row',
   },
   modalContainer: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
-    width: '100%',
-    maxWidth: 500,
-    maxHeight: '90%',
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+    width: '85%',
+    maxWidth: 600,
+    height: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: -4, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 10,
-    borderWidth: 2,
+    borderLeftWidth: 2,
     borderColor: '#e9ad14',
   },
   modalContainerTablet: {
     maxWidth: 700,
-    maxHeight: '85%',
   },
   modalContainerLarge: {
     maxWidth: 900,
-    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -472,7 +471,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e0e0e0',
     backgroundColor: '#f8f9fa',
     borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
   },
   modalTitle: {
     fontSize: 20,

@@ -730,9 +730,10 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
     return (
       <Modal
         visible={visible}
-        animationType="fade"
+        animationType="slide"
         transparent={true}
         onRequestClose={onClose}
+        presentationStyle="overFullScreen"
       >
         <View style={styles.popupOverlay}>
           <View style={styles.popupContainer}>
@@ -750,19 +751,19 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
 const styles = StyleSheet.create({
   popupOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(156, 163, 175, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+    flexDirection: 'row',
   },
   popupContainer: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    width: '95%',
-    maxHeight: '90%',
+    width: '85%',
+    maxWidth: 600,
+    height: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
+    shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
     elevation: 10,
   },
   popupScrollView: {

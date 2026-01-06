@@ -232,29 +232,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const storedToken = await tokenManager.getAccessToken();
         if (storedToken) {
           setToken(storedToken);
-          
+
           const userDataLoaded = await loadUserData();
           if (!userDataLoaded) {
+            // No hacer return aquí, dejar que llegue al finally
             const logoutFn = await getTokenManager();
             await logoutFn.clearTokens();
             setToken(null);
             setUser(null);
             setPermissions(null);
+            // Limpiar isLoading antes de redirigir
+            setIsLoading(false);
             router.replace('/login');
-            return;
+          } else {
+            await loadUserPermissions();
           }
-          
-          await loadUserPermissions();
+        } else {
+          // No hay token, limpiar isLoading y redirigir a login
+          setIsLoading(false);
         }
       } catch (error) {
         console.log('Error en loadToken:', error);
-        const logoutFn = await getTokenManager();
-        await logoutFn.clearTokens();
+        try {
+          const logoutFn = await getTokenManager();
+          await logoutFn.clearTokens();
+        } catch (clearError) {
+          console.warn('Error limpiando tokens:', clearError);
+        }
         setToken(null);
         setUser(null);
         setPermissions(null);
+        setIsLoading(false);
         router.replace('/login');
       } finally {
+        // Asegurar que siempre se limpie el estado de carga
         setIsLoading(false);
       }
     };
