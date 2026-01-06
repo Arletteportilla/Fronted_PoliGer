@@ -117,7 +117,8 @@ class RBACService {
           console.log(`✅ Page ${page}: ${response.data.results.length} users (total: ${allUsers.length})`);
           
           // Verificar si hay siguiente página
-          nextUrl = response.data.next ? response.data.next.replace('http://localhost:8000/api/', '') : null;
+          // Eliminar la URL base del backend para usar solo el path relativo
+          nextUrl = response.data.next ? response.data.next.replace(/^https?:\/\/[^\/]+\/api\//, '') : null;
           page++;
         } else {
           console.warn('⚠️ Invalid page response structure');
