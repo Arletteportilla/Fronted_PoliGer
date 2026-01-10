@@ -1,10 +1,10 @@
 import api from './api';
 import * as SecureStore from '@/services/secureStore';
-import type { 
 import { logger } from '@/services/logger';
-  PrediccionMejoradaResponse, 
-  EstadisticasPrecisionModelo, 
-  ReentrenamientoResponse 
+import type {
+  PrediccionMejoradaResponse,
+  EstadisticasPrecisionModelo,
+  ReentrenamientoResponse
 } from '@/types';
 
 export const germinacionService = {
