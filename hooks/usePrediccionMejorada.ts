@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { germinacionService } from '@/services/germinacion.service';
 import { PrediccionMejoradaResponse } from '@/types';
+import { logger } from '@/services/logger';
 
 interface UsePrediccionMejoradaProps {
   onSuccess?: (prediccion: PrediccionMejoradaResponse) => void;
@@ -22,7 +23,7 @@ export const usePrediccionMejorada = ({ onSuccess, onError }: UsePrediccionMejor
       setLoading(true);
       setError(null);
 
-      console.log('🔮 usePrediccionMejorada - Calculando predicción con:', formData);
+      logger.info('🔮 usePrediccionMejorada - Calculando predicción con:', formData);
 
       const resultado = await germinacionService.calcularPrediccionMejorada(formData);
 
@@ -32,7 +33,7 @@ export const usePrediccionMejorada = ({ onSuccess, onError }: UsePrediccionMejor
         onSuccess(resultado);
       }
 
-      console.log('✅ usePrediccionMejorada - Predicción calculada exitosamente');
+      logger.success(' usePrediccionMejorada - Predicción calculada exitosamente');
       return resultado;
 
     } catch (err) {
@@ -81,13 +82,13 @@ export const useAlertasGerminacion = () => {
       setLoading(true);
       setError(null);
 
-      console.log('🔔 useAlertasGerminacion - Obteniendo alertas...');
+      logger.info('🔔 useAlertasGerminacion - Obteniendo alertas...');
 
       const resultado = await germinacionService.obtenerAlertasGerminacion();
       
       setAlertas(resultado.alertas || []);
       
-      console.log('✅ useAlertasGerminacion - Alertas obtenidas:', resultado.alertas?.length || 0);
+      logger.success(' useAlertasGerminacion - Alertas obtenidas:', resultado.alertas?.length || 0);
       return resultado;
 
     } catch (err) {
@@ -103,7 +104,7 @@ export const useAlertasGerminacion = () => {
 
   const marcarAlertaRevisada = useCallback(async (germinacionId: number, estado: string) => {
     try {
-      console.log(`🔄 useAlertasGerminacion - Marcando alerta ${germinacionId} como ${estado}...`);
+      logger.start(` useAlertasGerminacion - Marcando alerta ${germinacionId} como ${estado}...`);
 
       await germinacionService.marcarAlertaRevisada(germinacionId, estado);
       
@@ -114,7 +115,7 @@ export const useAlertasGerminacion = () => {
           : alerta
       ));
 
-      console.log('✅ useAlertasGerminacion - Alerta actualizada');
+      logger.success(' useAlertasGerminacion - Alerta actualizada');
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error actualizando alerta';
@@ -146,13 +147,13 @@ export const useEstadisticasPrecision = () => {
       setLoading(true);
       setError(null);
 
-      console.log('📊 useEstadisticasPrecision - Obteniendo estadísticas...');
+      logger.info('📊 useEstadisticasPrecision - Obteniendo estadísticas...');
 
       const resultado = await germinacionService.obtenerEstadisticasPrecision();
       
       setEstadisticas(resultado);
       
-      console.log('✅ useEstadisticasPrecision - Estadísticas obtenidas');
+      logger.success(' useEstadisticasPrecision - Estadísticas obtenidas');
       return resultado;
 
     } catch (err) {
@@ -171,11 +172,11 @@ export const useEstadisticasPrecision = () => {
       setLoading(true);
       setError(null);
 
-      console.log('🤖 useEstadisticasPrecision - Reentrenando modelo...');
+      logger.info('🤖 useEstadisticasPrecision - Reentrenando modelo...');
 
       const resultado = await germinacionService.reentrenarModelo();
       
-      console.log('✅ useEstadisticasPrecision - Modelo reentrenado');
+      logger.success(' useEstadisticasPrecision - Modelo reentrenado');
       
       // Actualizar estadísticas después del reentrenamiento
       if (resultado.success) {

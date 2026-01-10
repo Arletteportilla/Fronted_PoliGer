@@ -1,4 +1,5 @@
 import api from './api';
+import { logger } from '@/services/logger';
 
 // ============================================================================
 // INTERFACES PARA PREDICCIÓN ML (XGBoost)
@@ -101,13 +102,13 @@ class PolinizacionMLService {
    *   disponible: 1
    * });
    *
-   * console.log(`Días estimados: ${prediccion.dias_estimados}`);
-   * console.log(`Confianza: ${prediccion.confianza}%`);
+   * logger.info(`Días estimados: ${prediccion.dias_estimados}`);
+   * logger.info(`Confianza: ${prediccion.confianza}%`);
    * ```
    */
   async predecir(data: PrediccionMLRequest): Promise<PrediccionMLResponse> {
     try {
-      console.log('🤖 [ML] Realizando predicción con XGBoost:', data);
+      logger.info('🤖 [ML] Realizando predicción con XGBoost:', data);
 
       // Validar datos antes de enviar
       this.validarDatos(data);
@@ -123,7 +124,7 @@ class PolinizacionMLService {
         }
       );
 
-      console.log('✅ [ML] Predicción exitosa:', response.data);
+      logger.success(' [ML] Predicción exitosa:', response.data);
 
       return response.data;
 
@@ -141,18 +142,18 @@ class PolinizacionMLService {
    * @example
    * ```typescript
    * const info = await polinizacionMLService.obtenerInfoModelo();
-   * console.log(`Modelo: ${info.model_type}`);
-   * console.log(`Features: ${info.n_features}`);
-   * console.log(`Cargado: ${info.loaded}`);
+   * logger.info(`Modelo: ${info.model_type}`);
+   * logger.info(`Features: ${info.n_features}`);
+   * logger.info(`Cargado: ${info.loaded}`);
    * ```
    */
   async obtenerInfoModelo(): Promise<ModeloMLInfo> {
     try {
-      console.log('🤖 [ML] Obteniendo información del modelo');
+      logger.info('🤖 [ML] Obteniendo información del modelo');
 
       const response = await api.get<ModeloMLInfo>('ml/model-info/');
 
-      console.log('✅ [ML] Información del modelo obtenida:', response.data);
+      logger.success(' [ML] Información del modelo obtenida:', response.data);
 
       return response.data;
 

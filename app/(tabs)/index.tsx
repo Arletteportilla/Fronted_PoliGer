@@ -11,6 +11,7 @@ import Svg, { Line } from 'react-native-svg';
 // IMPORTS DIRECTOS - NO LAZY
 import { germinacionService } from '@/services/germinacion.service';
 import { polinizacionService } from '@/services/polinizacion.service';
+import { logger } from '@/services/logger';
 
 interface StatusCounts {
   ingresado: number;
@@ -217,14 +218,14 @@ export default function HomeScreen() {
       setLoading(true);
 
       if (!token) {
-        console.warn('No hay token de autenticación');
+        logger.warn('No hay token de autenticación');
         throw new Error('Necesitas autenticarte para ver los datos');
       }
 
       // Obtener estadísticas reales de germinaciones desde el backend
       const estadisticasResponse = await germinacionService.getFilterOptions();
 
-      console.log('📊 Home - Estadísticas recibidas:', estadisticasResponse);
+      logger.info('📊 Home - Estadísticas recibidas:', estadisticasResponse);
 
       // Las estadísticas vienen en el formato: { total, por_estado: { CERRADA, ABIERTA, SEMIABIERTA } }
       const germinacionCounts = {
@@ -234,7 +235,7 @@ export default function HomeScreen() {
         total: estadisticasResponse?.estadisticas?.total || 0
       };
 
-      console.log('📊 Home - Contadores de germinación:', germinacionCounts);
+      logger.info('📊 Home - Contadores de germinación:', germinacionCounts);
       setGerminacionStats(germinacionCounts);
 
       // Obtener datos de polinizaciones
@@ -254,7 +255,7 @@ export default function HomeScreen() {
         ? totalPolinizaciones.value
         : 0;
 
-      console.log(`✅ Datos cargados: ${germinacionesRecientes.length} germinaciones recientes, ${polinizaciones.length} polinizaciones (total: ${totalPol})`);
+      logger.success(` Datos cargados: ${germinacionesRecientes.length} germinaciones recientes, ${polinizaciones.length} polinizaciones (total: ${totalPol})`);
 
       // Calcular estadísticas de polinizaciones
       const polinizacionCounts = calculatePolinizacionStats(polinizaciones);

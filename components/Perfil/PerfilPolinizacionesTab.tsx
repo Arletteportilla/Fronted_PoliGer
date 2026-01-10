@@ -8,6 +8,7 @@ import Pagination from '@/components/filters/Pagination';
 import type { Polinizacion } from '@/types/index';
 import { getEstadoColor, getTipoColor } from '@/utils/colorHelpers';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
+import { logger } from '@/services/logger';
 
 export interface PerfilPolinizacionesTabProps {
   loading: boolean;
@@ -85,7 +86,7 @@ export function PerfilPolinizacionesTab({
           <TouchableOpacity
             style={styles.exportButton}
             onPress={() => {
-              console.log('🔔 Botón Descargar PDF clickeado - Polinizaciones');
+              logger.info('🔔 Botón Descargar PDF clickeado - Polinizaciones');
               onDescargarPDF();
             }}
           >
@@ -169,7 +170,7 @@ export function PerfilPolinizacionesTab({
             {filteredPolinizaciones.map((item, index) => {
               // Debug: Log de datos de predicción
               if (index === 0) {
-                console.log('🔍 Datos de predicción en primera polinización:', {
+                logger.debug(' Datos de predicción en primera polinización:', {
                   numero: item.numero,
                   codigo: item.codigo,
                   fecha_maduracion_predicha: item.fecha_maduracion_predicha,
@@ -180,8 +181,8 @@ export function PerfilPolinizacionesTab({
                 });
                 
                 // Log adicional para debugging
-                console.log('🔍 Todas las propiedades del item:', Object.keys(item));
-                console.log('🔍 Item completo:', item);
+                logger.debug(' Todas las propiedades del item:', Object.keys(item));
+                logger.debug(' Item completo:', item);
               }
               
               // Construir especie completa

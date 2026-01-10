@@ -1,4 +1,5 @@
 import * as SecureStore from '@/services/secureStore';
+import { logger } from '@/services/logger';
 
 export const debugAuth = {
   async checkToken() {
@@ -6,11 +7,11 @@ export const debugAuth = {
       const token = await SecureStore.secureStore.getItem('authToken');
       const user = await SecureStore.secureStore.getItem('user');
 
-      console.log('🔍 DEBUG AUTH:');
-      console.log('Token exists:', !!token);
-      console.log('Token length:', token?.length || 0);
-      console.log('Token preview:', token?.substring(0, 20) + '...' || 'No token');
-      console.log('User data:', user ? JSON.parse(user) : 'No user');
+      logger.debug(' DEBUG AUTH:');
+      logger.info('Token exists:', !!token);
+      logger.info('Token length:', token?.length || 0);
+      logger.info('Token preview:', token?.substring(0, 20) + '...' || 'No token');
+      logger.info('User data:', user ? JSON.parse(user) : 'No user');
 
       return { token, user: user ? JSON.parse(user) : null };
     } catch (error) {
@@ -23,7 +24,7 @@ export const debugAuth = {
     try {
       await SecureStore.secureStore.removeItem('authToken');
       await SecureStore.secureStore.removeItem('user');
-      console.log('✅ Auth cleared');
+      logger.success(' Auth cleared');
     } catch (error) {
       console.error('❌ Error clearing auth:', error);
     }
@@ -34,7 +35,7 @@ export const debugAuth = {
       const { token } = await this.checkToken();
 
       if (!token) {
-        console.log('❌ No token available');
+        logger.error(' No token available');
         return;
       }
 
@@ -46,13 +47,13 @@ export const debugAuth = {
         }
       });
 
-      console.log('🌸 Polinizaciones API Status:', polResponse.status);
+      logger.info('🌸 Polinizaciones API Status:', polResponse.status);
 
       if (polResponse.ok) {
         const polData = await polResponse.json();
-        console.log('✅ Polinizaciones count:', polData.length);
+        logger.success(' Polinizaciones count:', polData.length);
       } else {
-        console.log('❌ Polinizaciones error:', await polResponse.text());
+        logger.error(' Polinizaciones error:', await polResponse.text());
       }
 
       // Test germinaciones
@@ -63,13 +64,13 @@ export const debugAuth = {
         }
       });
 
-      console.log('🌱 Germinaciones API Status:', gerResponse.status);
+      logger.info('🌱 Germinaciones API Status:', gerResponse.status);
 
       if (gerResponse.ok) {
         const gerData = await gerResponse.json();
-        console.log('✅ Germinaciones count:', gerData.length);
+        logger.success(' Germinaciones count:', gerData.length);
       } else {
-        console.log('❌ Germinaciones error:', await gerResponse.text());
+        logger.error(' Germinaciones error:', await gerResponse.text());
       }
 
     } catch (error) {

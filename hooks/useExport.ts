@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import type { ExportFilters, ExportFormat, ExportEntity, IncludeStats } from '@/types/export.types';
 import { reportesService } from '@/services/reportes.service';
 import { API_CONFIG, buildApiUrl } from '@/config/api';
+import { logger } from '@/services/logger';
 
 interface UseExportOptions {
   defaultEntity?: ExportEntity;
@@ -90,7 +91,7 @@ export const useExport = (options: UseExportOptions = {}) => {
   const exportForMobile = async (filtros: ExportFilters): Promise<void> => {
     // Si es PDF de germinaciones sin estadísticas, usar endpoint optimizado
     if (tipoEntidad === 'germinaciones' && formatoReporte === 'pdf' && incluirEstadisticas === 'no') {
-      console.log('📄 Usando endpoint optimizado para PDF de germinaciones...');
+      logger.info('📄 Usando endpoint optimizado para PDF de germinaciones...');
       await reportesService.descargarPDFGerminaciones(filtros['search']);
       return;
     }

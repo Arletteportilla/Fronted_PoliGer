@@ -7,6 +7,7 @@ import { useGerminaciones } from '@/hooks/useGerminaciones';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { TabNavigation } from '@/components/navigation';
 import { DiagnosticPanel } from '@/components/dashboard';
+import { logger } from '@/services/logger';
 
 // Types
 interface StatusCounts {
@@ -76,8 +77,8 @@ export const DashboardWithCards: React.FC = () => {
     total: 0
   });
 
-  console.log('🔍 Dashboard render - germinaciones.length:', germinaciones?.length);
-  console.log('🔍 Dashboard render - germinacionStats:', germinacionStats);
+  logger.debug(' Dashboard render - germinaciones.length:', germinaciones?.length);
+  logger.debug(' Dashboard render - germinacionStats:', germinacionStats);
   const [polinizacionStats, setPolinizacionStats] = useState<StatusCounts>({
     ingresado: 0,
     en_proceso: 0,
@@ -173,7 +174,7 @@ export const DashboardWithCards: React.FC = () => {
       })
       .slice(0, 5); // Solo los últimos 5
 
-    console.log(`📊 Generando tarjetas: ${sortedGerminaciones.length} germinaciones, ${sortedPolinizaciones.length} polinizaciones`);
+    logger.info(`📊 Generando tarjetas: ${sortedGerminaciones.length} germinaciones, ${sortedPolinizaciones.length} polinizaciones`);
 
     // Generate germinacion cards
     sortedGerminaciones.forEach(ger => {
@@ -291,7 +292,7 @@ export const DashboardWithCards: React.FC = () => {
       const { germinacionService } = await import('@/services/germinacion.service');
       const estadisticasResponse = await germinacionService.getFilterOptions();
 
-      console.log('📊 Dashboard - Estadísticas recibidas:', estadisticasResponse);
+      logger.info('📊 Dashboard - Estadísticas recibidas:', estadisticasResponse);
 
       // Las estadísticas vienen en el formato: { total, por_estado: { CERRADA, ABIERTA, SEMIABIERTA } }
       const germinacionCounts = {
@@ -301,7 +302,7 @@ export const DashboardWithCards: React.FC = () => {
         total: estadisticasResponse?.estadisticas?.total || 0
       };
 
-      console.log('📊 Dashboard - Contadores calculados:', germinacionCounts);
+      logger.info('📊 Dashboard - Contadores calculados:', germinacionCounts);
       setGerminacionStats(germinacionCounts);
 
       // Obtener polinizaciones
@@ -496,7 +497,7 @@ export const DashboardWithCards: React.FC = () => {
         const { germinacionService } = await import('@/services/germinacion.service');
         const estadisticasResponse = await germinacionService.getFilterOptions();
 
-        console.log('📊 Dashboard (useEffect) - Estadísticas recibidas:', estadisticasResponse);
+        logger.info('📊 Dashboard (useEffect) - Estadísticas recibidas:', estadisticasResponse);
 
         // Las estadísticas vienen en el formato: { total, por_estado: { CERRADA, ABIERTA, SEMIABIERTA } }
         const germinacionCounts = {
@@ -506,7 +507,7 @@ export const DashboardWithCards: React.FC = () => {
           total: estadisticasResponse?.estadisticas?.total || 0
         };
 
-        console.log('📊 Dashboard (useEffect) - Contadores calculados:', germinacionCounts);
+        logger.info('📊 Dashboard (useEffect) - Contadores calculados:', germinacionCounts);
         setGerminacionStats(germinacionCounts);
 
         // Obtener polinizaciones

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
+import { logger } from '@/services/logger';
   View,
   TextInput,
   Text,
@@ -51,10 +52,10 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 
   // Filtrar sugerencias basadas en el valor actual
   useEffect(() => {
-    console.log('🔍 DEBUG - AutocompleteInput: useEffect triggered');
-    console.log('🔍 DEBUG - AutocompleteInput: value:', value);
-    console.log('🔍 DEBUG - AutocompleteInput: suggestions.length:', suggestions.length);
-    console.log('🔍 DEBUG - AutocompleteInput: Primeros 3 suggestions:', suggestions.slice(0, 3));
+    logger.debug(' DEBUG - AutocompleteInput: useEffect triggered');
+    logger.debug(' DEBUG - AutocompleteInput: value:', value);
+    logger.debug(' DEBUG - AutocompleteInput: suggestions.length:', suggestions.length);
+    logger.debug(' DEBUG - AutocompleteInput: Primeros 3 suggestions:', suggestions.slice(0, 3));
 
     if (value && value.length > 0) {
       const filtered = suggestions
@@ -63,8 +64,8 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
         )
         .slice(0, 10); // Limitar a 10 sugerencias
 
-      console.log('🔍 DEBUG - AutocompleteInput: filtered.length:', filtered.length);
-      console.log('🔍 DEBUG - AutocompleteInput: Sugerencias filtradas:', filtered);
+      logger.debug(' DEBUG - AutocompleteInput: filtered.length:', filtered.length);
+      logger.debug(' DEBUG - AutocompleteInput: Sugerencias filtradas:', filtered);
 
       setFilteredSuggestions(filtered);
       setIsOpen(filtered.length > 0);
@@ -79,15 +80,15 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   };
 
   const handleSuggestionPress = (suggestion: string) => {
-    console.log('🔍 DEBUG - AutocompleteInput: handleSuggestionPress llamado con:', suggestion);
+    logger.debug(' DEBUG - AutocompleteInput: handleSuggestionPress llamado con:', suggestion);
     onChangeText(suggestion);
     setIsOpen(false);
     if (onSelectSuggestion) {
-      console.log('🔍 DEBUG - AutocompleteInput: llamando onSelectSuggestion');
+      logger.debug(' DEBUG - AutocompleteInput: llamando onSelectSuggestion');
       onSelectSuggestion(suggestion);
     }
     if (onSelectionChange) {
-      console.log('🔍 DEBUG - AutocompleteInput: llamando onSelectionChange');
+      logger.debug(' DEBUG - AutocompleteInput: llamando onSelectionChange');
       onSelectionChange(suggestion);
     }
   };

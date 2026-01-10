@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+import { logger } from '@/services/logger';
   View,
   Text,
   Modal,
@@ -113,81 +114,81 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   };
 
   const validateForm = (): boolean => {
-    console.log('🔍 Iniciando validación del formulario...');
-    console.log('📋 Datos a validar:', formData);
+    logger.debug(' Iniciando validación del formulario...');
+    logger.info('📋 Datos a validar:', formData);
     
     const newErrors: Partial<Record<keyof UserFormData, string>> = {};
 
     // Validar campos requeridos
     if (!formData.username.trim()) {
       newErrors.username = 'El nombre de usuario es requerido';
-      console.log('❌ Username: vacío');
+      logger.error(' Username: vacío');
     } else if (formData.username.length < 3) {
       newErrors.username = 'Mínimo 3 caracteres';
-      console.log('❌ Username: muy corto (', formData.username.length, 'caracteres)');
+      logger.error(' Username: muy corto (', formData.username.length, 'caracteres)');
     } else {
-      console.log('✅ Username: válido');
+      logger.success(' Username: válido');
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'El email es requerido';
-      console.log('❌ Email: vacío');
+      logger.error(' Email: vacío');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email inválido';
-      console.log('❌ Email: formato inválido');
+      logger.error(' Email: formato inválido');
     } else {
-      console.log('✅ Email: válido');
+      logger.success(' Email: válido');
     }
 
     if (!formData.first_name.trim()) {
       newErrors.first_name = 'El nombre es requerido';
-      console.log('❌ First name: vacío');
+      logger.error(' First name: vacío');
     } else {
-      console.log('✅ First name: válido');
+      logger.success(' First name: válido');
     }
 
     if (!formData.last_name.trim()) {
       newErrors.last_name = 'El apellido es requerido';
-      console.log('❌ Last name: vacío');
+      logger.error(' Last name: vacío');
     } else {
-      console.log('✅ Last name: válido');
+      logger.success(' Last name: válido');
     }
 
     if (!formData.password) {
       newErrors.password = 'La contraseña es requerida';
-      console.log('❌ Password: vacío');
+      logger.error(' Password: vacío');
     } else if (formData.password.length < 8) {
       newErrors.password = 'Mínimo 8 caracteres';
-      console.log('❌ Password: muy corto (', formData.password.length, 'caracteres, necesita 8)');
+      logger.error(' Password: muy corto (', formData.password.length, 'caracteres, necesita 8)');
     } else {
-      console.log('✅ Password: válido');
+      logger.success(' Password: válido');
     }
 
     if (formData.password !== formData.password_confirm) {
       newErrors.password_confirm = 'Las contraseñas no coinciden';
-      console.log('❌ Password confirm: no coincide');
+      logger.error(' Password confirm: no coincide');
     } else {
-      console.log('✅ Password confirm: válido');
+      logger.success(' Password confirm: válido');
     }
 
-    console.log('📊 Errores encontrados:', newErrors);
-    console.log('🎯 Validación', Object.keys(newErrors).length === 0 ? 'EXITOSA' : 'FALLÓ');
+    logger.info('📊 Errores encontrados:', newErrors);
+    logger.info('🎯 Validación', Object.keys(newErrors).length === 0 ? 'EXITOSA' : 'FALLÓ');
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    console.log('🔘 CreateUserModal.handleSubmit - Botón presionado');
-    console.log('📋 Datos del formulario:', formData);
-    console.log('🔄 Loading actual:', loading);
+    logger.info('🔘 CreateUserModal.handleSubmit - Botón presionado');
+    logger.info('📋 Datos del formulario:', formData);
+    logger.start(' Loading actual:', loading);
     
     if (!validateForm()) {
-      console.log('❌ Validación falló, mostrando errores al usuario');
+      logger.error(' Validación falló, mostrando errores al usuario');
       const errorMessages = Object.entries(errors)
         .map(([field, message]) => `${field}: ${message}`)
         .join('\n');
-      console.log('📝 Mensajes de error:', errorMessages);
+      logger.info('📝 Mensajes de error:', errorMessages);
       
       Alert.alert(
         'Errores en el formulario', 
@@ -196,13 +197,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       return;
     }
 
-    console.log('✅ Validación exitosa, iniciando creación...');
+    logger.success(' Validación exitosa, iniciando creación...');
     setLoading(true);
     
     try {
-      console.log('🚀 Llamando a onCreateUser...');
+      logger.info('🚀 Llamando a onCreateUser...');
       await onCreateUser(formData);
-      console.log('✅ onCreateUser completado exitosamente');
+      logger.success(' onCreateUser completado exitosamente');
 
       // Reset form y cerrar modal
       resetForm();
@@ -233,7 +234,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
       Alert.alert('Error al crear usuario', errorMessage);
     } finally {
-      console.log('🏁 Finalizando handleSubmit, setting loading to false');
+      logger.info('🏁 Finalizando handleSubmit, setting loading to false');
       setLoading(false);
     }
   };
@@ -585,9 +586,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <TouchableOpacity
                 style={[styles.createButton, loading && styles.createButtonDisabled]}
                 onPress={() => {
-                  console.log('🔘 Botón "Crear Usuario" presionado');
-                  console.log('🔄 Loading state:', loading);
-                  console.log('📋 Form data:', formData);
+                  logger.info('🔘 Botón "Crear Usuario" presionado');
+                  logger.start(' Loading state:', loading);
+                  logger.info('📋 Form data:', formData);
                   handleSubmit();
                 }}
                 disabled={loading}

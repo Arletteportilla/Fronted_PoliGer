@@ -1,5 +1,6 @@
 import api from './api';
 import { UserProfile, UserWithProfile, UserPermissions } from '@/types';
+import { logger } from '@/services/logger';
 
 export interface CreateUserRequest {
   username: string;
@@ -45,9 +46,9 @@ class RBACService {
   
   async getAllUsers(): Promise<UserWithProfile[]> {
     try {
-      console.log('📡 Fetching all users from backend...');
+      logger.api(' Fetching all users from backend...');
       const response = await api.get('user-management/');
-      console.log('📊 Response received:', {
+      logger.info('📊 Response received:', {
         status: response.status,
         dataType: typeof response.data,
         isArray: Array.isArray(response.data),
@@ -62,29 +63,29 @@ class RBACService {
         if (Array.isArray(response.data)) {
           // Respuesta directa como array
           users = response.data;
-          console.log('✅ Direct array response with', users.length, 'users');
+          logger.success(' Direct array response with', users.length, 'users');
         } else if (response.data.results && Array.isArray(response.data.results)) {
           // Respuesta paginada con results
           users = response.data.results;
-          console.log('✅ Paginated response with', users.length, 'users');
-          console.log('📊 Total users in database:', response.data.count || 'unknown');
+          logger.success(' Paginated response with', users.length, 'users');
+          logger.info('📊 Total users in database:', response.data.count || 'unknown');
           
           // Si hay más páginas, obtener todas
           if (response.data.count && response.data.count > users.length) {
-            console.log('📄 Multiple pages detected, fetching all users...');
+            logger.info('📄 Multiple pages detected, fetching all users...');
             const allUsers = await this.getAllUsersPaginated();
             return allUsers;
           }
         } else {
-          console.warn('⚠️ Unexpected response structure:', Object.keys(response.data));
+          logger.warn('⚠️ Unexpected response structure:', Object.keys(response.data));
           users = [];
         }
       } else {
-        console.warn('⚠️ Invalid response data type:', typeof response.data);
+        logger.warn('⚠️ Invalid response data type:', typeof response.data);
         users = [];
       }
       
-      console.log('👥 Final users array:', users.length, 'users');
+      logger.info('👥 Final users array:', users.length, 'users');
       return users;
       
     } catch (error: any) {
@@ -103,36 +104,36 @@ class RBACService {
    */
   private async getAllUsersPaginated(): Promise<UserWithProfile[]> {
     try {
-      console.log('📄 Fetching all users with pagination...');
+      logger.info('📄 Fetching all users with pagination...');
       let allUsers: UserWithProfile[] = [];
       let nextUrl = 'user-management/';
       let page = 1;
       
       while (nextUrl) {
-        console.log(`📄 Fetching page ${page}...`);
+        logger.info(`📄 Fetching page ${page}...`);
         const response = await api.get(nextUrl);
         
         if (response.data?.results && Array.isArray(response.data.results)) {
           allUsers = [...allUsers, ...response.data.results];
-          console.log(`✅ Page ${page}: ${response.data.results.length} users (total: ${allUsers.length})`);
+          logger.success(` Page ${page}: ${response.data.results.length} users (total: ${allUsers.length})`);
           
           // Verificar si hay siguiente página
           // Eliminar la URL base del backend para usar solo el path relativo
           nextUrl = response.data.next ? response.data.next.replace(/^https?:\/\/[^\/]+\/api\//, '') : null;
           page++;
         } else {
-          console.warn('⚠️ Invalid page response structure');
+          logger.warn('⚠️ Invalid page response structure');
           break;
         }
         
         // Prevenir bucle infinito
         if (page > 20) {
-          console.warn('⚠️ Too many pages, stopping pagination');
+          logger.warn('⚠️ Too many pages, stopping pagination');
           break;
         }
       }
       
-      console.log('✅ All users fetched:', allUsers.length, 'total users');
+      logger.success(' All users fetched:', allUsers.length, 'total users');
       return allUsers;
       
     } catch (error) {
@@ -143,13 +144,13 @@ class RBACService {
   
   async createUser(userData: CreateUserRequest): Promise<UserWithProfile> {
     try {
-      console.log('🚀 rbacService.createUser - Enviando datos:', userData);
-      console.log('🌐 URL del endpoint:', 'user-management/');
+      logger.info('🚀 rbacService.createUser - Enviando datos:', userData);
+      logger.info('🌐 URL del endpoint:', 'user-management/');
       
       const response = await api.post('user-management/', userData);
       
-      console.log('✅ rbacService.createUser - Respuesta exitosa:', response.data);
-      console.log('📊 Status:', response.status);
+      logger.success(' rbacService.createUser - Respuesta exitosa:', response.data);
+      logger.info('📊 Status:', response.status);
       
       return response.data;
     } catch (error: any) {
@@ -169,15 +170,15 @@ class RBACService {
   async deleteUser(userId: number): Promise<void> {
     try {
       const endpoint = `user-management/${userId}/`;
-      console.log('🌐 rbacService.deleteUser - Endpoint:', endpoint);
-      console.log('🔑 userId:', userId);
-      console.log('📡 Sending DELETE request...');
+      logger.info('🌐 rbacService.deleteUser - Endpoint:', endpoint);
+      logger.info('🔑 userId:', userId);
+      logger.api(' Sending DELETE request...');
 
       const response = await api.delete(endpoint);
 
-      console.log('✅ rbacService.deleteUser - Success');
-      console.log('📊 Response status:', response.status);
-      console.log('📝 Response data:', response.data);
+      logger.success(' rbacService.deleteUser - Success');
+      logger.info('📊 Response status:', response.status);
+      logger.info('📝 Response data:', response.data);
     } catch (error: any) {
       console.error('❌ rbacService.deleteUser - Error:', error);
       console.error('📊 Error status:', error.response?.status);

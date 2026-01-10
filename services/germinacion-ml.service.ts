@@ -1,4 +1,5 @@
 import api from './api';
+import { logger } from '@/services/logger';
 
 // ============================================================================
 // INTERFACES PARA PREDICCIÓN ML (Random Forest)
@@ -99,13 +100,13 @@ class GerminacionMLService {
    *   dispone: 50
    * });
    *
-   * console.log(`Días estimados: ${prediccion.dias_estimados}`);
-   * console.log(`Confianza: ${prediccion.confianza}%`);
+   * logger.info(`Días estimados: ${prediccion.dias_estimados}`);
+   * logger.info(`Confianza: ${prediccion.confianza}%`);
    * ```
    */
   async predecir(data: PrediccionGerminacionMLRequest): Promise<PrediccionGerminacionMLResponse> {
     try {
-      console.log('🤖 [ML Germinación] Realizando predicción con Random Forest:', data);
+      logger.info('🤖 [ML Germinación] Realizando predicción con Random Forest:', data);
 
       // Validar datos antes de enviar
       this.validarDatos(data);
@@ -121,7 +122,7 @@ class GerminacionMLService {
         }
       );
 
-      console.log('✅ [ML Germinación] Predicción exitosa:', response.data);
+      logger.success(' [ML Germinación] Predicción exitosa:', response.data);
 
       return response.data;
 
@@ -139,18 +140,18 @@ class GerminacionMLService {
    * @example
    * ```typescript
    * const info = await germinacionMLService.obtenerInfoModelo();
-   * console.log(`Modelo: ${info.model_type}`);
-   * console.log(`Features: ${info.n_features}`);
-   * console.log(`Cargado: ${info.loaded}`);
+   * logger.info(`Modelo: ${info.model_type}`);
+   * logger.info(`Features: ${info.n_features}`);
+   * logger.info(`Cargado: ${info.loaded}`);
    * ```
    */
   async obtenerInfoModelo(): Promise<ModeloGerminacionMLInfo> {
     try {
-      console.log('🤖 [ML Germinación] Obteniendo información del modelo');
+      logger.info('🤖 [ML Germinación] Obteniendo información del modelo');
 
       const response = await api.get<ModeloGerminacionMLInfo>('ml/germinacion/model-info/');
 
-      console.log('✅ [ML Germinación] Información del modelo obtenida:', response.data);
+      logger.success(' [ML Germinación] Información del modelo obtenida:', response.data);
 
       return response.data;
 

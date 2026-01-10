@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { logger } from '@/services/logger';
 
 export const secureStore = {
   async getItem(key: string): Promise<string | null> {
@@ -61,7 +62,7 @@ export const secureStore = {
       }
       // Note: SecureStore doesn't have a clear all method
       // You would need to track keys and remove them individually
-      console.warn('SecureStore clear not implemented - use removeItem for specific keys');
+      logger.warn('SecureStore clear not implemented - use removeItem for specific keys');
     } catch (error) {
       console.error('Error clearing secure store:', error);
       throw error;

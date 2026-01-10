@@ -9,6 +9,7 @@ import { SimpleCalendarPicker } from '@/components/common';
 import { PrediccionMLGerminacion } from '@/components/germinaciones';
 import { Ionicons } from '@expo/vector-icons';
 import type { PrediccionGerminacionMLResponse } from '@/services/germinacion-ml.service';
+import { logger } from '@/services/logger';
 
 const ESTADOS_CAPSULA = [
   { label: 'Cerrada', value: 'CERRADA' },
@@ -173,7 +174,7 @@ export default function AddGerminacionScreen() {
 
   const handlePrediccionComplete = (resultado: PrediccionGerminacionMLResponse) => {
     setPrediccionML(resultado);
-    console.log('Predicción ML de germinación recibida:', resultado);
+    logger.info('Predicción ML de germinación recibida:', resultado);
   };
 
   const renderFormField = (label: string, children: React.ReactNode, required = false) => (

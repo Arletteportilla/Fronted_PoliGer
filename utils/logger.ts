@@ -1,4 +1,5 @@
 import { CONFIG } from '@/services/config';
+import { logger } from '@/services/logger';
 
 /**
  * Logger utility para manejar logs de manera consistente
@@ -7,13 +8,13 @@ import { CONFIG } from '@/services/config';
 export class Logger {
   static log(message: string, ...args: unknown[]) {
     if (CONFIG.DEBUG_MODE) {
-      console.log(message, ...args);
+      logger.info(message, ...args);
     }
   }
 
   static warn(message: string, ...args: unknown[]) {
     if (CONFIG.DEBUG_MODE) {
-      console.warn(message, ...args);
+      logger.warn(message, ...args);
     }
   }
 
@@ -24,25 +25,25 @@ export class Logger {
 
   static debug(message: string, ...args: unknown[]) {
     if (CONFIG.DEBUG_MODE) {
-      console.log(`🔍 DEBUG: ${message}`, ...args);
+      logger.debug(` DEBUG: ${message}`, ...args);
     }
   }
 
   static info(message: string, ...args: unknown[]) {
     if (CONFIG.DEBUG_MODE) {
-      console.log(`ℹ️ INFO: ${message}`, ...args);
+      logger.info(` INFO: ${message}`, ...args);
     }
   }
 
   static success(message: string, ...args: unknown[]) {
     if (CONFIG.DEBUG_MODE) {
-      console.log(`✅ SUCCESS: ${message}`, ...args);
+      logger.success(` SUCCESS: ${message}`, ...args);
     }
   }
 
   static warning(message: string, ...args: unknown[]) {
     if (CONFIG.DEBUG_MODE) {
-      console.warn(`⚠️ WARNING: ${message}`, ...args);
+      logger.warn(`⚠️ WARNING: ${message}`, ...args);
     }
   }
 }

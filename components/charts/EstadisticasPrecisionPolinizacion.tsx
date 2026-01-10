@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
+import { logger } from '@/services/logger';
   View,
   Text,
   StyleSheet,
@@ -61,7 +62,7 @@ export const EstadisticasPrecisionPolinizacion: React.FC<EstadisticasPrecisionPo
   const cargarEstadisticas = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('📊 Cargando estadísticas de predicciones de polinización...');
+      logger.info('📊 Cargando estadísticas de predicciones de polinización...');
 
       // NOTA: La función obtenerEstadisticasPredicciones() fue eliminada porque
       // el endpoint backend /estadisticas/predicciones/polinizacion/ no existe
@@ -69,7 +70,7 @@ export const EstadisticasPrecisionPolinizacion: React.FC<EstadisticasPrecisionPo
       // const data = await polinizacionService.obtenerEstadisticasPredicciones();
       // setEstadisticas(data);
 
-      console.log('⚠️ Función de estadísticas no disponible - endpoint eliminado');
+      logger.warn(' Función de estadísticas no disponible - endpoint eliminado');
       Alert.alert('No disponible', 'Las estadísticas de predicciones no están disponibles actualmente');
     } catch (error: any) {
       console.error('❌ Error cargando estadísticas:', error);

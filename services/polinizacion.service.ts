@@ -1,5 +1,6 @@
 import api from './api';
 import * as SecureStore from '@/services/secureStore';
+import { logger } from '@/services/logger';
 
 export const polinizacionService = {
   /**
@@ -7,11 +8,11 @@ export const polinizacionService = {
    * Por defecto filtra los últimos 7 días para mostrar solo registros recientes (no importados)
    */
   getMisPolinizaciones: async (diasRecientes: number = 7) => {
-    console.log(`🔍 polinizacionService.getMisPolinizaciones() - Obteniendo polinizaciones del usuario (últimos ${diasRecientes} días)...`);
+    logger.debug(` polinizacionService.getMisPolinizaciones() - Obteniendo polinizaciones del usuario (últimos ${diasRecientes} días)...`);
     
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 Token disponible:', !!token);
+      logger.debug(' Token disponible:', !!token);
 
       const params: any = {};
       if (diasRecientes > 0) {
@@ -23,7 +24,7 @@ export const polinizacionService = {
         timeout: 30000
       });
       
-      console.log('✅ Mis polinizaciones recibidas:', response.data.length || response.data.results?.length || 0);
+      logger.success(' Mis polinizaciones recibidas:', response.data.length || response.data.results?.length || 0);
       
       // Manejar respuesta paginada o directa
       if (Array.isArray(response.data)) {
@@ -52,11 +53,11 @@ export const polinizacionService = {
     const page_size = params.page_size || 20;
     const dias_recientes = params.dias_recientes !== undefined ? params.dias_recientes : 7; // Por defecto 7 días
 
-    console.log('🔍 polinizacionService.getMisPolinizacionesPaginated() - Parámetros:', params);
+    logger.debug(' polinizacionService.getMisPolinizacionesPaginated() - Parámetros:', params);
     
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 Token disponible:', !!token);
+      logger.debug(' Token disponible:', !!token);
 
       if (!token) {
         throw new Error('No hay token de autenticación');
@@ -86,7 +87,7 @@ export const polinizacionService = {
         }
       });
       
-      console.log('✅ Mis polinizaciones paginadas recibidas:', {
+      logger.success(' Mis polinizaciones paginadas recibidas:', {
         page,
         totalPages: response.data?.total_pages,
         count: response.data?.count,
@@ -95,9 +96,9 @@ export const polinizacionService = {
       
       // Debug: Log de predicciones en los primeros resultados
       if (response.data?.results?.length > 0) {
-        console.log('🔮 Datos de predicción en primeros resultados del backend:');
+        logger.info('🔮 Datos de predicción en primeros resultados del backend:');
         response.data.results.slice(0, 3).forEach((item: any, index: number) => {
-          console.log(`  [${index}] ${item.codigo || item.numero}:`, {
+          logger.info(`  [${index}] ${item.codigo || item.numero}:`, {
             fecha_maduracion_predicha: item.fecha_maduracion_predicha,
             prediccion_fecha_estimada: item.prediccion_fecha_estimada,
             metodo_prediccion: item.metodo_prediccion,
@@ -135,27 +136,27 @@ export const polinizacionService = {
   },
 
   getAll: async () => {
-    console.log('🔍 polinizacionService.getAll() - Iniciando llamada a API...');
-    console.log('🔍 URL de la API:', 'http://127.0.0.1:8000/api/polinizaciones/');
+    logger.debug(' polinizacionService.getAll() - Iniciando llamada a API...');
+    logger.debug(' URL de la API:', 'http://127.0.0.1:8000/api/polinizaciones/');
     
     try {
       // Verificar si hay token antes de hacer la llamada
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 polinizacionService.getAll() - Token disponible:', !!token);
+      logger.debug(' polinizacionService.getAll() - Token disponible:', !!token);
       
       const response = await api.get('polinizaciones/');
-      console.log('✅ polinizacionService.getAll() - Respuesta:', response.data);
+      logger.success(' polinizacionService.getAll() - Respuesta:', response.data);
       
       // Asegurarse de que la respuesta sea un array
       if (Array.isArray(response.data)) {
-        console.log('✅ polinizacionService.getAll() - Cantidad:', response.data.length);
+        logger.success(' polinizacionService.getAll() - Cantidad:', response.data.length);
         return response.data;
       } else if (response.data && response.data.results && Array.isArray(response.data.results)) {
         // Si la respuesta está paginada
-        console.log('✅ polinizacionService.getAll() - Cantidad:', response.data.results.length);
+        logger.success(' polinizacionService.getAll() - Cantidad:', response.data.results.length);
         return response.data.results;
       } else {
-        console.warn('⚠️ polinizacionService.getAll() - Formato de respuesta inesperado, devolviendo array vacío');
+        logger.warn('⚠️ polinizacionService.getAll() - Formato de respuesta inesperado, devolviendo array vacío');
         return [];
       }
     } catch (error: any) {
@@ -182,36 +183,36 @@ export const polinizacionService = {
   },
 
   getAllForAdmin: async () => {
-    console.log('🔍 polinizacionService.getAllForAdmin() - Iniciando llamada para administrador...');
-    console.log('🔍 URL de la API:', 'http://127.0.0.1:8000/api/polinizaciones/todas_admin/');
+    logger.debug(' polinizacionService.getAllForAdmin() - Iniciando llamada para administrador...');
+    logger.debug(' URL de la API:', 'http://127.0.0.1:8000/api/polinizaciones/todas_admin/');
     
     try {
       // Verificar si hay token antes de hacer la llamada
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 polinizacionService.getAllForAdmin() - Token disponible:', !!token);
+      logger.debug(' polinizacionService.getAllForAdmin() - Token disponible:', !!token);
       
       if (!token) {
-        console.warn('⚠️ No hay token de autenticación disponible');
+        logger.warn('⚠️ No hay token de autenticación disponible');
         throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
       }
       
       const response = await api.get('polinizaciones/todas_admin/');
-      console.log('✅ polinizacionService.getAllForAdmin() - Respuesta exitosa:', response.data);
+      logger.success(' polinizacionService.getAllForAdmin() - Respuesta exitosa:', response.data);
       
       // El endpoint todas_admin devuelve un ARRAY DIRECTO de todas las polinizaciones
       if (Array.isArray(response.data)) {
-        console.log('✅ polinizacionService.getAllForAdmin() - Array directo recibido');
-        console.log('✅ Total de polinizaciones para admin:', response.data.length);
+        logger.success(' polinizacionService.getAllForAdmin() - Array directo recibido');
+        logger.success(' Total de polinizaciones para admin:', response.data.length);
         return response.data;
       }
 
       // Fallback: si por alguna razón devuelve formato paginado
       if (response.data && response.data.results && Array.isArray(response.data.results)) {
-        console.log('✅ Total de polinizaciones para admin (paginado):', response.data.count);
+        logger.success(' Total de polinizaciones para admin (paginado):', response.data.count);
         return response.data.results;
       }
 
-      console.warn('⚠️ polinizacionService.getAllForAdmin() - Formato de respuesta inesperado');
+      logger.warn('⚠️ polinizacionService.getAllForAdmin() - Formato de respuesta inesperado');
       return response.data;
     } catch (error: any) {
       console.error('❌ polinizacionService.getAllForAdmin() - Error en la llamada:', error);
@@ -262,7 +263,7 @@ export const polinizacionService = {
     const page = params.page || 1;
     const page_size = params.page_size || 20;
 
-    console.log('🔍 polinizacionService.getPaginated() - Parámetros:', params);
+    logger.debug(' polinizacionService.getPaginated() - Parámetros:', params);
 
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -308,7 +309,7 @@ export const polinizacionService = {
         }
       });
       
-      console.log('✅ polinizacionService.getPaginated() - Respuesta recibida:', {
+      logger.success(' polinizacionService.getPaginated() - Respuesta recibida:', {
         page: page,
         totalPages: response.data?.total_pages,
         totalCount: response.data?.total_count,
@@ -344,14 +345,14 @@ export const polinizacionService = {
 
   // Método optimizado para obtener solo el total de polinizaciones
   getTotalCount: async () => {
-    console.log('🔍 polinizacionService.getTotalCount() - Obteniendo solo el total...');
+    logger.debug(' polinizacionService.getTotalCount() - Obteniendo solo el total...');
     
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 polinizacionService.getTotalCount() - Token disponible:', !!token);
+      logger.debug(' polinizacionService.getTotalCount() - Token disponible:', !!token);
       
       if (!token) {
-        console.warn('⚠️ No hay token de autenticación disponible');
+        logger.warn('⚠️ No hay token de autenticación disponible');
         throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
       }
       
@@ -369,7 +370,7 @@ export const polinizacionService = {
       });
       
       const totalCount = response.data?.total_count || response.data?.count || 0;
-      console.log('✅ polinizacionService.getTotalCount() - Total obtenido:', totalCount);
+      logger.success(' polinizacionService.getTotalCount() - Total obtenido:', totalCount);
       
       return totalCount;
     } catch (error: any) {
@@ -385,8 +386,8 @@ export const polinizacionService = {
 
   // Nuevo método para descargar PDF de mis polinizaciones usando el endpoint específico
   descargarMisPolinizacionesPDF: async (search?: string) => {
-    console.log('📄 polinizacionService.descargarMisPolinizacionesPDF() - Iniciando descarga...');
-    console.log('🔍 Búsqueda:', search);
+    logger.info('📄 polinizacionService.descargarMisPolinizacionesPDF() - Iniciando descarga...');
+    logger.debug(' Búsqueda:', search);
     
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -409,7 +410,7 @@ export const polinizacionService = {
         }
       });
 
-      console.log('✅ PDF de mis polinizaciones descargado exitosamente');
+      logger.success(' PDF de mis polinizaciones descargado exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error descargando PDF de mis polinizaciones:', error);
@@ -448,7 +449,7 @@ export const polinizacionService = {
       if (tipoML === 'HIBRIDA') tipoML = 'HYBRID';
       mappedData.Tipo = tipoML;
       
-      console.log('🔍 DEBUG - Tipo mapeado:', {
+      logger.debug(' DEBUG - Tipo mapeado:', {
         original: data.tipo_polinizacion,
         mapeado: tipoML,
         campo_Tipo: mappedData.Tipo
@@ -506,8 +507,8 @@ export const polinizacionService = {
       }
     });
     
-    console.log('📤 Enviando datos mapeados al backend:', mappedData);
-    console.log('🔍 DEBUG - Campos de predicción:', {
+    logger.info('📤 Enviando datos mapeados al backend:', mappedData);
+    logger.debug(' DEBUG - Campos de predicción:', {
       madre_genero: mappedData.madre_genero,
       madre_especie: mappedData.madre_especie,
       nueva_genero: mappedData.nueva_genero,
@@ -543,7 +544,7 @@ export const polinizacionService = {
 
   // NUEVAS FUNCIONES PARA AUTO-COMPLETADO DE GERMINACIONES
   getCodigosNuevasPlantas: async (): Promise<string[]> => {
-    console.log('🔍 polinizacionService.getCodigosNuevasPlantas() - Obteniendo códigos de nuevas plantas...');
+    logger.debug(' polinizacionService.getCodigosNuevasPlantas() - Obteniendo códigos de nuevas plantas...');
     
     try {
       const allPolinizaciones = await polinizacionService.getAllForAdmin();
@@ -551,7 +552,7 @@ export const polinizacionService = {
         .map((polinizacion: any) => polinizacion.nueva_planta_codigo)
         .filter((codigo: string) => codigo && codigo.trim() !== '');
 
-      console.log('✅ polinizacionService.getCodigosNuevasPlantas() - Códigos obtenidos:', codigos.length);
+      logger.success(' polinizacionService.getCodigosNuevasPlantas() - Códigos obtenidos:', codigos.length);
       return codigos;
     } catch (error: any) {
       console.error('❌ polinizacionService.getCodigosNuevasPlantas() - Error:', error);
@@ -560,13 +561,13 @@ export const polinizacionService = {
   },
 
   getCodigosConEspecies: async (): Promise<{codigo: string, especie: string, genero: string, clima: string}[]> => {
-    console.log('🔍 polinizacionService.getCodigosConEspecies() - Obteniendo códigos de germinaciones...');
+    logger.debug(' polinizacionService.getCodigosConEspecies() - Obteniendo códigos de germinaciones...');
 
     try {
       // Obtener códigos desde el endpoint de germinaciones
       const response = await api.get('germinaciones/codigos-disponibles/');
 
-      console.log('✅ polinizacionService.getCodigosConEspecies() - Códigos obtenidos:', response.data?.length || 0);
+      logger.success(' polinizacionService.getCodigosConEspecies() - Códigos obtenidos:', response.data?.length || 0);
       return response.data || [];
     } catch (error: any) {
       console.error('❌ polinizacionService.getCodigosConEspecies() - Error:', error);
@@ -575,19 +576,19 @@ export const polinizacionService = {
   },
 
   getPolinizacionByCodigoNuevaPlanta: async (codigo: string): Promise<{codigo: string, especie: string, genero: string} | null> => {
-    console.log('🔍 DEBUG - polinizacionService.getPolinizacionByCodigoNuevaPlanta() - Buscando código:', codigo);
+    logger.debug(' DEBUG - polinizacionService.getPolinizacionByCodigoNuevaPlanta() - Buscando código:', codigo);
 
     try {
-      console.log('🔄 polinizacionService.getPolinizacionByCodigoNuevaPlanta() - Obteniendo todas las polinizaciones...');
+      logger.start(' polinizacionService.getPolinizacionByCodigoNuevaPlanta() - Obteniendo todas las polinizaciones...');
       const allPolinizaciones = await polinizacionService.getAllForAdmin();
-      console.log('🔍 DEBUG - Total de polinizaciones obtenidas:', allPolinizaciones.length);
+      logger.debug(' DEBUG - Total de polinizaciones obtenidas:', allPolinizaciones.length);
       
       const polinizacion = allPolinizaciones.find((p: any) => {
-        console.log('🔍 DEBUG - Comparando:', p.nueva_planta_codigo, 'con', codigo, 'igual:', p.nueva_planta_codigo === codigo);
+        logger.debug(' DEBUG - Comparando:', p.nueva_planta_codigo, 'con', codigo, 'igual:', p.nueva_planta_codigo === codigo);
         return p.nueva_planta_codigo === codigo;
       });
 
-      console.log('🔍 DEBUG - Polinización encontrada:', polinizacion);
+      logger.debug(' DEBUG - Polinización encontrada:', polinizacion);
 
       if (polinizacion) {
         const result = {
@@ -595,10 +596,10 @@ export const polinizacionService = {
           especie: polinizacion.nueva_planta_especie || '',
           genero: polinizacion.nueva_planta_genero || ''
         };
-        console.log('✅ DEBUG - Retornando resultado:', result);
+        logger.success(' DEBUG - Retornando resultado:', result);
         return result;
       }
-      console.log('⚠️ DEBUG - No se encontró polinización para el código:', codigo);
+      logger.warn(' DEBUG - No se encontró polinización para el código:', codigo);
       return null;
     } catch (error: any) {
       console.error('❌ polinizacionService.getPolinizacionByCodigoNuevaPlanta() - Error:', error);
@@ -608,7 +609,7 @@ export const polinizacionService = {
 
   // Obtener opciones para filtros y estadísticas
   getFilterOptions: async () => {
-    console.log('🔍 polinizacionService.getFilterOptions() - Obteniendo opciones de filtros...');
+    logger.debug(' polinizacionService.getFilterOptions() - Obteniendo opciones de filtros...');
 
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -624,7 +625,7 @@ export const polinizacionService = {
         }
       });
 
-      console.log('✅ Opciones de filtros obtenidas:', response.data);
+      logger.success(' Opciones de filtros obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo opciones de filtros:', error);
@@ -648,11 +649,11 @@ export const polinizacionService = {
   // Método para obtener alertas de polinizaciones
   obtenerAlertasPolinizacion: async () => {
     try {
-      console.log('🔔 polinizacionService.obtenerAlertasPolinizacion() - Obteniendo alertas...');
+      logger.info('🔔 polinizacionService.obtenerAlertasPolinizacion() - Obteniendo alertas...');
 
       const response = await api.get('polinizaciones/alertas_polinizacion/');
 
-      console.log('✅ Alertas de polinización obtenidas:', response.data);
+      logger.success(' Alertas de polinización obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo alertas de polinización:', error);
@@ -668,10 +669,10 @@ export const polinizacionService = {
   // Método para buscar información de una planta por código
   buscarPlantaInfo: async (codigo: string): Promise<{codigo: string, genero: string, especie: string, clima: string, fuente: string} | null> => {
     try {
-      console.log('🔍 polinizacionService.buscarPlantaInfo() - Buscando planta con código:', codigo);
+      logger.debug(' polinizacionService.buscarPlantaInfo() - Buscando planta con código:', codigo);
 
       if (!codigo || codigo.trim() === '') {
-        console.log('⚠️ Código vacío, no se realizará búsqueda');
+        logger.warn(' Código vacío, no se realizará búsqueda');
         return null;
       }
 
@@ -679,14 +680,14 @@ export const polinizacionService = {
         params: { codigo: codigo.trim() }
       });
 
-      console.log('✅ Información de planta encontrada:', response.data);
+      logger.success(' Información de planta encontrada:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error buscando información de planta:', error);
 
       // Si es un 404, significa que no se encontró la planta
       if (error.response?.status === 404) {
-        console.log('⚠️ No se encontró planta con código:', codigo);
+        logger.warn(' No se encontró planta con código:', codigo);
         return null;
       }
 
@@ -701,11 +702,11 @@ export const polinizacionService = {
     paredes: { opciones: string[], total: number }
   }> => {
     try {
-      console.log('🏠 polinizacionService.getOpcionesUbicacion() - Obteniendo opciones de ubicación...');
+      logger.info('🏠 polinizacionService.getOpcionesUbicacion() - Obteniendo opciones de ubicación...');
 
       const response = await api.get('polinizaciones/opciones-ubicacion/');
 
-      console.log('✅ Opciones de ubicación obtenidas:', {
+      logger.success(' Opciones de ubicación obtenidas:', {
         viveros: response.data?.viveros?.total || 0,
         mesas: response.data?.mesas?.total || 0,
         paredes: response.data?.paredes?.total || 0
@@ -730,7 +731,7 @@ export const polinizacionService = {
    */
   cambiarEstado: async (id: number, nuevoEstado: 'INGRESADO' | 'EN_PROCESO' | 'LISTA' | 'LISTO') => {
     try {
-      console.log(`🔄 Cambiando estado de polinización ${id} a ${nuevoEstado}`);
+      logger.start(` Cambiando estado de polinización ${id} a ${nuevoEstado}`);
       
       // Preparar datos para actualizar
       const updateData: any = {
@@ -741,11 +742,11 @@ export const polinizacionService = {
       if (nuevoEstado === 'LISTA' || nuevoEstado === 'LISTO') {
         const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
         updateData.fechamad = fechaActual;
-        console.log(`📅 Actualizando fecha de maduración a: ${fechaActual}`);
+        logger.info(`📅 Actualizando fecha de maduración a: ${fechaActual}`);
       }
       
       const response = await api.patch(`polinizaciones/${id}/`, updateData);
-      console.log('✅ Estado cambiado exitosamente');
+      logger.success(' Estado cambiado exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error cambiando estado de polinización:', error);
@@ -762,7 +763,7 @@ export const polinizacionService = {
     cantidad?: number;
   }) => {
     try {
-      console.log('🔮 Prediciendo maduración con ML:', data);
+      logger.info('🔮 Prediciendo maduración con ML:', data);
 
       const response = await api.post('polinizaciones/predecir-maduracion/', {
         genero: data.genero,
@@ -772,7 +773,7 @@ export const polinizacionService = {
         cantidad: data.cantidad || 1
       });
 
-      console.log('✅ Predicción de maduración calculada:', response.data);
+      logger.success(' Predicción de maduración calculada:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error prediciendo maduración:', error);
@@ -787,11 +788,11 @@ export const polinizacionService = {
 
   obtenerInfoModeloML: async () => {
     try {
-      console.log('📊 Obteniendo información del modelo ML...');
+      logger.info('📊 Obteniendo información del modelo ML...');
 
       const response = await api.get('polinizaciones/info-modelo-ml/');
 
-      console.log('✅ Información del modelo obtenida:', response.data);
+      logger.success(' Información del modelo obtenida:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo info del modelo:', error);
@@ -812,7 +813,7 @@ export const polinizacionService = {
     diasProximaRevision?: number
   ) => {
     try {
-      console.log(`✅ Marcando polinización ${id} como revisada`);
+      logger.success(` Marcando polinización ${id} como revisada`);
 
       const data: any = {};
       if (estado) data.estado = estado;
@@ -821,7 +822,7 @@ export const polinizacionService = {
 
       const response = await api.post(`polinizaciones/${id}/marcar-revisado/`, data);
 
-      console.log('✅ Polinización marcada como revisada:', response.data);
+      logger.success(' Polinización marcada como revisada:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error marcando polinización como revisada:', error);
@@ -832,11 +833,11 @@ export const polinizacionService = {
   // Obtener polinizaciones pendientes de revisión
   getPendientesRevision: async () => {
     try {
-      console.log('🔍 Obteniendo polinizaciones pendientes de revisión...');
+      logger.debug(' Obteniendo polinizaciones pendientes de revisión...');
 
       const response = await api.get('polinizaciones/pendientes-revision/');
 
-      console.log('✅ Polinizaciones pendientes obtenidas:', response.data);
+      logger.success(' Polinizaciones pendientes obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo polinizaciones pendientes:', error);
@@ -851,14 +852,14 @@ export const polinizacionService = {
     fechaMaduracion?: string
   ) => {
     try {
-      console.log(`🔄 Cambiando estado de polinización ${id} a ${estado}...`);
+      logger.start(` Cambiando estado de polinización ${id} a ${estado}...`);
       
       const response = await api.post(`polinizaciones/${id}/cambiar-estado/`, {
         estado,
         fecha_maduracion: fechaMaduracion,
       });
       
-      console.log('✅ Estado de polinización actualizado:', response.data);
+      logger.success(' Estado de polinización actualizado:', response.data);
       return response.data.polinizacion;
     } catch (error: any) {
       console.error('❌ Error cambiando estado de polinización:', error);
@@ -878,14 +879,14 @@ export const polinizacionService = {
     fechaMaduracion?: string
   ) => {
     try {
-      console.log(`📊 Actualizando progreso de polinización ${id} a ${progreso}%...`);
+      logger.info(`📊 Actualizando progreso de polinización ${id} a ${progreso}%...`);
       
       const response = await api.post(`polinizaciones/${id}/cambiar-estado/`, {
         progreso,
         fecha_maduracion: fechaMaduracion,
       });
       
-      console.log('✅ Progreso de polinización actualizado:', response.data);
+      logger.success(' Progreso de polinización actualizado:', response.data);
       return response.data.polinizacion;
     } catch (error: any) {
       console.error('❌ Error actualizando progreso de polinización:', error);

@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import '@/utils/suppressWarnings'; // Suprimir warnings innecesarios
+import { logger } from '@/services/logger';
 
 const RootLayoutNav = memo(() => {
   const { token, isLoading } = useAuth();
@@ -19,21 +21,21 @@ const RootLayoutNav = memo(() => {
   const handleNavigation = useCallback(() => {
     if (isLoading) return;
 
-    console.log('🔍 Navigation check:', { token: !!token, currentPath, isLoading });
+    logger.debug(' Navigation check:', { token: !!token, currentPath, isLoading });
 
     // Si no hay token, redirigir a login (excepto si ya estamos en login)
     if (!token && currentPath !== 'login' && currentPath !== 'register') {
-      console.log('🚀 Redirecting to login - no token');
+      logger.info('🚀 Redirecting to login - no token');
       router.replace('/login');
     }
     // Si hay token y estamos en login, redirigir a tabs
     else if (token && (currentPath === 'login' || currentPath === 'register')) {
-      console.log('🚀 Redirecting to tabs - has token');
+      logger.info('🚀 Redirecting to tabs - has token');
       router.replace('/(tabs)');
     }
     // Si hay token y estamos en root, redirigir a tabs
     else if (token && currentPath === 'root') {
-      console.log('🚀 Redirecting to tabs - root with token');
+      logger.info('🚀 Redirecting to tabs - root with token');
       router.replace('/(tabs)');
     }
   }, [token, isLoading, currentPath, router]);

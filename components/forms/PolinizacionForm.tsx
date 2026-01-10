@@ -9,6 +9,7 @@ import { polinizacionService } from '@/services/polinizacion.service';
 import { polinizacionPrediccionService } from '@/services/polinizacion-prediccion.service';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getColors } from '@/utils/colors';
+import { logger } from '@/services/logger';
 
 interface PolinizacionFormProps {
   visible: boolean;
@@ -117,7 +118,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         if (Array.isArray(codigos)) {
           setCodigosDisponibles(codigos);
         } else {
-          console.warn('getCodigosConEspecies no retornó un array:', codigos);
+          logger.warn('getCodigosConEspecies no retornó un array:', codigos);
           setCodigosDisponibles([]);
         }
       } catch (error) {
@@ -150,7 +151,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
     }
     // Asegurarse de que codigosDisponibles es un array
     if (!Array.isArray(codigosDisponibles)) {
-      console.warn('codigosDisponibles no es un array:', codigosDisponibles);
+      logger.warn('codigosDisponibles no es un array:', codigosDisponibles);
       return [];
     }
     return codigosDisponibles
@@ -251,7 +252,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
       const info = await polinizacionService.buscarPlantaInfo(codigo.trim());
 
       if (info) {
-        console.log(`✅ Información encontrada para ${tipo}:`, info);
+        logger.success(` Información encontrada para ${tipo}:`, info);
 
         if (tipo === 'madre') {
           setForm((f: any) => ({
@@ -276,7 +277,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
           }));
         }
       } else {
-        console.log(`⚠️ No se encontró información para código: ${codigo}`);
+        logger.warn(` No se encontró información para código: ${codigo}`);
       }
     } catch (error) {
       console.error(`❌ Error buscando información de planta ${tipo}:`, error);
@@ -400,7 +401,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
           fecha_polinizacion: form.fecha_polinizacion,
         };
 
-        console.log('🌸 PolinizacionForm - Calculando predicción automática con:', formDataPrediccion);
+        logger.info('🌸 PolinizacionForm - Calculando predicción automática con:', formDataPrediccion);
 
         const resultado = await polinizacionPrediccionService.generarPrediccionInicial(formDataPrediccion);
 
@@ -415,7 +416,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         };
 
         setPrediccionData(resultadoAdaptado);
-        console.log('✅ Predicción calculada:', resultadoAdaptado);
+        logger.success(' Predicción calculada:', resultadoAdaptado);
       } catch (error: any) {
         console.error('❌ Error calculando predicción automática:', error);
         setPrediccionData(null);

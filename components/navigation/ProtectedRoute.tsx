@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/services/logger';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -47,7 +48,7 @@ export function ProtectedRoute({
     user = authContext.user;
   } catch (error) {
     // Si no hay contexto de autenticación, continuar sin verificación de administrador
-    console.warn('AuthContext not available:', error);
+    logger.warn('AuthContext not available:', error);
   }
   
   // Si el usuario es administrador tipo_4, permitir acceso sin verificar permisos específicos
@@ -63,7 +64,7 @@ export function ProtectedRoute({
   // Si el usuario está autenticado pero no tiene permisos configurados, permitir acceso
   // Esto es útil para desarrollo y cuando los permisos no están configurados en el backend
   if (user && !requiredModule && !requiredAction && !requiredPermission) {
-    console.warn('⚠️ Usuario autenticado sin permisos configurados, permitiendo acceso');
+    logger.warn('⚠️ Usuario autenticado sin permisos configurados, permitiendo acceso');
     return <>{children}</>;
   }
   
@@ -104,7 +105,7 @@ export function ProtectedButton({
     user = authContext.user;
   } catch (error) {
     // Si no hay contexto de autenticación, continuar sin verificación de administrador
-    console.warn('AuthContext not available:', error);
+    logger.warn('AuthContext not available:', error);
   }
   
   // Si el usuario es administrador tipo_4, permitir acceso sin verificar permisos específicos

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, createContext, useContext } from 'rea
 import { useRouter } from 'expo-router';
 import type { UserWithProfile, UserPermissions } from '@/types/index';
 import { useToast } from '@/contexts/ToastContext';
+import { logger } from '@/services/logger';
 
 // Lazy imports to improve startup time
 const getTokenManager = () => import('@/services/tokenManager').then(m => m.tokenManager);
@@ -45,16 +46,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = useCallback(async () => {
     // Usar una referencia para evitar múltiples ejecuciones simultáneas
     if (isLoggingOut) {
-      console.log('⚠️ Logout ya en progreso, ignorando solicitud...');
+      logger.warn(' Logout ya en progreso, ignorando solicitud...');
       return;
     }
     
     try {
-      console.log('🔄 Iniciando proceso de logout...');
+      logger.start(' Iniciando proceso de logout...');
       setIsLoggingOut(true);
       
       // Limpiar estado del usuario INMEDIATAMENTE para evitar llamadas API
-      console.log('🔄 Reseteando estado del usuario...');
+      logger.start(' Reseteando estado del usuario...');
       setToken(null);
       setUser(null);
       setPermissions(null);
@@ -62,11 +63,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Limpiar tokens de almacenamiento seguro
       try {
         const tokenManager = await getTokenManager();
-        console.log('🧹 Limpiando tokens...');
+        logger.info('🧹 Limpiando tokens...');
         await tokenManager.clearTokens();
-        console.log('✅ Tokens limpiados exitosamente');
+        logger.success(' Tokens limpiados exitosamente');
       } catch (tokenError) {
-        console.warn('⚠️ Error limpiando tokens:', tokenError);
+        logger.warn('⚠️ Error limpiando tokens:', tokenError);
         // Continuar aunque falle la limpieza de tokens
       }
       
@@ -74,36 +75,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const setLoggingOut = await getApiService();
         setLoggingOut(true);
-        console.log('✅ Flag de logout marcado en API');
+        logger.success(' Flag de logout marcado en API');
       } catch (apiError) {
-        console.warn('⚠️ Error marcando logout en API:', apiError);
+        logger.warn('⚠️ Error marcando logout en API:', apiError);
         // Continuar aunque falle
       }
       
-      console.log('🚀 Redirigiendo a login...');
+      logger.info('🚀 Redirigiendo a login...');
       
       // Navegación inmediata sin esperar
       try {
         // Usar push en lugar de replace para asegurar navegación
         router.push('/login');
-        console.log('✅ Navegación con router.push exitosa');
+        logger.success(' Navegación con router.push exitosa');
       } catch (routerError) {
         console.error('❌ Error con router.push, intentando replace:', routerError);
         try {
           router.replace('/login');
-          console.log('✅ Navegación con router.replace exitosa');
+          logger.success(' Navegación con router.replace exitosa');
         } catch (replaceError) {
           console.error('❌ Error con router.replace, usando fallback:', replaceError);
           // Fallback: usar window.location si está disponible (web)
           if (typeof window !== 'undefined' && window.location) {
             window.location.href = '/login';
-            console.log('✅ Fallback web ejecutado');
+            logger.success(' Fallback web ejecutado');
           } else {
             // Fallback para React Native - intentar de nuevo
             setTimeout(() => {
               try {
                 router.replace('/login');
-                console.log('✅ Reintento de navegación exitoso');
+                logger.success(' Reintento de navegación exitoso');
               } catch (retryError) {
                 console.error('❌ Error en reintento de navegación:', retryError);
               }
@@ -112,7 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
       
-      console.log('✅ Logout completado exitosamente');
+      logger.success(' Logout completado exitosamente');
       toast.success('Sesión cerrada exitosamente');
     } catch (error) {
       console.error('❌ Error durante logout:', error);
@@ -126,79 +127,79 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Fallback de navegación en caso de error
       try {
         router.replace('/login');
-        console.log('✅ Navegación de fallback exitosa');
+        logger.success(' Navegación de fallback exitosa');
       } catch (navError) {
         console.error('❌ Error de navegación de fallback:', navError);
         if (typeof window !== 'undefined' && window.location) {
           window.location.href = '/login';
-          console.log('✅ Fallback web de emergencia ejecutado');
+          logger.success(' Fallback web de emergencia ejecutado');
         }
       }
     } finally {
       // Asegurar que siempre se resetee el estado de logout
-      console.log('🔄 Reseteando estado de logout...');
+      logger.start(' Reseteando estado de logout...');
       setIsLoggingOut(false);
       
       // Resetear el flag en el servicio API
       try {
         const setLoggingOut = await getApiService();
         setLoggingOut(false);
-        console.log('✅ Flag de logout reseteado en API');
+        logger.success(' Flag de logout reseteado en API');
       } catch (error) {
-        console.warn('Error reseteando flag de logout en API:', error);
+        logger.warn('Error reseteando flag de logout en API:', error);
       }
     }
   }, [router, isLoggingOut]); // Agregar isLoggingOut de vuelta pero con mejor manejo
 
   // Función de logout forzado (sin async, para casos de emergencia)
   const forceLogout = useCallback(() => {
-    console.log('🚨 [DEBUG] Forzando logout inmediato...');
+    logger.info('🚨 [DEBUG] Forzando logout inmediato...');
     
     // Limpiar estado inmediatamente
-    console.log('[DEBUG] Limpiando estado de autenticación...');
+    logger.info('[DEBUG] Limpiando estado de autenticación...');
     setToken(null);
     setUser(null);
     setPermissions(null);
     setIsLoggingOut(false);
-    console.log('[DEBUG] Estado de autenticación limpiado.');
+    logger.info('[DEBUG] Estado de autenticación limpiado.');
     
     // Limpiar tokens de forma síncrona si es posible
     try {
-      console.log('[DEBUG] Intentando limpiar tokens de almacenamiento...');
+      logger.info('[DEBUG] Intentando limpiar tokens de almacenamiento...');
       const { tokenManager } = require('@/services/tokenManager');
       tokenManager.clearTokens().then(() => {
-        console.log('[DEBUG] Limpieza de tokens completada.');
+        logger.info('[DEBUG] Limpieza de tokens completada.');
       }).catch((error: any) => {
-        console.warn('⚠️ [DEBUG] Error limpiando tokens en forceLogout:', error);
+        logger.warn('⚠️ [DEBUG] Error limpiando tokens en forceLogout:', error);
       });
     } catch (error) {
-      console.warn('⚠️ [DEBUG] No se pudo limpiar tokens síncronamente:', error);
+      logger.warn('⚠️ [DEBUG] No se pudo limpiar tokens síncronamente:', error);
     }
     
     // Navegación inmediata con múltiples intentos
-    console.log('[DEBUG] Intentando redirigir a /login...');
+    logger.info('[DEBUG] Intentando redirigir a /login...');
     try {
       router.push('/login');
-      console.log('✅ [DEBUG] Force logout - router.push exitoso');
+      logger.success(' [DEBUG] Force logout - router.push exitoso');
     } catch (error) {
       console.error('❌ [DEBUG] Error en forceLogout router.push:', error);
       try {
         router.replace('/login');
-        console.log('✅ [DEBUG] Force logout - router.replace exitoso');
+        logger.success(' [DEBUG] Force logout - router.replace exitoso');
       } catch (replaceError) {
         console.error('❌ [DEBUG] Error en forceLogout router.replace:', replaceError);
         // Fallback para web
         if (typeof window !== 'undefined' && window.location) {
-          console.log('[DEBUG] Usando fallback de window.location.href');
+          logger.info('[DEBUG] Usando fallback de window.location.href');
           window.location.href = '/login';
-          console.log('✅ [DEBUG] Force logout - fallback web ejecutado');
+          logger.success(' [DEBUG] Force logout - fallback web ejecutado');
         } else {
           // Fallback para React Native - reintentar
-          console.log('[DEBUG] Usando fallback de reintento con setTimeout');
+          logger.info('[DEBUG] Usando fallback de reintento con setTimeout');
           setTimeout(() => {
             try {
               router.replace('/login');
-              console.log('✅ [DEBUG] Force logout - reintento exitoso');
+              logger.success(' [DEBUG] Force logout - reintento exitoso');
             } catch (retryError) {
               console.error('❌ [DEBUG] Error en reintento de forceLogout:', retryError);
             }
@@ -252,12 +253,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIsLoading(false);
         }
       } catch (error) {
-        console.log('Error en loadToken:', error);
+        logger.info('Error en loadToken:', error);
         try {
           const logoutFn = await getTokenManager();
           await logoutFn.clearTokens();
         } catch (clearError) {
-          console.warn('Error limpiando tokens:', clearError);
+          logger.warn('Error limpiando tokens:', clearError);
         }
         setToken(null);
         setUser(null);

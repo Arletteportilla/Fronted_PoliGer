@@ -1,5 +1,6 @@
 import * as SecureStore from '@/services/secureStore';
 import { CONFIG } from './config';
+import { logger } from '@/services/logger';
 
 interface TokenData {
   access: string;
@@ -57,12 +58,12 @@ class TokenManager {
   // Limpiar todos los tokens
   async clearTokens(): Promise<void> {
     try {
-      console.log('🧹 TokenManager: Limpiando tokens almacenados...');
+      logger.info('🧹 TokenManager: Limpiando tokens almacenados...');
       await Promise.all([
         SecureStore.secureStore.removeItem('authToken'),
         SecureStore.secureStore.removeItem('refreshToken')
       ]);
-      console.log('✅ TokenManager: Tokens limpiados exitosamente');
+      logger.success(' TokenManager: Tokens limpiados exitosamente');
     } catch (error) {
       console.error('❌ TokenManager: Error al limpiar tokens:', error);
       // Error silencioso

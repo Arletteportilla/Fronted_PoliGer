@@ -1,3 +1,5 @@
+import { logger } from '@/services/logger';
+
 // Configuración centralizada de la aplicación
 export const CONFIG = {
   // URL del backend - Usar variables de entorno cuando sea posible
@@ -106,7 +108,7 @@ export const checkBackendHealth = async (): Promise<boolean> => {
     return response.ok;
   } catch (error) {
     if (CONFIG.DEBUG_MODE) {
-      console.warn('⚠️ Backend no disponible:', error);
+      logger.warn('⚠️ Backend no disponible:', error);
     }
     return false;
   }

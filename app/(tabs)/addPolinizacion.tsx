@@ -7,6 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useToast } from '@/contexts/ToastContext';
 import { SimpleCalendarPicker } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
+import { logger } from '@/services/logger';
 
 const TIPOS_POLINIZACION = [
   { label: 'Self', value: 'SELF' },
@@ -120,7 +121,7 @@ export default function AddPolinizacionScreen() {
 
     setIsPredicting(true);
     try {
-      console.log('🌸 Generando predicción de polinización...');
+      logger.info('🌸 Generando predicción de polinización...');
       
       const datosPrediccion = {
         especie: especie.trim(),
@@ -131,7 +132,7 @@ export default function AddPolinizacionScreen() {
         tipo_polinizacion: tipoPolinizacion || undefined,
       };
 
-      console.log('Datos para predicción:', datosPrediccion);
+      logger.info('Datos para predicción:', datosPrediccion);
 
       // Generar predicción inicial
       const resultado = await polinizacionPrediccionService.generarPrediccionInicial({
@@ -140,7 +141,7 @@ export default function AddPolinizacionScreen() {
         ...(ubicacion && { ubicacion }),
       });
 
-      console.log('✅ Predicción generada:', resultado);
+      logger.success(' Predicción generada:', resultado);
       setPrediccion(resultado);
       setShowPrediccion(true);
 
@@ -205,7 +206,7 @@ export default function AddPolinizacionScreen() {
         }),
       };
 
-      console.log('Datos a enviar:', formData);
+      logger.info('Datos a enviar:', formData);
 
       if (isEditMode && editItemId) {
         await polinizacionService.update(editItemId, formData);
@@ -223,7 +224,7 @@ export default function AddPolinizacionScreen() {
 
       if (error?.response?.data) {
         const errorData = error.response.data;
-        console.log('Error del backend:', errorData);
+        logger.info('Error del backend:', errorData);
 
         // Si hay errores específicos del serializer
         if (typeof errorData === 'object' && errorData !== null) {

@@ -1,4 +1,5 @@
 import api from './api';
+import { logger } from '@/services/logger';
 
 /**
  * Servicio para validar predicciones con fechas reales
@@ -56,8 +57,8 @@ class PrediccionValidacionService {
     fechaMaduracionReal: string
   ): Promise<ValidacionPrediccionResponse> {
     try {
-      console.log(`📊 Validando predicción de polinización ${polinizacionId}`);
-      console.log(`   Fecha real: ${fechaMaduracionReal}`);
+      logger.info(`📊 Validando predicción de polinización ${polinizacionId}`);
+      logger.info(`   Fecha real: ${fechaMaduracionReal}`);
 
       const response = await api.post<ValidacionPrediccionResponse>(
         `polinizaciones/${polinizacionId}/validar-prediccion/`,
@@ -66,7 +67,7 @@ class PrediccionValidacionService {
         }
       );
 
-      console.log('✅ Predicción validada:', response.data);
+      logger.success(' Predicción validada:', response.data);
 
       return response.data;
     } catch (error: any) {
@@ -87,7 +88,7 @@ class PrediccionValidacionService {
     precisionMinima: number = 0
   ): Promise<{ total: number; predicciones: PrediccionValidada[] }> {
     try {
-      console.log('📊 Obteniendo predicciones validadas');
+      logger.info('📊 Obteniendo predicciones validadas');
 
       const response = await api.get<{ total: number; predicciones: PrediccionValidada[] }>(
         'predicciones/validadas/',
@@ -99,7 +100,7 @@ class PrediccionValidacionService {
         }
       );
 
-      console.log(`✅ Predicciones validadas obtenidas: ${response.data.total}`);
+      logger.success(` Predicciones validadas obtenidas: ${response.data.total}`);
 
       return response.data;
     } catch (error: any) {
@@ -115,7 +116,7 @@ class PrediccionValidacionService {
    */
   async exportarDatosReentrenamiento(): Promise<Blob> {
     try {
-      console.log('📥 Exportando datos para reentrenamiento');
+      logger.info('📥 Exportando datos para reentrenamiento');
 
       const response = await api.post(
         'predicciones/exportar-reentrenamiento/',
@@ -125,7 +126,7 @@ class PrediccionValidacionService {
         }
       );
 
-      console.log('✅ Datos exportados');
+      logger.success(' Datos exportados');
 
       return response.data;
     } catch (error: any) {

@@ -5,6 +5,7 @@ import { germinacionService } from '../services/germinacion.service';
 import { validateRequiredFields, getResponsableName } from '../utils/formValidation';
 import { usePagination } from './usePagination';
 import { useToast } from '../contexts/ToastContext';
+import { logger } from '@/services/logger';
 
 export const useGerminaciones = (user: any) => {
   const toast = useToast();
@@ -50,11 +51,11 @@ export const useGerminaciones = (user: any) => {
   // Load available codes for autocomplete
   const loadCodigosDisponibles = useCallback(async () => {
     try {
-      console.log('🔍 useGerminaciones: Cargando códigos desde PostgreSQL para autocompletado...');
+      logger.debug(' useGerminaciones: Cargando códigos desde PostgreSQL para autocompletado...');
       const codes = await germinacionService.getCodes();
       setCodigosDisponibles(codes);
-      console.log('✅ useGerminaciones: Códigos cargados y guardados en estado:', codes.length);
-      console.log('📋 useGerminaciones: Primeros 10 códigos disponibles:', codes.slice(0, 10));
+      logger.success(' useGerminaciones: Códigos cargados y guardados en estado:', codes.length);
+      logger.info('📋 useGerminaciones: Primeros 10 códigos disponibles:', codes.slice(0, 10));
     } catch (error) {
       console.error('❌ useGerminaciones: Error cargando códigos:', error);
       setCodigosDisponibles([]);
@@ -64,7 +65,7 @@ export const useGerminaciones = (user: any) => {
   // Load codes with species for autocomplete
   const loadCodigosConEspecies = useCallback(async () => {
     try {
-      console.log('🔍 Cargando códigos con especies para autocompletado...');
+      logger.debug(' Cargando códigos con especies para autocompletado...');
       const codesWithSpecies = await germinacionService.getCodesWithSpecies();
       setCodigosConEspecies(codesWithSpecies);
       
@@ -72,9 +73,9 @@ export const useGerminaciones = (user: any) => {
       const especiesUnicas = Array.from(new Set(codesWithSpecies.map(item => item.especie).filter(Boolean)));
       setEspeciesDisponibles(especiesUnicas);
       
-      console.log('✅ Códigos con especies cargados:', codesWithSpecies.length);
-      console.log('✅ Especies únicas extraídas:', especiesUnicas.length);
-      console.log('📋 Primeras 5 especies:', especiesUnicas.slice(0, 5));
+      logger.success(' Códigos con especies cargados:', codesWithSpecies.length);
+      logger.success(' Especies únicas extraídas:', especiesUnicas.length);
+      logger.info('📋 Primeras 5 especies:', especiesUnicas.slice(0, 5));
     } catch (error) {
       console.error('❌ Error cargando códigos con especies:', error);
       setCodigosConEspecies([]);
@@ -85,7 +86,7 @@ export const useGerminaciones = (user: any) => {
   // Load available perchas and niveles for selectors
   const loadPerchasDisponibles = useCallback(async () => {
     try {
-      console.log('🔍 useGerminaciones: Cargando perchas y niveles disponibles...');
+      logger.debug(' useGerminaciones: Cargando perchas y niveles disponibles...');
       const opciones = await germinacionService.getFiltrosOpciones();
 
       // Eliminar duplicados usando Set por si acaso
@@ -95,10 +96,10 @@ export const useGerminaciones = (user: any) => {
       setPerchasDisponibles(perchasUnicas);
       setNivelesDisponibles(nivelesUnicos);
 
-      console.log('✅ useGerminaciones: Perchas cargadas:', perchasUnicas.length);
-      console.log('✅ useGerminaciones: Niveles cargados:', nivelesUnicos.length);
-      console.log('📋 useGerminaciones: Primeras 5 perchas:', perchasUnicas.slice(0, 5));
-      console.log('📋 useGerminaciones: Niveles:', nivelesUnicos);
+      logger.success(' useGerminaciones: Perchas cargadas:', perchasUnicas.length);
+      logger.success(' useGerminaciones: Niveles cargados:', nivelesUnicos.length);
+      logger.info('📋 useGerminaciones: Primeras 5 perchas:', perchasUnicas.slice(0, 5));
+      logger.info('📋 useGerminaciones: Niveles:', nivelesUnicos);
     } catch (error) {
       console.error('❌ useGerminaciones: Error cargando perchas y niveles:', error);
       setPerchasDisponibles([]);
@@ -109,7 +110,7 @@ export const useGerminaciones = (user: any) => {
   // Handle code selection and auto-complete species and genus
   const handleCodigoSelection = useCallback(async (codigoSeleccionado: string) => {
     try {
-      console.log('🔍 DEBUG - handleCodigoSelection llamado con:', codigoSeleccionado);
+      logger.debug(' DEBUG - handleCodigoSelection llamado con:', codigoSeleccionado);
 
       setForm(prev => ({ ...prev, codigo: codigoSeleccionado }));
 
@@ -117,7 +118,7 @@ export const useGerminaciones = (user: any) => {
       const germinacion = await germinacionService.getGerminacionByCode(codigoSeleccionado);
 
       if (germinacion) {
-        console.log('✅ DEBUG - Germinación encontrada:', germinacion);
+        logger.success(' DEBUG - Germinación encontrada:', germinacion);
 
         // Preparar los campos a autocompletar
         const updatedFields: any = {
@@ -127,13 +128,13 @@ export const useGerminaciones = (user: any) => {
         // Autocompletar especie/variedad si está disponible
         if (germinacion.especie) {
           updatedFields.especie_variedad = germinacion.especie;
-          console.log('✅ DEBUG - Autocompletando especie_variedad:', germinacion.especie);
+          logger.success(' DEBUG - Autocompletando especie_variedad:', germinacion.especie);
         }
 
         // Autocompletar género si está disponible
         if (germinacion.genero) {
           updatedFields.genero = germinacion.genero;
-          console.log('✅ DEBUG - Autocompletando genero:', germinacion.genero);
+          logger.success(' DEBUG - Autocompletando genero:', germinacion.genero);
         }
 
         setForm(prev => ({
@@ -141,7 +142,7 @@ export const useGerminaciones = (user: any) => {
           ...updatedFields
         }));
       } else {
-        console.log('⚠️ DEBUG - No se encontró germinación para el código:', codigoSeleccionado);
+        logger.warn(' DEBUG - No se encontró germinación para el código:', codigoSeleccionado);
       }
     } catch (error) {
       console.error('❌ Error en handleCodigoSelection:', error);
@@ -151,7 +152,7 @@ export const useGerminaciones = (user: any) => {
   // Handle species selection and auto-complete code and genus
   const handleEspecieSelection = useCallback(async (especieSeleccionada: string) => {
     try {
-      console.log('🔍 DEBUG - handleEspecieSelection llamado con:', especieSeleccionada);
+      logger.debug(' DEBUG - handleEspecieSelection llamado con:', especieSeleccionada);
 
       setForm(prev => ({ ...prev, especie_variedad: especieSeleccionada }));
 
@@ -159,7 +160,7 @@ export const useGerminaciones = (user: any) => {
       const germinacion = await germinacionService.getGerminacionByEspecie(especieSeleccionada);
 
       if (germinacion) {
-        console.log('✅ DEBUG - Germinación encontrada por especie:', germinacion);
+        logger.success(' DEBUG - Germinación encontrada por especie:', germinacion);
 
         // Preparar los campos a autocompletar
         const updatedFields: any = {
@@ -169,13 +170,13 @@ export const useGerminaciones = (user: any) => {
         // Autocompletar código si está disponible
         if (germinacion.codigo) {
           updatedFields.codigo = germinacion.codigo;
-          console.log('✅ DEBUG - Autocompletando codigo:', germinacion.codigo);
+          logger.success(' DEBUG - Autocompletando codigo:', germinacion.codigo);
         }
 
         // Autocompletar género si está disponible
         if (germinacion.genero) {
           updatedFields.genero = germinacion.genero;
-          console.log('✅ DEBUG - Autocompletando genero:', germinacion.genero);
+          logger.success(' DEBUG - Autocompletando genero:', germinacion.genero);
         }
 
         setForm(prev => ({
@@ -183,7 +184,7 @@ export const useGerminaciones = (user: any) => {
           ...updatedFields
         }));
       } else {
-        console.log('⚠️ DEBUG - No se encontró germinación para la especie:', especieSeleccionada);
+        logger.warn(' DEBUG - No se encontró germinación para la especie:', especieSeleccionada);
       }
     } catch (error) {
       console.error('❌ Error en handleEspecieSelection:', error);
@@ -194,26 +195,26 @@ export const useGerminaciones = (user: any) => {
   const loadGerminaciones = useCallback(async (page: number = 1) => {
     try {
       if (!user) {
-        console.log('⚠️ Usuario no autenticado, saltando carga de germinaciones');
+        logger.warn(' Usuario no autenticado, saltando carga de germinaciones');
         setLoading(false);
         return;
       }
 
-      console.log('🔄 Cargando germinaciones...', showOnlyMine ? 'Solo mías' : 'Todas', 'Página:', page);
-      console.log('🔍 Estado actual:', { showOnlyMine, user: user?.username });
+      logger.start(' Cargando germinaciones...', showOnlyMine ? 'Solo mías' : 'Todas', 'Página:', page);
+      logger.debug(' Estado actual:', { showOnlyMine, user: user?.username });
 
       let data;
 
       if (showOnlyMine) {
-        console.log('📞 Llamando a getMisGerminaciones()...');
+        logger.info('📞 Llamando a getMisGerminaciones()...');
         data = await germinacionService.getMisGerminaciones();
       } else {
-        console.log('📞 Llamando a getAllForAdmin()...');
+        logger.info('📞 Llamando a getAllForAdmin()...');
         data = await germinacionService.getAllForAdmin();
       }
 
-      console.log('✅ Germinaciones cargadas desde el servicio:', data?.length || 0);
-      console.log('📊 Primera germinación:', data && data.length > 0 ? { id: data[0].id, codigo: data[0].codigo } : 'Sin datos');
+      logger.success(' Germinaciones cargadas desde el servicio:', data?.length || 0);
+      logger.info('📊 Primera germinación:', data && data.length > 0 ? { id: data[0].id, codigo: data[0].codigo } : 'Sin datos');
 
       // Always sort by date (most recent first)
       const sortedData = data.sort((a: any, b: any) => {
@@ -221,10 +222,10 @@ export const useGerminaciones = (user: any) => {
         const dateB = new Date(b.fecha_creacion || b.fecha_ingreso || new Date());
         return dateB.getTime() - dateA.getTime();
       });
-      console.log('📝 Seteando germinaciones ordenadas:', sortedData.length);
+      logger.info('📝 Seteando germinaciones ordenadas:', sortedData.length);
       setGerminaciones(sortedData);
 
-      console.log('🎯 Estado de germinaciones actualizado. Total en estado:', sortedData.length);
+      logger.info('🎯 Estado de germinaciones actualizado. Total en estado:', sortedData.length);
 
     } catch (error: any) {
       console.error('❌ Error loading germinaciones', error);
@@ -253,7 +254,7 @@ export const useGerminaciones = (user: any) => {
 
   // Create germinacion
   const handleAddGerminacion = useCallback(async (prediccionData?: any) => {
-    console.log('🌱 Iniciando creación de germinación...');
+    logger.info('🌱 Iniciando creación de germinación...');
 
     const requiredFields = [
       { key: 'fecha_siembra', label: 'Fecha de siembra' },
@@ -314,11 +315,11 @@ export const useGerminaciones = (user: any) => {
         }),
       });
 
-      console.log('📤 Enviando datos al backend:', germinacionData);
+      logger.info('📤 Enviando datos al backend:', germinacionData);
 
       const result = await germinacionService.create(germinacionData);
 
-      console.log('✅ Germinación creada exitosamente:', result);
+      logger.success(' Germinación creada exitosamente:', result);
 
       // Mostrar notificación de éxito detallada
       const especieInfo = germinacionData.especie_variedad
@@ -357,7 +358,7 @@ export const useGerminaciones = (user: any) => {
   // Refresh data
   const onRefresh = useCallback(() => {
     if (!user) {
-      console.log('⚠️ Usuario no autenticado, saltando refresh');
+      logger.warn(' Usuario no autenticado, saltando refresh');
       return;
     }
     setRefreshing(true);
@@ -366,7 +367,7 @@ export const useGerminaciones = (user: any) => {
 
   // Filter germinaciones
   const germinacionesFiltradas = useMemo(() => {
-    console.log('🔍 Filtrando germinaciones:', {
+    logger.debug(' Filtrando germinaciones:', {
       total: germinaciones.length,
       searchTerm: search,
       hasSearch: search.length > 0
@@ -374,7 +375,7 @@ export const useGerminaciones = (user: any) => {
 
     // Si no hay término de búsqueda, retornar todas
     if (!search || search.trim() === '') {
-      console.log('✅ Sin filtro de búsqueda, retornando todas:', germinaciones.length);
+      logger.success(' Sin filtro de búsqueda, retornando todas:', germinaciones.length);
       return germinaciones;
     }
 
@@ -389,7 +390,7 @@ export const useGerminaciones = (user: any) => {
       );
     });
 
-    console.log('✅ Germinaciones filtradas:', filtered.length);
+    logger.success(' Germinaciones filtradas:', filtered.length);
     return filtered;
   }, [germinaciones, search]);
 

@@ -1,6 +1,7 @@
 import api from './api';
 import * as SecureStore from '@/services/secureStore';
 import type { 
+import { logger } from '@/services/logger';
   PrediccionMejoradaResponse, 
   EstadisticasPrecisionModelo, 
   ReentrenamientoResponse 
@@ -9,7 +10,7 @@ import type {
 export const germinacionService = {
   // Obtener códigos únicos - OPTIMIZADO con endpoint correcto del backend
   getCodes: async (): Promise<string[]> => {
-    console.log('🔍 germinacionService.getCodes() - Obteniendo códigos únicos desde PostgreSQL...');
+    logger.debug(' germinacionService.getCodes() - Obteniendo códigos únicos desde PostgreSQL...');
 
     try {
       // Usar el endpoint correcto del backend
@@ -17,19 +18,19 @@ export const germinacionService = {
         timeout: 10000
       });
 
-      console.log('🔍 germinacionService.getCodes() - response.data:', response.data);
+      logger.debug(' germinacionService.getCodes() - response.data:', response.data);
 
       // El backend retorna: {codigos: [...], total: X}
       const codes = Array.isArray(response.data.codigos) ? response.data.codigos : [];
-      console.log('✅ germinacionService.getCodes() - Códigos obtenidos desde PostgreSQL:', codes.length);
-      console.log('📋 Primeros 5 códigos:', codes.slice(0, 5));
-      console.log('🔍 ¿Contiene "pis"?:', codes.filter((c: string) => c.toLowerCase().includes('pis')));
+      logger.success(' germinacionService.getCodes() - Códigos obtenidos desde PostgreSQL:', codes.length);
+      logger.info('📋 Primeros 5 códigos:', codes.slice(0, 5));
+      logger.debug(' ¿Contiene "pis"?:', codes.filter((c: string) => c.toLowerCase().includes('pis')));
       return codes;
     } catch (error: any) {
       console.error('❌ germinacionService.getCodes() - Error:', error.message);
       // Fallback: intentar obtener de todas las germinaciones solo si falla
       try {
-        console.log('🔄 Usando fallback...');
+        logger.start(' Usando fallback...');
         const allGerminaciones = await germinacionService.getAllForAdmin();
         const codes = allGerminaciones
           .map((germinacion: any) => germinacion.codigo)
@@ -43,7 +44,7 @@ export const germinacionService = {
 
   // Obtener códigos con especies - OPTIMIZADO con endpoint correcto del backend
   getCodesWithSpecies: async (): Promise<{codigo: string, especie: string}[]> => {
-    console.log('🔍 germinacionService.getCodesWithSpecies() - Obteniendo códigos con especies...');
+    logger.debug(' germinacionService.getCodesWithSpecies() - Obteniendo códigos con especies...');
 
     try {
       // Usar el endpoint correcto del backend
@@ -51,17 +52,17 @@ export const germinacionService = {
         timeout: 10000
       });
 
-      console.log('🔍 germinacionService.getCodesWithSpecies() - response.data:', response.data);
+      logger.debug(' germinacionService.getCodesWithSpecies() - response.data:', response.data);
 
       // El backend retorna: {codigos_especies: [...], total: X}
       const codesWithSpecies = Array.isArray(response.data.codigos_especies) ? response.data.codigos_especies : [];
-      console.log('✅ germinacionService.getCodesWithSpecies() - Códigos con especies obtenidos:', codesWithSpecies.length);
+      logger.success(' germinacionService.getCodesWithSpecies() - Códigos con especies obtenidos:', codesWithSpecies.length);
       return codesWithSpecies;
     } catch (error: any) {
       console.error('❌ germinacionService.getCodesWithSpecies() - Error:', error.message);
       // Fallback: intentar obtener de todas las germinaciones solo si falla
       try {
-        console.log('🔄 Usando fallback...');
+        logger.start(' Usando fallback...');
         const allGerminaciones = await germinacionService.getAllForAdmin();
         const codesWithSpecies = allGerminaciones
           .map((germinacion: any) => ({
@@ -78,10 +79,10 @@ export const germinacionService = {
 
   // Buscar germinación por código - OPTIMIZADO con endpoint correcto del backend
   getGerminacionByCode: async (codigo: string): Promise<{codigo: string, especie: string, genero?: string} | null> => {
-    console.log('🔍 germinacionService.getGerminacionByCode() - Buscando código:', codigo);
+    logger.debug(' germinacionService.getGerminacionByCode() - Buscando código:', codigo);
 
     if (!codigo || codigo.trim() === '') {
-      console.log('⚠️ Código vacío, retornando null');
+      logger.warn(' Código vacío, retornando null');
       return null;
     }
 
@@ -98,17 +99,17 @@ export const germinacionService = {
           especie: response.data.especie || response.data.especie_variedad || '',
           genero: response.data.genero || undefined
         };
-        console.log('✅ Germinación encontrada:', result);
+        logger.success(' Germinación encontrada:', result);
         return result;
       }
 
-      console.log('⚠️ No se encontró germinación para el código:', codigo);
+      logger.warn(' No se encontró germinación para el código:', codigo);
       return null;
     } catch (error: any) {
       console.error('❌ germinacionService.getGerminacionByCode() - Error:', error.message);
       // Fallback: buscar en todas las germinaciones solo si falla
       try {
-        console.log('🔄 Usando fallback...');
+        logger.start(' Usando fallback...');
         const allGerminaciones = await germinacionService.getAllForAdmin();
         const germinacion = allGerminaciones.find((g: any) => g.codigo === codigo);
 
@@ -128,7 +129,7 @@ export const germinacionService = {
 
   // Buscar germinación por especie/variedad para autocompletar código
   getGerminacionByEspecie: async (especie: string): Promise<{ codigo: string; especie: string; genero?: string } | null> => {
-    console.log('🔍 germinacionService.getGerminacionByEspecie() - Buscando especie:', especie);
+    logger.debug(' germinacionService.getGerminacionByEspecie() - Buscando especie:', especie);
 
     if (!especie || especie.trim() === '') {
       return null;
@@ -146,15 +147,15 @@ export const germinacionService = {
           especie: response.data.especie || '',
           genero: response.data.genero || undefined
         };
-        console.log('✅ Germinación encontrada por especie:', result);
+        logger.success(' Germinación encontrada por especie:', result);
         return result;
       }
 
-      console.log('⚠️ No se encontró germinación para la especie:', especie);
+      logger.warn(' No se encontró germinación para la especie:', especie);
       return null;
     } catch (error: any) {
       if (error.response?.status === 404) {
-        console.log('⚠️ No se encontró germinación para la especie (404):', especie);
+        logger.warn(' No se encontró germinación para la especie (404):', especie);
         return null;
       }
       console.error('❌ germinacionService.getGerminacionByEspecie() - Error:', error.message);
@@ -164,7 +165,7 @@ export const germinacionService = {
 
   // Validar si un código es único en tiempo real
   validateCodigoUnico: async (codigo: string): Promise<{ disponible: boolean; mensaje: string }> => {
-    console.log('🔍 germinacionService.validateCodigoUnico() - Validando código:', codigo);
+    logger.debug(' germinacionService.validateCodigoUnico() - Validando código:', codigo);
 
     // Verificar si el código está vacío
     if (!codigo || codigo.trim() === '') {
@@ -181,7 +182,7 @@ export const germinacionService = {
 
       // Si encontró datos, autocompletar pero NO bloquear
       if (response.data) {
-        console.log('ℹ️ Código encontrado (se permite duplicado):', codigo);
+        logger.info(' Código encontrado (se permite duplicado):', codigo);
         return { 
           disponible: true, 
           mensaje: 'Código encontrado (se permiten duplicados en germinaciones)' 
@@ -189,12 +190,12 @@ export const germinacionService = {
       }
 
       // Si no encontró datos, código nuevo
-      console.log('✅ Código nuevo:', codigo);
+      logger.success(' Código nuevo:', codigo);
       return { disponible: true, mensaje: 'Código nuevo' };
     } catch (error: any) {
       // Error 404 significa que no existe (código nuevo)
       if (error.response?.status === 404) {
-        console.log('✅ Código nuevo (404):', codigo);
+        logger.success(' Código nuevo (404):', codigo);
         return { disponible: true, mensaje: 'Código nuevo' };
       }
 
@@ -214,14 +215,14 @@ export const germinacionService = {
     climas: string[];
     tipos_polinizacion: string[];
   }> => {
-    console.log('🔍 germinacionService.getFiltrosOpciones() - Obteniendo opciones...');
+    logger.debug(' germinacionService.getFiltrosOpciones() - Obteniendo opciones...');
 
     try {
       const response = await api.get('germinaciones/filtros-opciones/', {
         timeout: 10000
       });
 
-      console.log('🔍 germinacionService.getFiltrosOpciones() - response.data:', response.data);
+      logger.debug(' germinacionService.getFiltrosOpciones() - response.data:', response.data);
 
       // El backend retorna: {opciones: {...}, estadisticas: {...}}
       const opciones = response.data.opciones || {};
@@ -236,10 +237,10 @@ export const germinacionService = {
         tipos_polinizacion: Array.isArray(opciones.tipos_polinizacion) ? opciones.tipos_polinizacion : [],
       };
 
-      console.log('✅ germinacionService.getFiltrosOpciones() - Perchas obtenidas:', result.perchas.length);
-      console.log('✅ germinacionService.getFiltrosOpciones() - Niveles obtenidos:', result.niveles.length);
-      console.log('📋 Primeras 5 perchas:', result.perchas.slice(0, 5));
-      console.log('📋 Niveles:', result.niveles);
+      logger.success(' germinacionService.getFiltrosOpciones() - Perchas obtenidas:', result.perchas.length);
+      logger.success(' germinacionService.getFiltrosOpciones() - Niveles obtenidos:', result.niveles.length);
+      logger.info('📋 Primeras 5 perchas:', result.perchas.slice(0, 5));
+      logger.info('📋 Niveles:', result.niveles);
 
       return result;
     } catch (error: any) {
@@ -261,11 +262,11 @@ export const germinacionService = {
    * Por defecto filtra los últimos 7 días para mostrar solo registros recientes (no importados)
    */
   getMisGerminaciones: async (diasRecientes: number = 7) => {
-    console.log(`🔍 germinacionService.getMisGerminaciones() - Obteniendo germinaciones del usuario (últimos ${diasRecientes} días)...`);
+    logger.debug(` germinacionService.getMisGerminaciones() - Obteniendo germinaciones del usuario (últimos ${diasRecientes} días)...`);
     
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 Token disponible:', !!token);
+      logger.debug(' Token disponible:', !!token);
 
       const params: any = {};
       if (diasRecientes > 0) {
@@ -277,7 +278,7 @@ export const germinacionService = {
         timeout: 30000
       });
       
-      console.log('✅ Mis germinaciones recibidas:', response.data.length || response.data.results?.length || 0);
+      logger.success(' Mis germinaciones recibidas:', response.data.length || response.data.results?.length || 0);
       
       // Manejar respuesta paginada o directa
       if (Array.isArray(response.data)) {
@@ -308,11 +309,11 @@ export const germinacionService = {
     const dias_recientes = params.dias_recientes !== undefined ? params.dias_recientes : 7; // Por defecto 7 días
     const excluir_importadas = params.excluir_importadas !== undefined ? params.excluir_importadas : false;
 
-    console.log('🔍 germinacionService.getMisGerminacionesPaginated() - Parámetros:', params);
+    logger.debug(' germinacionService.getMisGerminacionesPaginated() - Parámetros:', params);
     
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 Token disponible:', !!token);
+      logger.debug(' Token disponible:', !!token);
 
       if (!token) {
         throw new Error('No hay token de autenticación');
@@ -337,7 +338,7 @@ export const germinacionService = {
         queryParams.excluir_importadas = 'true';
       }
 
-      console.log('🌐 Llamando a endpoint: germinaciones/mis-germinaciones/ con params:', queryParams);
+      logger.info('🌐 Llamando a endpoint: germinaciones/mis-germinaciones/ con params:', queryParams);
 
       const response = await api.get('germinaciones/mis-germinaciones/', {
         params: queryParams,
@@ -348,7 +349,7 @@ export const germinacionService = {
         }
       });
 
-      console.log('✅ Mis germinaciones paginadas recibidas:', {
+      logger.success(' Mis germinaciones paginadas recibidas:', {
         page,
         totalPages: response.data?.total_pages,
         count: response.data?.count,
@@ -357,7 +358,7 @@ export const germinacionService = {
 
       // Log detallado de las primeras 3 germinaciones para debugging
       if (response.data?.results && response.data.results.length > 0) {
-        console.log('📋 Primeras 3 germinaciones (muestra):',
+        logger.info('📋 Primeras 3 germinaciones (muestra):',
           response.data.results.slice(0, 3).map((g: any) => ({
             id: g.id,
             codigo: g.codigo,
@@ -366,7 +367,7 @@ export const germinacionService = {
           }))
         );
       } else {
-        console.warn('⚠️ No se recibieron germinaciones en la respuesta o el array está vacío');
+        logger.warn('⚠️ No se recibieron germinaciones en la respuesta o el array está vacío');
       }
       
       return {
@@ -397,22 +398,22 @@ export const germinacionService = {
   },
 
   getAll: async () => {
-    console.log('🔍 germinacionService.getAll() - Iniciando llamada a API...');
-    console.log('🔍 URL de la API:', 'http://127.0.0.1:8000/api/germinaciones/');
+    logger.debug(' germinacionService.getAll() - Iniciando llamada a API...');
+    logger.debug(' URL de la API:', 'http://127.0.0.1:8000/api/germinaciones/');
 
     try {
       // Verificar si hay token antes de hacer la llamada
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 germinacionService.getAll() - Token disponible:', !!token);
+      logger.debug(' germinacionService.getAll() - Token disponible:', !!token);
 
       const response = await api.get('germinaciones/', {
         timeout: 30000 // 30 segundos para datos paginados
       });
-      console.log( response.data);
+      logger.info( response.data);
       
       // Asegurarse de que la respuesta sea un array
       if (Array.isArray(response.data)) {
-        console.log(response.data.length);
+        logger.info(response.data.length);
         return response.data;
       } else if (response.data && response.data.results && Array.isArray(response.data.results)) {
         // Si la respuesta está paginada
@@ -430,16 +431,16 @@ export const germinacionService = {
   },
 
   getAllForAdmin: async () => {
-    console.log('🔍 germinacionService.getAllForAdmin() - Iniciando llamada para administrador...');
-    console.log('🔍 URL de la API:', 'http://127.0.0.1:8000/api/germinaciones/');
+    logger.debug(' germinacionService.getAllForAdmin() - Iniciando llamada para administrador...');
+    logger.debug(' URL de la API:', 'http://127.0.0.1:8000/api/germinaciones/');
     
     try {
       // Verificar si hay token antes de hacer la llamada
       const token = await SecureStore.secureStore.getItem('authToken');
-      console.log('🔍 germinacionService.getAllForAdmin() - Token disponible:', !!token);
+      logger.debug(' germinacionService.getAllForAdmin() - Token disponible:', !!token);
       
       if (!token) {
-        console.warn('⚠️ No hay token de autenticación disponible');
+        logger.warn('⚠️ No hay token de autenticación disponible');
         throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
       }
       
@@ -462,7 +463,7 @@ export const germinacionService = {
         return response.data.results;
       }
 
-      console.warn('⚠️ germinacionService.getAllForAdmin() - Formato de respuesta inesperado');
+      logger.warn('⚠️ germinacionService.getAllForAdmin() - Formato de respuesta inesperado');
       return response.data;
     } catch (error: any) {
       console.error('❌ germinacionService.getAllForAdmin() - Error en la llamada:', error);
@@ -505,7 +506,7 @@ export const germinacionService = {
     const page = params.page || 1;
     const page_size = params.page_size || 20;
 
-    console.log('🔍 germinacionService.getPaginated() - Parámetros:', params);
+    logger.debug(' germinacionService.getPaginated() - Parámetros:', params);
 
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -542,7 +543,7 @@ export const germinacionService = {
         }
       });
 
-      console.log('✅ germinacionService.getPaginated() - Respuesta recibida:', {
+      logger.success(' germinacionService.getPaginated() - Respuesta recibida:', {
         page,
         totalPages: response.data?.total_pages,
         count: response.data?.count,
@@ -578,7 +579,7 @@ export const germinacionService = {
 
   // Obtener opciones para filtros y estadísticas
   getFilterOptions: async () => {
-    console.log('🔍 germinacionService.getFilterOptions() - Obteniendo opciones de filtros...');
+    logger.debug(' germinacionService.getFilterOptions() - Obteniendo opciones de filtros...');
 
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -594,7 +595,7 @@ export const germinacionService = {
         }
       });
 
-      console.log('✅ Opciones de filtros obtenidas:', response.data);
+      logger.success(' Opciones de filtros obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo opciones de filtros:', error);
@@ -618,8 +619,8 @@ export const germinacionService = {
 
   // Descargar PDF de mis germinaciones
   descargarMisGerminacionesPDF: async (search?: string) => {
-    console.log('📄 germinacionService.descargarMisGerminacionesPDF() - Iniciando descarga...');
-    console.log('🔍 Búsqueda:', search);
+    logger.info('📄 germinacionService.descargarMisGerminacionesPDF() - Iniciando descarga...');
+    logger.debug(' Búsqueda:', search);
 
     try {
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -634,7 +635,7 @@ export const germinacionService = {
       }
 
       const url = `germinaciones/mis-germinaciones-pdf/${params.toString() ? '?' + params.toString() : ''}`;
-      console.log('🔗 URL de descarga:', url);
+      logger.info('🔗 URL de descarga:', url);
 
       const response = await api.get(url, {
         responseType: 'blob',
@@ -645,8 +646,8 @@ export const germinacionService = {
         timeout: 60000 // 60 segundos para PDFs grandes
       });
 
-      console.log('✅ PDF de mis germinaciones descargado exitosamente');
-      console.log('📊 Tamaño del PDF:', response.data.size, 'bytes');
+      logger.success(' PDF de mis germinaciones descargado exitosamente');
+      logger.info('📊 Tamaño del PDF:', response.data.size, 'bytes');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error descargando PDF de mis germinaciones:', error);
@@ -661,8 +662,8 @@ export const germinacionService = {
   },
   
   create: async (data: any) => {
-    console.log('🌱 germinacionService.create() - Iniciando creación...');
-    console.log('📋 Datos a enviar:', data);
+    logger.info('🌱 germinacionService.create() - Iniciando creación...');
+    logger.info('📋 Datos a enviar:', data);
     
     try {
       // Mapear especie_variedad a especie si es necesario
@@ -751,7 +752,7 @@ export const germinacionService = {
     tipo_semilla?: string;
   }) => {
     try {
-      console.log('🔮 Calculando predicción con datos:', formData);
+      logger.info('🔮 Calculando predicción con datos:', formData);
 
       const response = await api.post('germinaciones/calcular_prediccion/', {
         especie: formData.especie?.trim() || '',
@@ -761,7 +762,7 @@ export const germinacionService = {
         tipo_semilla: formData.tipo_semilla || ''
       });
 
-      console.log('Predicción calculada:', response.data);
+      logger.info('Predicción calculada:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('Error calculando predicción:', error);
@@ -783,7 +784,7 @@ export const germinacionService = {
     clima: 'I' | 'IW' | 'IC' | 'W' | 'C';
   }): Promise<PrediccionMejoradaResponse> => {
     try {
-      console.log('🔮 Calculando predicción mejorada con datos:', formData);
+      logger.info('🔮 Calculando predicción mejorada con datos:', formData);
 
       const response = await api.post('germinaciones/calcular-prediccion-mejorada/', {
         especie: formData.especie?.trim() || '',
@@ -792,7 +793,7 @@ export const germinacionService = {
         clima: formData.clima || 'I'
       });
 
-      console.log('✅ Predicción mejorada calculada:', response.data);
+      logger.success(' Predicción mejorada calculada:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error calculando predicción mejorada:', error);
@@ -809,11 +810,11 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Obtener alertas de germinación
   obtenerAlertasGerminacion: async (): Promise<any> => {
     try {
-      console.log('🔔 Obteniendo alertas de germinación...');
+      logger.info('🔔 Obteniendo alertas de germinación...');
 
       const response = await api.get('germinaciones/alertas_germinacion/');
 
-      console.log('✅ Alertas obtenidas:', response.data);
+      logger.success(' Alertas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo alertas:', error);
@@ -829,7 +830,7 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Marcar alerta como revisada
   marcarAlertaRevisada: async (germinacionId: number, estado: string, observaciones?: string): Promise<any> => {
     try {
-      console.log(`🔄 Marcando alerta como ${estado} para germinación ${germinacionId}...`);
+      logger.start(` Marcando alerta como ${estado} para germinación ${germinacionId}...`);
 
       const response = await api.post(`germinaciones/${germinacionId}/marcar_alerta_revisada/`, {
         estado: estado,
@@ -837,7 +838,7 @@ export const germinacionService = {
         fecha_revision: new Date().toISOString().split('T')[0]
       });
 
-      console.log('✅ Alerta actualizada:', response.data);
+      logger.success(' Alerta actualizada:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error actualizando alerta:', error);
@@ -853,11 +854,11 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Obtener estadísticas de precisión del modelo
   obtenerEstadisticasPrecision: async (): Promise<EstadisticasPrecisionModelo> => {
     try {
-      console.log('📊 Obteniendo estadísticas de precisión del modelo...');
+      logger.info('📊 Obteniendo estadísticas de precisión del modelo...');
 
       const response = await api.get('germinaciones/estadisticas_precision_modelo/');
 
-      console.log('✅ Estadísticas obtenidas:', response.data);
+      logger.success(' Estadísticas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo estadísticas:', error);
@@ -880,14 +881,14 @@ export const germinacionService = {
     incluir_historial?: boolean;
   }): Promise<Blob> => {
     try {
-      console.log('📤 Exportando datos de predicciones a CSV...', filtros);
+      logger.info('📤 Exportando datos de predicciones a CSV...', filtros);
 
       const response = await api.get('germinaciones/exportar_predicciones_csv/', {
         params: filtros,
         responseType: 'blob'
       });
 
-      console.log('✅ Datos exportados exitosamente a CSV');
+      logger.success(' Datos exportados exitosamente a CSV');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error exportando datos a CSV:', error);
@@ -903,13 +904,13 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Crear backup del modelo entrenado
   crearBackupModelo: async () => {
     try {
-      console.log('💾 Creando backup del modelo entrenado...');
+      logger.info('💾 Creando backup del modelo entrenado...');
 
       const response = await api.post('germinaciones/crear_backup_modelo/', {}, {
         responseType: 'blob'
       });
 
-      console.log('✅ Backup del modelo creado exitosamente');
+      logger.success(' Backup del modelo creado exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error creando backup del modelo:', error);
@@ -925,11 +926,11 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Obtener información del modelo para backup
   obtenerInfoBackupModelo: async () => {
     try {
-      console.log('ℹ️ Obteniendo información del modelo para backup...');
+      logger.info(' Obteniendo información del modelo para backup...');
 
       const response = await api.get('germinaciones/info_backup_modelo/');
 
-      console.log('✅ Información del modelo obtenida:', response.data);
+      logger.success(' Información del modelo obtenida:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo información del modelo:', error);
@@ -945,11 +946,11 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Reentrenar modelo
   reentrenarModelo: async (): Promise<ReentrenamientoResponse> => {
     try {
-      console.log('🤖 Iniciando reentrenamiento del modelo...');
+      logger.info('🤖 Iniciando reentrenamiento del modelo...');
 
       const response = await api.post('germinaciones/reentrenar_modelo/');
 
-      console.log('✅ Reentrenamiento completado:', response.data);
+      logger.success(' Reentrenamiento completado:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error reentrenando modelo:', error);
@@ -965,11 +966,11 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Completar predicciones faltantes
   completarPrediccionesFaltantes: async () => {
     try {
-      console.log('🔄 Completando predicciones faltantes...');
+      logger.start(' Completando predicciones faltantes...');
 
       const response = await api.post('germinaciones/completar_predicciones_faltantes/');
 
-      console.log('✅ Predicciones completadas:', response.data);
+      logger.success(' Predicciones completadas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error completando predicciones:', error);
@@ -985,11 +986,11 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Obtener estado del modelo
   obtenerEstadoModelo: async () => {
     try {
-      console.log('ℹ️ Obteniendo estado del modelo...');
+      logger.info(' Obteniendo estado del modelo...');
 
       const response = await api.get('germinaciones/estado_modelo/');
 
-      console.log('✅ Estado del modelo obtenido:', response.data);
+      logger.success(' Estado del modelo obtenido:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo estado del modelo:', error);
@@ -1005,11 +1006,11 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Obtener métricas de rendimiento
   obtenerMetricasRendimiento: async () => {
     try {
-      console.log('📊 Obteniendo métricas de rendimiento...');
+      logger.info('📊 Obteniendo métricas de rendimiento...');
 
       const response = await api.get('germinaciones/performance_metrics/');
 
-      console.log('✅ Métricas obtenidas:', response.data);
+      logger.success(' Métricas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo métricas:', error);
@@ -1028,7 +1029,7 @@ export const germinacionService = {
    */
   cambiarEstadoCapsula: async (id: number, nuevoEstado: 'CERRADA' | 'ABIERTA' | 'SEMIABIERTA') => {
     try {
-      console.log(`🔄 Cambiando estado de cápsula de germinación ${id} a ${nuevoEstado}`);
+      logger.start(` Cambiando estado de cápsula de germinación ${id} a ${nuevoEstado}`);
 
       // Preparar datos para actualizar
       const updateData: any = {
@@ -1039,11 +1040,11 @@ export const germinacionService = {
       if (nuevoEstado === 'ABIERTA') {
         const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
         updateData.fecha_germinacion = fechaActual;
-        console.log(`📅 Actualizando fecha de germinación a: ${fechaActual}`);
+        logger.info(`📅 Actualizando fecha de germinación a: ${fechaActual}`);
       }
 
       const response = await api.patch(`germinaciones/${id}/`, updateData);
-      console.log('✅ Estado de cápsula cambiado exitosamente');
+      logger.success(' Estado de cápsula cambiado exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error cambiando estado de cápsula:', error);
@@ -1058,7 +1059,7 @@ export const germinacionService = {
    */
   cambiarEtapa: async (id: number, nuevaEtapa: 'INGRESADO' | 'EN_PROCESO' | 'FINALIZADO' | 'LISTA') => {
     try {
-      console.log(`🔄 Cambiando etapa de germinación ${id} a ${nuevaEtapa}`);
+      logger.start(` Cambiando etapa de germinación ${id} a ${nuevaEtapa}`);
 
       // Preparar datos para actualizar
       const updateData: any = {
@@ -1069,11 +1070,11 @@ export const germinacionService = {
       if (nuevaEtapa === 'FINALIZADO' || nuevaEtapa === 'LISTA') {
         const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
         updateData.fecha_germinacion = fechaActual;
-        console.log(`📅 Actualizando fecha de germinación a: ${fechaActual}`);
+        logger.info(`📅 Actualizando fecha de germinación a: ${fechaActual}`);
       }
 
       const response = await api.patch(`germinaciones/${id}/`, updateData);
-      console.log('✅ Etapa cambiada exitosamente');
+      logger.success(' Etapa cambiada exitosamente');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error cambiando etapa:', error);
@@ -1088,7 +1089,7 @@ export const germinacionService = {
     fechaGerminacion?: string
   ): Promise<any> => {
     try {
-      console.log(`🔄 Cambiando estado de germinación ${id} a: ${estado}`, fechaGerminacion ? `con fecha: ${fechaGerminacion}` : '');
+      logger.start(` Cambiando estado de germinación ${id} a: ${estado}`, fechaGerminacion ? `con fecha: ${fechaGerminacion}` : '');
 
       const data: any = { estado };
       if (fechaGerminacion && estado === 'FINALIZADO') {
@@ -1097,7 +1098,7 @@ export const germinacionService = {
 
       const response = await api.post(`germinaciones/${id}/cambiar-estado/`, data);
 
-      console.log('✅ Estado de germinación cambiado exitosamente:', response.data);
+      logger.success(' Estado de germinación cambiado exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error cambiando estado de germinación:', error);
@@ -1113,7 +1114,7 @@ export const germinacionService = {
   // NUEVA FUNCIÓN: Actualizar progreso de germinación (0-100%)
   actualizarProgresoGerminacion: async (id: number, progreso: number): Promise<any> => {
     try {
-      console.log(`📊 Actualizando progreso de germinación ${id} a: ${progreso}%`);
+      logger.info(`📊 Actualizando progreso de germinación ${id} a: ${progreso}%`);
 
       // Validar que el progreso esté entre 0 y 100
       if (progreso < 0 || progreso > 100) {
@@ -1124,7 +1125,7 @@ export const germinacionService = {
         progreso: progreso
       });
 
-      console.log('✅ Progreso de germinación actualizado exitosamente:', response.data);
+      logger.success(' Progreso de germinación actualizado exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error actualizando progreso de germinación:', error);
@@ -1163,14 +1164,14 @@ export const germinacionService = {
     germinacion: any;
   }> => {
     try {
-      console.log(`✓ Validando predicción de germinación ${germinacionId} con fecha real:`, fechaRealGerminacion);
+      logger.info(`✓ Validando predicción de germinación ${germinacionId} con fecha real:`, fechaRealGerminacion);
 
       const response = await api.post(
         `germinaciones/${germinacionId}/validar-prediccion/`,
         { fecha_real_germinacion: fechaRealGerminacion }
       );
 
-      console.log('✅ Predicción validada exitosamente:', response.data);
+      logger.success(' Predicción validada exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error validando predicción:', error);
@@ -1199,13 +1200,13 @@ export const germinacionService = {
     germinaciones: any[];
   }> => {
     try {
-      console.log('📊 Obteniendo germinaciones validadas...', params);
+      logger.info('📊 Obteniendo germinaciones validadas...', params);
 
       const response = await api.get('predicciones/germinaciones/validadas/', {
         params
       });
 
-      console.log('✅ Germinaciones validadas obtenidas:', response.data);
+      logger.success(' Germinaciones validadas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo germinaciones validadas:', error);
@@ -1226,7 +1227,7 @@ export const germinacionService = {
    */
   exportarDatosReentrenamiento: async (): Promise<Blob> => {
     try {
-      console.log('📤 Exportando datos de germinaciones validadas para reentrenamiento...');
+      logger.info('📤 Exportando datos de germinaciones validadas para reentrenamiento...');
 
       const response = await api.post(
         'predicciones/exportar-reentrenamiento-germinacion/',
@@ -1234,8 +1235,8 @@ export const germinacionService = {
         { responseType: 'blob' }
       );
 
-      console.log('✅ Datos exportados exitosamente');
-      console.log('📊 Tamaño del archivo:', response.data.size, 'bytes');
+      logger.success(' Datos exportados exitosamente');
+      logger.info('📊 Tamaño del archivo:', response.data.size, 'bytes');
       return response.data;
     } catch (error: any) {
       console.error('❌ Error exportando datos:', error);
@@ -1256,7 +1257,7 @@ export const germinacionService = {
     diasProximaRevision?: number
   ) => {
     try {
-      console.log(`✅ Marcando germinación ${id} como revisada`);
+      logger.success(` Marcando germinación ${id} como revisada`);
 
       const data: any = {};
       if (estado) data.estado = estado;
@@ -1265,7 +1266,7 @@ export const germinacionService = {
 
       const response = await api.post(`germinaciones/${id}/marcar-revisado/`, data);
 
-      console.log('✅ Germinación marcada como revisada:', response.data);
+      logger.success(' Germinación marcada como revisada:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error marcando germinación como revisada:', error);
@@ -1276,11 +1277,11 @@ export const germinacionService = {
   // Obtener germinaciones pendientes de revisión
   getPendientesRevision: async () => {
     try {
-      console.log('🔍 Obteniendo germinaciones pendientes de revisión...');
+      logger.debug(' Obteniendo germinaciones pendientes de revisión...');
 
       const response = await api.get('germinaciones/pendientes-revision/');
 
-      console.log('✅ Germinaciones pendientes obtenidas:', response.data);
+      logger.success(' Germinaciones pendientes obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo germinaciones pendientes:', error);

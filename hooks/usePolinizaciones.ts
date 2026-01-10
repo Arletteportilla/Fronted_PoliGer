@@ -4,6 +4,7 @@ import { polinizacionService } from '@/services/polinizacion.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useRouter } from 'expo-router';
+import { logger } from '@/services/logger';
 
 export const usePolinizaciones = () => {
   const { user } = useAuth();
@@ -43,12 +44,12 @@ export const usePolinizaciones = () => {
       setLoading(true);
       
       if (!user) {
-        console.log('⚠️ Usuario no autenticado, saltando carga de polinizaciones');
+        logger.warn(' Usuario no autenticado, saltando carga de polinizaciones');
         setLoading(false);
         return;
       }
 
-      console.log('🔄 Cargando polinizaciones...', showOnlyMine ? 'Solo mías' : 'Todas', 'Página:', page);
+      logger.start(' Cargando polinizaciones...', showOnlyMine ? 'Solo mías' : 'Todas', 'Página:', page);
       
       let data;
       let paginationInfo = null;
@@ -152,7 +153,7 @@ export const usePolinizaciones = () => {
       if (tipoML === 'SIBLING') tipoML = 'SIBBLING'; // Corregir ortografía
       if (tipoML === 'HIBRIDA') tipoML = 'HYBRID'; // Traducir
 
-      console.log('🔮 Solicitando predicción ML con:', {
+      logger.info('🔮 Solicitando predicción ML con:', {
         genero: generoParaPrediccion,
         especie: especieParaPrediccion,
         tipo: tipoML,
@@ -295,7 +296,7 @@ export const usePolinizaciones = () => {
         }),
       };
 
-      console.log('📝 Datos a guardar:', polinizacionData);
+      logger.info('📝 Datos a guardar:', polinizacionData);
 
       if (isEdit && form.id) {
         // Actualizar polinización existente

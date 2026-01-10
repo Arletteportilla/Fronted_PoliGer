@@ -1,5 +1,6 @@
 import { LogBox } from 'react-native';
 import { CONFIG } from '@/services/config';
+import { logger } from '@/services/logger';
 
 /**
  * Configuración para suprimir warnings específicos en desarrollo
@@ -47,7 +48,7 @@ export const configureUnhandledRejection = () => {
   if (typeof window !== 'undefined') {
     window.addEventListener('unhandledrejection', (event) => {
       if (CONFIG.DEBUG_MODE) {
-        console.warn('Promesa no manejada detectada:', event.reason);
+        logger.warn('Promesa no manejada detectada:', event.reason);
       }
       event.preventDefault(); // Prevenir el error por defecto
     });

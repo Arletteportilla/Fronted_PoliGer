@@ -17,6 +17,7 @@ import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 import { CONFIG } from '@/services/config';
 import * as SecureStore from '@/services/secureStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/services/logger';
 
 export default function PolinizacionesScreen() {
   const { colors: themeColors } = useTheme();
@@ -62,7 +63,7 @@ export default function PolinizacionesScreen() {
 
     setIsExporting(true);
     try {
-      console.log('🔄 Iniciando descarga de PDF de polinizaciones...');
+      logger.start(' Iniciando descarga de PDF de polinizaciones...');
 
       // Obtener token de autenticación
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -75,7 +76,7 @@ export default function PolinizacionesScreen() {
       if (filters.search) params.append('search', filters.search);
 
       const url = `${CONFIG.API_BASE_URL}/polinizaciones/polinizaciones-pdf/?${params.toString()}`;
-      console.log(`🔍 URL completa: ${url}`);
+      logger.debug(` URL completa: ${url}`);
 
       // Crear nombre de archivo
       const timestamp = new Date().toISOString().slice(0, 10);
@@ -84,7 +85,7 @@ export default function PolinizacionesScreen() {
 
       if (Platform.OS === 'web') {
         // Descarga para web
-        console.log('🌐 Descargando en web...');
+        logger.info('🌐 Descargando en web...');
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -108,11 +109,11 @@ export default function PolinizacionesScreen() {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(downloadUrl);
 
-        console.log('✅ PDF de polinizaciones descargado exitosamente en web');
+        logger.success(' PDF de polinizaciones descargado exitosamente en web');
         Alert.alert('Éxito', 'PDF de polinizaciones descargado correctamente');
       } else {
         // Descarga para móvil
-        console.log('📱 Descargando en móvil...');
+        logger.info('📱 Descargando en móvil...');
         const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
         const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
@@ -123,7 +124,7 @@ export default function PolinizacionesScreen() {
         });
 
         if (downloadResult.status === 200) {
-          console.log('✅ PDF descargado exitosamente:', downloadResult.uri);
+          logger.success(' PDF descargado exitosamente:', downloadResult.uri);
           Alert.alert('Éxito', `PDF descargado en: ${downloadResult.uri}`);
         } else {
           throw new Error('Error al descargar el archivo');

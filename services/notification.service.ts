@@ -1,4 +1,5 @@
 import api from './api';
+import { logger } from '@/services/logger';
 
 export interface NotificationUser {
   id: number;
@@ -49,7 +50,7 @@ class NotificationService {
     solo_propias?: boolean;  // Forzar solo las notificaciones del usuario actual (útil para perfil)
   } = {}): Promise<Notification[] | NotificationResponse> {
     try {
-      console.log('🔔 notificationService.getNotifications - Parámetros:', params);
+      logger.info('🔔 notificationService.getNotifications - Parámetros:', params);
 
       const queryParams: any = {};
       if (params.solo_no_leidas) {
@@ -66,7 +67,7 @@ class NotificationService {
         params: queryParams
       });
 
-      console.log('✅ Notificaciones recibidas:', {
+      logger.success(' Notificaciones recibidas:', {
         type: typeof response.data,
         isArray: Array.isArray(response.data),
         hasStats: response.data?.estadisticas_admin ? true : false,
@@ -85,11 +86,11 @@ class NotificationService {
    */
   async markAsRead(notificationId: number): Promise<void> {
     try {
-      console.log('📖 Marcando notificación como leída:', notificationId);
+      logger.info('📖 Marcando notificación como leída:', notificationId);
       
       await api.post(`notifications/${notificationId}/marcar-leida/`);
       
-      console.log('✅ Notificación marcada como leída');
+      logger.success(' Notificación marcada como leída');
     } catch (error: any) {
       console.error('❌ Error marcando notificación como leída:', error);
       throw error;
@@ -101,11 +102,11 @@ class NotificationService {
    */
   async markAllAsRead(): Promise<{ count: number }> {
     try {
-      console.log('📖 Marcando todas las notificaciones como leídas');
+      logger.info('📖 Marcando todas las notificaciones como leídas');
       
       const response = await api.post('notifications/marcar-todas-leidas/');
       
-      console.log('✅ Todas las notificaciones marcadas como leídas:', response.data);
+      logger.success(' Todas las notificaciones marcadas como leídas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error marcando todas las notificaciones como leídas:', error);
@@ -118,11 +119,11 @@ class NotificationService {
    */
   async toggleFavorite(notificationId: number): Promise<{ favorita: boolean }> {
     try {
-      console.log('⭐ Cambiando estado de favorita:', notificationId);
+      logger.info('⭐ Cambiando estado de favorita:', notificationId);
       
       const response = await api.post(`notifications/${notificationId}/toggle-favorita/`);
       
-      console.log('✅ Estado de favorita cambiado:', response.data);
+      logger.success(' Estado de favorita cambiado:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error cambiando estado de favorita:', error);
@@ -135,11 +136,11 @@ class NotificationService {
    */
   async archive(notificationId: number): Promise<void> {
     try {
-      console.log('🗄️ Archivando notificación:', notificationId);
+      logger.info('🗄️ Archivando notificación:', notificationId);
       
       await api.post(`notifications/${notificationId}/archivar/`);
       
-      console.log('✅ Notificación archivada');
+      logger.success(' Notificación archivada');
     } catch (error: any) {
       console.error('❌ Error archivando notificación:', error);
       throw error;
@@ -151,11 +152,11 @@ class NotificationService {
    */
   async getStats(): Promise<any> {
     try {
-      console.log('📊 Obteniendo estadísticas de notificaciones');
+      logger.info('📊 Obteniendo estadísticas de notificaciones');
       
       const response = await api.get('notifications/estadisticas/');
       
-      console.log('✅ Estadísticas obtenidas:', response.data);
+      logger.success(' Estadísticas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo estadísticas:', error);
@@ -168,11 +169,11 @@ class NotificationService {
    */
   async getAlerts(): Promise<any> {
     try {
-      console.log('🚨 Obteniendo alertas pendientes');
+      logger.info('🚨 Obteniendo alertas pendientes');
       
       const response = await api.get('notifications/alertas/');
       
-      console.log('✅ Alertas obtenidas:', response.data);
+      logger.success(' Alertas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo alertas:', error);
@@ -185,13 +186,13 @@ class NotificationService {
    */
   async getPendingRecords(dias: number = 5): Promise<any> {
     try {
-      console.log('📋 Obteniendo registros pendientes de revisión');
+      logger.info('📋 Obteniendo registros pendientes de revisión');
       
       const response = await api.get('notifications/registros-pendientes/', {
         params: { dias }
       });
       
-      console.log('✅ Registros pendientes obtenidos:', response.data);
+      logger.success(' Registros pendientes obtenidos:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error obteniendo registros pendientes:', error);

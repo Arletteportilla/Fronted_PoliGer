@@ -8,6 +8,7 @@ import Pagination from '@/components/filters/Pagination';
 import type { Germinacion } from '@/types/index';
 import { getEstadoColor } from '@/utils/colorHelpers';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
+import { logger } from '@/services/logger';
 
 export interface PerfilGerminacionesTabProps {
   loading: boolean;
@@ -87,7 +88,7 @@ export function PerfilGerminacionesTab({
           <TouchableOpacity
             style={styles.exportButton}
             onPress={() => {
-              console.log('🔔 Botón Descargar PDF clickeado - Germinaciones');
+              logger.info('🔔 Botón Descargar PDF clickeado - Germinaciones');
               onDescargarPDF();
             }}
           >

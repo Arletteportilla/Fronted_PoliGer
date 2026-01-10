@@ -1,5 +1,6 @@
 import api from './api';
 import { Notification } from '@/types';
+import { logger } from '@/services/logger';
 
 // Mapeo de tipos del backend al frontend
 const mapNotificationType = (tipo: string): 'info' | 'success' | 'warning' | 'error' => {
@@ -105,7 +106,7 @@ export const notificacionesService = {
         ? `notifications/?${params.toString()}`
         : 'notifications/';
 
-      console.log('🔔 Obteniendo notificaciones con filtros:', filters, '| URL:', url);
+      logger.info('🔔 Obteniendo notificaciones con filtros:', filters, '| URL:', url);
 
       const response = await api.get(url);
 
@@ -127,7 +128,7 @@ export const notificacionesService = {
       }
 
       const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
-      console.log('✅ Notificaciones obtenidas:', notifications.length);
+      logger.success(' Notificaciones obtenidas:', notifications.length);
 
       return notifications;
     } catch (error) {
@@ -155,7 +156,7 @@ export const notificacionesService = {
   marcarComoLeida: async (id: string): Promise<void> => {
     try {
       await api.post(`notifications/${id}/marcar-leida/`);
-      console.log('✅ Notificación marcada como leída');
+      logger.success(' Notificación marcada como leída');
     } catch (error) {
       console.error('❌ Error marcando notificación como leída:', error);
       throw error;
@@ -168,7 +169,7 @@ export const notificacionesService = {
   marcarTodasComoLeidas: async (): Promise<number> => {
     try {
       const response = await api.post('notifications/marcar-todas-leidas/');
-      console.log('✅ Todas las notificaciones marcadas como leídas:', response.data);
+      logger.success(' Todas las notificaciones marcadas como leídas:', response.data);
       return response.data.count || 0;
     } catch (error) {
       console.error('❌ Error marcando todas como leídas:', error);
@@ -182,7 +183,7 @@ export const notificacionesService = {
   toggleFavorita: async (id: string): Promise<boolean> => {
     try {
       const response = await api.post(`notifications/${id}/toggle-favorita/`);
-      console.log('✅ Estado de favorita cambiado:', response.data.favorita);
+      logger.success(' Estado de favorita cambiado:', response.data.favorita);
       return response.data.favorita;
     } catch (error) {
       console.error('❌ Error cambiando favorita:', error);
@@ -196,7 +197,7 @@ export const notificacionesService = {
   archivar: async (id: string): Promise<void> => {
     try {
       await api.post(`notifications/${id}/archivar/`);
-      console.log('✅ Notificación archivada');
+      logger.success(' Notificación archivada');
     } catch (error) {
       console.error('❌ Error archivando notificación:', error);
       throw error;
@@ -209,7 +210,7 @@ export const notificacionesService = {
   eliminar: async (id: string): Promise<void> => {
     try {
       await api.delete(`notifications/${id}/`);
-      console.log('✅ Notificación eliminada');
+      logger.success(' Notificación eliminada');
     } catch (error) {
       console.error('❌ Error eliminando notificación:', error);
       throw error;
@@ -222,7 +223,7 @@ export const notificacionesService = {
   getEstadisticas: async (): Promise<NotificationStats> => {
     try {
       const response = await api.get('notifications/estadisticas/');
-      console.log('✅ Estadísticas obtenidas:', response.data);
+      logger.success(' Estadísticas obtenidas:', response.data);
       return response.data;
     } catch (error) {
       console.error('❌ Error obteniendo estadísticas:', error);
@@ -236,7 +237,7 @@ export const notificacionesService = {
   getAlertas: async (): Promise<any[]> => {
     try {
       const response = await api.get('notifications/alertas/');
-      console.log('✅ Alertas obtenidas:', response.data);
+      logger.success(' Alertas obtenidas:', response.data);
       return response.data.alertas || [];
     } catch (error) {
       console.error('❌ Error obteniendo alertas:', error);

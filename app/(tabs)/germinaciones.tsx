@@ -19,6 +19,7 @@ import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { GerminacionesHeader, GerminacionesContent } from '@/components/germinaciones';
 import GerminacionFilters from '@/components/filters/GerminacionFilters';
 import { DateFilterModal } from '@/components/filters/DateFilterModal';
+import { logger } from '@/services/logger';
 
 export default function GerminacionesScreen() {
   const { user } = useAuth();
@@ -57,7 +58,7 @@ export default function GerminacionesScreen() {
 
     setIsExporting(true);
     try {
-      console.log('🔄 Iniciando descarga de PDF de germinaciones...');
+      logger.start(' Iniciando descarga de PDF de germinaciones...');
 
       // Obtener token de autenticación
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -70,7 +71,7 @@ export default function GerminacionesScreen() {
       if (filters.search) params.append('search', filters.search);
 
       const url = `${CONFIG.API_BASE_URL}/germinaciones/germinaciones-pdf/?${params.toString()}`;
-      console.log(`🔍 URL completa: ${url}`);
+      logger.debug(` URL completa: ${url}`);
 
       // Crear nombre de archivo
       const timestamp = new Date().toISOString().slice(0, 10);
@@ -79,7 +80,7 @@ export default function GerminacionesScreen() {
 
       if (Platform.OS === 'web') {
         // Descarga para web
-        console.log('🌐 Descargando en web...');
+        logger.info('🌐 Descargando en web...');
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -103,11 +104,11 @@ export default function GerminacionesScreen() {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(downloadUrl);
 
-        console.log('✅ PDF de germinaciones descargado exitosamente en web');
+        logger.success(' PDF de germinaciones descargado exitosamente en web');
         Alert.alert('Éxito', 'PDF de germinaciones descargado correctamente');
       } else {
         // Descarga para móvil
-        console.log('📱 Descargando en móvil...');
+        logger.info('📱 Descargando en móvil...');
         const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
         const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
@@ -118,7 +119,7 @@ export default function GerminacionesScreen() {
         });
 
         if (downloadResult.status === 200) {
-          console.log('✅ PDF descargado exitosamente:', downloadResult.uri);
+          logger.success(' PDF descargado exitosamente:', downloadResult.uri);
           Alert.alert('Éxito', `PDF descargado en: ${downloadResult.uri}`);
         } else {
           throw new Error('Error al descargar el archivo');
@@ -148,23 +149,23 @@ export default function GerminacionesScreen() {
 
   // Initialize data loading
   useEffect(() => {
-    console.log('🔍 DEBUG - germinaciones.tsx useEffect fired, user:', user ? 'EXISTS' : 'NULL');
-    console.log('🔍 DEBUG - germinacionesHook:', germinacionesHook);
-    console.log('🔍 DEBUG - loadCodigosDisponibles exists:', !!germinacionesHook.loadCodigosDisponibles);
+    logger.debug(' DEBUG - germinaciones.tsx useEffect fired, user:', user ? 'EXISTS' : 'NULL');
+    logger.debug(' DEBUG - germinacionesHook:', germinacionesHook);
+    logger.debug(' DEBUG - loadCodigosDisponibles exists:', !!germinacionesHook.loadCodigosDisponibles);
 
     if (user) {
-      console.log('🔍 DEBUG - About to call loadCodigosDisponibles');
+      logger.debug(' DEBUG - About to call loadCodigosDisponibles');
       germinacionesHook.loadCodigosDisponibles();
 
-      console.log('🔍 DEBUG - About to call loadCodigosConEspecies');
+      logger.debug(' DEBUG - About to call loadCodigosConEspecies');
       germinacionesHook.loadCodigosConEspecies();
 
-      console.log('🔍 DEBUG - About to call loadPerchasDisponibles');
+      logger.debug(' DEBUG - About to call loadPerchasDisponibles');
       germinacionesHook.loadPerchasDisponibles();
 
-      console.log('✅ DEBUG - All load functions called');
+      logger.success(' DEBUG - All load functions called');
     } else {
-      console.log('⚠️ DEBUG - User is null, skipping data loading');
+      logger.warn(' DEBUG - User is null, skipping data loading');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);

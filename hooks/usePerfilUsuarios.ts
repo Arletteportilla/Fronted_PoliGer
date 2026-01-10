@@ -3,6 +3,7 @@ import { rbacService } from '@/services/rbac.service';
 import type { UserWithProfile } from '@/types/index';
 import type { UserFormData as CreateUserFormData } from '@/components/UserManagement/CreateUserModal';
 import type { UserFormData as EditUserFormData } from '@/components/UserManagement/EditUserModal';
+import { logger } from '@/services/logger';
 
 export function usePerfilUsuarios() {
   const [usuarios, setUsuarios] = useState<UserWithProfile[]>([]);
@@ -26,20 +27,20 @@ export function usePerfilUsuarios() {
 
   const handleCreate = useCallback(async (userData: CreateUserFormData) => {
     try {
-      console.log('🚀 usePerfilUsuarios.handleCreate - Iniciando creación de usuario');
-      console.log('📋 Datos del usuario a crear:', userData);
+      logger.info('🚀 usePerfilUsuarios.handleCreate - Iniciando creación de usuario');
+      logger.info('📋 Datos del usuario a crear:', userData);
       
       // Verificar token de autenticación
       const token = await import('@/services/secureStore').then(m => m.secureStore.getItem('authToken'));
-      console.log('🔑 Token disponible:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
+      logger.info('🔑 Token disponible:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
       
       // Verificar usuario actual
       const { useAuth } = await import('@/contexts/AuthContext');
-      console.log('👤 Usuario actual en contexto disponible');
+      logger.info('👤 Usuario actual en contexto disponible');
       
-      console.log('🌐 Llamando a rbacService.createUser...');
+      logger.info('🌐 Llamando a rbacService.createUser...');
       const result = await rbacService.createUser(userData);
-      console.log('✅ Usuario creado exitosamente:', result);
+      logger.success(' Usuario creado exitosamente:', result);
       
       await fetchUsuarios();
       setShowCreateModal(false);
@@ -75,9 +76,9 @@ export function usePerfilUsuarios() {
 
   const handleDelete = useCallback(async (user: UserWithProfile, onSuccess?: () => void) => {
     try {
-      console.log('🗑️ Iniciando eliminación del usuario:', user.id);
+      logger.info('🗑️ Iniciando eliminación del usuario:', user.id);
       await rbacService.deleteUser(user.id);
-      console.log('✅ Usuario eliminado exitosamente');
+      logger.success(' Usuario eliminado exitosamente');
       await fetchUsuarios();
       onSuccess?.();
     } catch (error: any) {

@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert,
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { UserWithProfile } from '@/types/index';
+import { logger } from '@/services/logger';
 
 // Componente Tooltip simple para web
 const TooltipWrapper: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => {
@@ -119,15 +120,15 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
 
   // Manejar eliminación con confirmación
   const handleDeleteUser = async (user: UserWithProfile) => {
-    console.log('🔍 handleDeleteUser called for user:', user.id, user.username);
-    console.log('👤 Current user:', currentUser?.id, currentUser?.username);
-    console.log('🚫 Is same user?', user.id === currentUser?.id);
+    logger.debug(' handleDeleteUser called for user:', user.id, user.username);
+    logger.info('👤 Current user:', currentUser?.id, currentUser?.username);
+    logger.info('🚫 Is same user?', user.id === currentUser?.id);
 
     const userName = user.first_name && user.last_name
       ? `${user.first_name} ${user.last_name}`
       : user.username;
 
-    console.log('💬 Mostrando confirmación para:', userName);
+    logger.info('💬 Mostrando confirmación para:', userName);
 
     // Usar window.confirm para web (compatible con React Native Web)
     if (Platform.OS === 'web') {
@@ -136,16 +137,16 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
       );
 
       if (!confirmed) {
-        console.log('❌ Eliminación cancelada por el usuario');
+        logger.error(' Eliminación cancelada por el usuario');
         return;
       }
 
       // Usuario confirmó la eliminación
       try {
-        console.log('🗑️ CONFIRMADO - Eliminando usuario:', user.id, userName);
-        console.log('📞 Llamando a onDeleteUser...');
+        logger.info('🗑️ CONFIRMADO - Eliminando usuario:', user.id, userName);
+        logger.info('📞 Llamando a onDeleteUser...');
         await onDeleteUser(user);
-        console.log('✅ onDeleteUser completado exitosamente');
+        logger.success(' onDeleteUser completado exitosamente');
         alert(`Usuario "${userName}" eliminado correctamente`);
       } catch (error: any) {
         console.error('❌ Error al eliminar usuario:', error);
@@ -175,17 +176,17 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
           {
             text: 'Cancelar',
             style: 'cancel',
-            onPress: () => console.log('❌ Eliminación cancelada por el usuario')
+            onPress: () => logger.error(' Eliminación cancelada por el usuario')
           },
           {
             text: 'Eliminar',
             style: 'destructive',
             onPress: async () => {
               try {
-                console.log('🗑️ CONFIRMADO - Eliminando usuario:', user.id, userName);
-                console.log('📞 Llamando a onDeleteUser...');
+                logger.info('🗑️ CONFIRMADO - Eliminando usuario:', user.id, userName);
+                logger.info('📞 Llamando a onDeleteUser...');
                 await onDeleteUser(user);
-                console.log('✅ onDeleteUser completado exitosamente');
+                logger.success(' onDeleteUser completado exitosamente');
                 Alert.alert('Éxito', `Usuario "${userName}" eliminado correctamente`);
               } catch (error: any) {
                 console.error('❌ Error al eliminar usuario:', error);
@@ -594,7 +595,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                         <TouchableOpacity
                           style={styles.cardActionButton}
                           onPress={() => {
-                            console.log('🗑️ DELETE BUTTON CLICKED for user:', user.id, user.username);
+                            logger.info('🗑️ DELETE BUTTON CLICKED for user:', user.id, user.username);
                             handleDeleteUser(user);
                           }}
                         >

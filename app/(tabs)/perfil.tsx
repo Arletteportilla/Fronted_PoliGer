@@ -21,6 +21,7 @@ import { CambiarEstadoModal } from '@/components/modals/CambiarEstadoModal';
 import { FinalizarModal } from '@/components/modals/FinalizarModal';
 import { GerminacionDetailsModal } from '@/components/modals/GerminacionDetailsModal';
 import {
+import { logger } from '@/services/logger';
   PerfilResumen,
   PerfilHeader,
   PerfilTabSelector,
@@ -312,11 +313,11 @@ export default function PerfilScreen() {
 
   // Funciones de descarga de PDF optimizadas
   const handleDescargarPDF = useCallback(async (tipo: 'polinizaciones' | 'germinaciones') => {
-    console.log('🚀 handleDescargarPDF llamado con tipo:', tipo);
-    console.log('👤 Usuario actual:', user);
+    logger.info('🚀 handleDescargarPDF llamado con tipo:', tipo);
+    logger.info('👤 Usuario actual:', user);
 
     if (!user) {
-      console.log('❌ Usuario no autenticado');
+      logger.error(' Usuario no autenticado');
       Alert.alert('Error', 'Usuario no autenticado');
       return;
     }
@@ -324,7 +325,7 @@ export default function PerfilScreen() {
     const search = tipo === 'polinizaciones' ? searchPolinizaciones : searchGerminaciones;
     const searchText = search ? ` (Búsqueda: "${search}")` : '';
 
-    console.log('📋 Mostrando diálogo de confirmación...');
+    logger.info('📋 Mostrando diálogo de confirmación...');
 
     // Función de descarga (compartida entre web y mobile)
     const ejecutarDescarga = async () => {
@@ -333,9 +334,9 @@ export default function PerfilScreen() {
               setLoading(true);
               loadingSet = true;
 
-              console.log(`🔄 Iniciando descarga de PDF de ${tipo}...`);
-              console.log(`🔍 Usuario: ${user?.username}`);
-              console.log(`🔍 Búsqueda: ${search}`);
+              logger.start(` Iniciando descarga de PDF de ${tipo}...`);
+              logger.debug(` Usuario: ${user?.username}`);
+              logger.debug(` Búsqueda: ${search}`);
 
               // Obtener token de autenticación
               const token = await SecureStore.secureStore.getItem('authToken');
@@ -348,7 +349,7 @@ export default function PerfilScreen() {
               if (search) params.append('search', search);
 
               const url = `${CONFIG.API_BASE_URL}/${tipo}/mis-${tipo}-pdf/?${params.toString()}`;
-              console.log(`🔍 URL completa: ${url}`);
+              logger.debug(` URL completa: ${url}`);
 
               // Crear nombre de archivo
               const timestamp = new Date().toISOString().slice(0, 10);
@@ -359,7 +360,7 @@ export default function PerfilScreen() {
 
               if (Platform.OS === 'web') {
                 // Descarga para web
-                console.log('🌐 Descargando en web...');
+                logger.info('🌐 Descargando en web...');
                 const response = await fetch(url, {
                   headers: {
                     'Authorization': `Bearer ${token}`,
@@ -383,11 +384,11 @@ export default function PerfilScreen() {
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(downloadUrl);
 
-                console.log(`✅ PDF de ${tipo} descargado exitosamente en web`);
+                logger.success(` PDF de ${tipo} descargado exitosamente en web`);
                 Alert.alert('Éxito', `PDF de ${tipo} descargado correctamente`);
               } else {
                 // Descarga para móvil
-                console.log('📱 Descargando en móvil...');
+                logger.info('📱 Descargando en móvil...');
                 const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
                 const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
@@ -397,7 +398,7 @@ export default function PerfilScreen() {
                   }
                 });
 
-                console.log(`📥 Resultado de descarga: ${downloadResult.status}`);
+                logger.info(`📥 Resultado de descarga: ${downloadResult.status}`);
 
                 if (downloadResult.status === 200) {
                   // Compartir archivo
@@ -407,7 +408,7 @@ export default function PerfilScreen() {
                       dialogTitle: `Mis ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} PDF`,
                     });
                   }
-                  console.log(`✅ PDF de ${tipo} descargado exitosamente en móvil`);
+                  logger.success(` PDF de ${tipo} descargado exitosamente en móvil`);
                   Alert.alert('Éxito', `PDF de ${tipo} descargado correctamente`);
                 } else {
                   throw new Error(`Error en la descarga: ${downloadResult.status}`);
@@ -454,16 +455,16 @@ export default function PerfilScreen() {
     );
 
     if (confirmed) {
-      console.log('✅ Usuario confirmó descarga');
+      logger.success(' Usuario confirmó descarga');
       await ejecutarDescarga();
     } else {
-      console.log('❌ Usuario canceló descarga');
+      logger.error(' Usuario canceló descarga');
     }
   }, [user, searchPolinizaciones, searchGerminaciones, showConfirmation]);
 
   // Función de logout optimizada
   const handleLogout = useCallback(async () => {
-    console.log('⚪️ [DEBUG] handleLogout llamado');
+    logger.info('⚪️ [DEBUG] handleLogout llamado');
     const confirmed = await showConfirmation(
       'Cerrar Sesión',
       '¿Está seguro que desea cerrar sesión?',
@@ -472,11 +473,11 @@ export default function PerfilScreen() {
     );
 
     if (!confirmed) {
-      console.log('[DEBUG] Logout cancelado');
+      logger.info('[DEBUG] Logout cancelado');
       return;
     }
 
-    console.log('[DEBUG] Confirmado logout, llamando a forceLogout...');
+    logger.info('[DEBUG] Confirmado logout, llamando a forceLogout...');
     forceLogout();
   }, [forceLogout, showConfirmation]);
 
@@ -606,7 +607,7 @@ export default function PerfilScreen() {
         fechaGerminacion
       );
 
-      console.log('✅ Respuesta del servidor:', response);
+      logger.success(' Respuesta del servidor:', response);
 
       // Actualizar la germinación en la lista local
       setGerminaciones(prevGerminaciones =>
@@ -726,21 +727,21 @@ export default function PerfilScreen() {
         fechaMaduracion
       );
 
-      console.log('✅ Respuesta del servidor:', response);
+      logger.success(' Respuesta del servidor:', response);
 
       // 2. Validar predicción si existe
       const tienePrediccion = polinizacion.fecha_maduracion_predicha || polinizacion.prediccion_fecha_estimada;
 
       if (tienePrediccion) {
         try {
-          console.log('📊 Validando predicción automáticamente...');
+          logger.info('📊 Validando predicción automáticamente...');
 
           const validacion = await prediccionValidacionService.validarPrediccionPolinizacion(
             polinizacion.numero,
             fechaMaduracion
           );
 
-          console.log('✅ Predicción validada:', validacion);
+          logger.success(' Predicción validada:', validacion);
 
           // Mostrar resultado de validación al usuario
           const { precision, calidad, diferencia_dias } = validacion.validacion;
@@ -758,7 +759,7 @@ export default function PerfilScreen() {
 
           toast.success(mensajeValidacion);
         } catch (validacionError) {
-          console.warn('⚠️ No se pudo validar la predicción:', validacionError);
+          logger.warn('⚠️ No se pudo validar la predicción:', validacionError);
           // No bloquear el flujo si falla la validación
           toast.success('Polinización finalizada exitosamente');
         }

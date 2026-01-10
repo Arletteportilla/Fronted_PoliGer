@@ -1,3 +1,5 @@
+import { logger } from '@/services/logger';
+
 /**
  * Hook personalizado para polinizaciones con paginación tradicional y filtros
  *
@@ -58,7 +60,7 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
   const loadPolinizaciones = useCallback(async (page: number = 1) => {
     // Evitar llamadas duplicadas
     if (loadingRef.current) {
-      console.log('⏸️ Ya hay una carga en progreso, ignorando...');
+      logger.info('⏸️ Ya hay una carga en progreso, ignorando...');
       return;
     }
 
@@ -66,7 +68,7 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
       loadingRef.current = true;
       setLoading(true);
 
-      console.log('🔄 Cargando polinizaciones - Página:', page, 'Filtros:', filters);
+      logger.start(' Cargando polinizaciones - Página:', page, 'Filtros:', filters);
 
       const response = await polinizacionService.getPaginated({
         page,
@@ -74,7 +76,7 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
         ...filters,
       });
 
-      console.log('✅ Respuesta recibida:', {
+      logger.success(' Respuesta recibida:', {
         page,
         count: response.totalCount,
         results: response.results.length,
@@ -101,7 +103,7 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
   // Ir a una página específica
   const goToPage = useCallback(async (page: number) => {
     if (page < 1 || page > totalPages) {
-      console.log('⚠️ Página fuera de rango:', page);
+      logger.warn(' Página fuera de rango:', page);
       return;
     }
     setCurrentPage(page);
@@ -131,14 +133,14 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
 
   // Actualizar filtros
   const setFilters = useCallback((newFilters: PolinizacionFilterParams) => {
-    console.log('🔍 Actualizando filtros:', newFilters);
+    logger.debug(' Actualizando filtros:', newFilters);
     setFiltersState(newFilters);
     setCurrentPage(1);
   }, []);
 
   // Resetear filtros
   const resetFilters = useCallback(() => {
-    console.log('🔄 Reseteando filtros');
+    logger.start(' Reseteando filtros');
     setFilters({});
   }, [setFilters]);
 

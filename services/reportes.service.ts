@@ -3,6 +3,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as SecureStore from '@/services/secureStore';
 import { API_CONFIG, buildApiUrl, getDownloadHeaders } from '@/config/api';
+import { logger } from '@/services/logger';
 
 export const reportesService = {
   /**
@@ -11,7 +12,7 @@ export const reportesService = {
    */
   descargarPDFGerminaciones: async (search?: string) => {
     try {
-      console.log('📄 Descargando PDF de germinaciones...');
+      logger.info('📄 Descargando PDF de germinaciones...');
 
       // Obtener el token de autenticación
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -26,7 +27,7 @@ export const reportesService = {
       }
 
       const url = buildApiUrl(`germinaciones/mis-germinaciones-pdf/${params.toString() ? '?' + params.toString() : ''}`);
-      console.log('🔗 URL:', url);
+      logger.info('🔗 URL:', url);
 
       // Crear nombre de archivo con timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
@@ -42,10 +43,10 @@ export const reportesService = {
         }
       );
 
-      console.log('📥 Estado de descarga:', downloadResult.status);
+      logger.info('📥 Estado de descarga:', downloadResult.status);
 
       if (downloadResult.status === 200) {
-        console.log('✅ PDF descargado exitosamente en:', fileUri);
+        logger.success(' PDF descargado exitosamente en:', fileUri);
 
         // Compartir archivo
         if (await Sharing.isAvailableAsync()) {

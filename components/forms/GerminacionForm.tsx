@@ -8,6 +8,7 @@ import { PredictionDisplay } from '@/components/prediction';
 import { CLIMAS, ESTADOS_CAPSULA, ESTADOS_SEMILLA, CANTIDADES_SEMILLA, NIVELES } from '@/utils/constants';
 import { validateNumericInput } from '@/utils/formValidation';
 import { germinacionService } from '@/services/germinacion.service';
+import { logger } from '@/services/logger';
 
 interface GerminacionFormProps {
   visible: boolean;
@@ -54,12 +55,12 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   // DEBUG: Log códigos y especies disponibles cuando cambian o cuando el modal se abre
   useEffect(() => {
     if (visible) {
-      console.log('🔍 DEBUG - GerminacionForm: Modal opened');
-      console.log('🔍 DEBUG - GerminacionForm: codigosDisponibles recibidos:', codigosDisponibles.length);
-      console.log('🔍 DEBUG - GerminacionForm: Primeros 5 códigos:', codigosDisponibles.slice(0, 5));
-      console.log('🔍 DEBUG - GerminacionForm: especiesDisponibles recibidas:', especiesDisponibles.length);
-      console.log('🔍 DEBUG - GerminacionForm: Primeras 5 especies:', especiesDisponibles.slice(0, 5));
-      console.log('🔍 DEBUG - GerminacionForm: handleEspecieSelection definido:', typeof handleEspecieSelection);
+      logger.debug(' DEBUG - GerminacionForm: Modal opened');
+      logger.debug(' DEBUG - GerminacionForm: codigosDisponibles recibidos:', codigosDisponibles.length);
+      logger.debug(' DEBUG - GerminacionForm: Primeros 5 códigos:', codigosDisponibles.slice(0, 5));
+      logger.debug(' DEBUG - GerminacionForm: especiesDisponibles recibidas:', especiesDisponibles.length);
+      logger.debug(' DEBUG - GerminacionForm: Primeras 5 especies:', especiesDisponibles.slice(0, 5));
+      logger.debug(' DEBUG - GerminacionForm: handleEspecieSelection definido:', typeof handleEspecieSelection);
     }
   }, [visible, codigosDisponibles, especiesDisponibles, handleEspecieSelection]);
 
@@ -160,11 +161,11 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
           clima: form.clima as 'I' | 'IW' | 'IC' | 'W' | 'C',
         };
 
-        console.log('🔮 GerminacionForm - Calculando predicción automática con:', formDataPrediccion);
+        logger.info('🔮 GerminacionForm - Calculando predicción automática con:', formDataPrediccion);
 
         const resultado = await germinacionService.calcularPrediccionMejorada(formDataPrediccion);
         setPrediccionData(resultado);
-        console.log('✅ Predicción calculada:', resultado);
+        logger.success(' Predicción calculada:', resultado);
       } catch (error: any) {
         console.error('❌ Error calculando predicción automática:', error);
         setPrediccionData(null);

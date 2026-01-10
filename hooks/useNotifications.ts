@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { notificationService, type Notification, type NotificationStats } from '@/services/notification.service';
 import { usePermissions } from './usePermissions';
+import { logger } from '@/services/logger';
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -16,7 +17,7 @@ export function useNotifications() {
   } = {}) => {
     setLoading(true);
     try {
-      console.log('🔔 useNotifications.fetchNotifications - Iniciando carga');
+      logger.info('🔔 useNotifications.fetchNotifications - Iniciando carga');
 
       const response = await notificationService.getNotifications(params);
       
@@ -25,12 +26,12 @@ export function useNotifications() {
         // Usuario normal - respuesta directa como array
         setNotifications(response);
         setAdminStats(null);
-        console.log('👤 Usuario normal - Notificaciones cargadas:', response.length);
+        logger.info('👤 Usuario normal - Notificaciones cargadas:', response.length);
       } else {
         // Administrador - respuesta con estadísticas
         setNotifications(response.notificaciones || []);
         setAdminStats(response.estadisticas_admin || null);
-        console.log('👑 Administrador - Notificaciones cargadas:', {
+        logger.info('👑 Administrador - Notificaciones cargadas:', {
           notificaciones: response.notificaciones?.length || 0,
           estadisticas: response.estadisticas_admin
         });
@@ -78,7 +79,7 @@ export function useNotifications() {
         } : null);
       }
       
-      console.log('✅ Notificación marcada como leída localmente');
+      logger.success(' Notificación marcada como leída localmente');
     } catch (error) {
       console.error('❌ Error marcando notificación como leída:', error);
       throw error;
@@ -106,7 +107,7 @@ export function useNotifications() {
         } : null);
       }
       
-      console.log('✅ Todas las notificaciones marcadas como leídas localmente');
+      logger.success(' Todas las notificaciones marcadas como leídas localmente');
       return result;
     } catch (error) {
       console.error('❌ Error marcando todas las notificaciones como leídas:', error);
@@ -127,7 +128,7 @@ export function useNotifications() {
         )
       );
       
-      console.log('✅ Estado de favorita actualizado localmente');
+      logger.success(' Estado de favorita actualizado localmente');
       return result;
     } catch (error) {
       console.error('❌ Error cambiando estado de favorita:', error);
@@ -154,7 +155,7 @@ export function useNotifications() {
         } : null);
       }
       
-      console.log('✅ Notificación archivada y removida localmente');
+      logger.success(' Notificación archivada y removida localmente');
     } catch (error) {
       console.error('❌ Error archivando notificación:', error);
       throw error;

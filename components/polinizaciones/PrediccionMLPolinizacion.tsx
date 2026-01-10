@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { polinizacionMLService } from '@/services/polinizacion-ml.service';
 import type { PrediccionMLRequest, PrediccionMLResponse } from '@/services/polinizacion-ml.service';
+import { logger } from '@/services/logger';
 
 interface PrediccionMLPolinizacionProps {
   formData: {
@@ -79,11 +80,11 @@ export function PrediccionMLPolinizacion({
 
       lastRequestRef.current = requestSignature;
 
-      console.log('🤖 Solicitando predicción ML automática:', requestData);
+      logger.info('🤖 Solicitando predicción ML automática:', requestData);
 
       const resultado = await polinizacionMLService.predecir(requestData);
 
-      console.log('✅ Predicción ML recibida:', resultado);
+      logger.success(' Predicción ML recibida:', resultado);
 
       setPrediccion(resultado);
 

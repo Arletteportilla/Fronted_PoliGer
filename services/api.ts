@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import * as SecureStore from '@/services/secureStore';
 import { CONFIG } from './config';
+import { logger } from '@/services/logger';
 // import { cache, CACHE_KEYS, CACHE_TTL } from './cache';
 
 // API optimizada con cache y pooling de conexiones
@@ -115,7 +116,7 @@ api.interceptors.response.use(
         
         return api(originalRequest);
       } catch (refreshError) {
-        console.log('Error al refrescar token:', refreshError);
+        logger.info('Error al refrescar token:', refreshError);
         
         // Si el refresh falla, limpiar tokens
         await SecureStore.secureStore.removeItem('authToken');

@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { logger } from '@/services/logger';
 
 /**
  * Exporta un elemento SVG como imagen PNG
@@ -8,7 +9,7 @@ export const exportSVGToPNG = async (
   fileName: string = 'grafica.png'
 ): Promise<void> => {
   if (Platform.OS !== 'web') {
-    console.warn('La exportación de gráficas solo está disponible en web');
+    logger.warn('La exportación de gráficas solo está disponible en web');
     return;
   }
 
@@ -69,7 +70,7 @@ export const exportContainerToPNG = async (
   backgroundColor: string = '#ffffff'
 ): Promise<void> => {
   if (Platform.OS !== 'web') {
-    console.warn('La exportación de gráficas solo está disponible en web');
+    logger.warn('La exportación de gráficas solo está disponible en web');
     return;
   }
 
@@ -114,7 +115,7 @@ export const downloadChartAsPNG = (
   baseFileName: string = 'grafica'
 ): void => {
   if (Platform.OS !== 'web') {
-    console.warn('La exportación de gráficas solo está disponible en web');
+    logger.warn('La exportación de gráficas solo está disponible en web');
     alert('La descarga de gráficas solo está disponible en web');
     return;
   }

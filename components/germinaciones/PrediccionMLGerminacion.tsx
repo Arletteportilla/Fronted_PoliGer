@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { germinacionMLService } from '@/services/germinacion-ml.service';
 import type { PrediccionGerminacionMLRequest, PrediccionGerminacionMLResponse } from '@/services/germinacion-ml.service';
+import { logger } from '@/services/logger';
 
 interface PrediccionMLGerminacionProps {
   formData: {
@@ -68,11 +69,11 @@ export function PrediccionMLGerminacion({
 
       lastRequestRef.current = requestSignature;
 
-      console.log('🤖 Solicitando predicción ML automática de germinación:', requestData);
+      logger.info('🤖 Solicitando predicción ML automática de germinación:', requestData);
 
       const resultado = await germinacionMLService.predecir(requestData);
 
-      console.log('✅ Predicción ML de germinación recibida:', resultado);
+      logger.success(' Predicción ML de germinación recibida:', resultado);
 
       setPrediccion(resultado);
 

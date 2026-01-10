@@ -1,4 +1,5 @@
 import api from './api';
+import { logger } from '@/services/logger';
 
 // ============================================================================
 // INTERFACES PARA PREDICCIONES DE POLINIZACIÓN CON MODELO .BIN
@@ -178,7 +179,7 @@ class PolinizacionPrediccionService {
     fecha_polinizacion?: string;
   }): Promise<PrediccionPolinizacionResponse> {
     try {
-      console.log('🌸 Generando predicción inicial de polinización:', data);
+      logger.info('🌸 Generando predicción inicial de polinización:', data);
 
       // Usar el endpoint existente: predicciones/polinizacion/
       const response = await api.post('predicciones/polinizacion/', data, {
@@ -188,7 +189,7 @@ class PolinizacionPrediccionService {
         }
       });
 
-      console.log('✅ Predicción generada exitosamente:', response.data);
+      logger.success(' Predicción generada exitosamente:', response.data);
 
       // El endpoint existente devuelve la predicción directamente
       // Adaptamos la respuesta al formato esperado
@@ -252,7 +253,7 @@ class PolinizacionPrediccionService {
    */
   async refinarPrediccion(data: PrediccionPolinizacionRequest): Promise<PrediccionPolinizacionResponse> {
     try {
-      console.log('🌸 Refinando predicción de polinización:', data);
+      logger.info('🌸 Refinando predicción de polinización:', data);
       
       // Configurar timeout específico para refinamiento (25 segundos)
       const response = await api.post('predicciones/polinizacion/refinar/', data, {
@@ -263,7 +264,7 @@ class PolinizacionPrediccionService {
       });
       
       if (response.data.success) {
-        console.log('✅ Predicción refinada exitosamente');
+        logger.success(' Predicción refinada exitosamente');
         return response.data.prediccion;
       } else {
         throw new Error(response.data.error || 'Error desconocido en refinamiento');
@@ -308,7 +309,7 @@ class PolinizacionPrediccionService {
     fechaMaduracionReal: string
   ): Promise<ValidacionPrediccionResponse> {
     try {
-      console.log('🌸 Validando predicción de polinización');
+      logger.info('🌸 Validando predicción de polinización');
       
       const data = {
         prediccion_original: prediccionOriginal,
@@ -318,7 +319,7 @@ class PolinizacionPrediccionService {
       const response = await api.post('predicciones/polinizacion/validar/', data);
       
       if (response.data.success) {
-        console.log('✅ Predicción validada exitosamente');
+        logger.success(' Predicción validada exitosamente');
         return response.data.validacion;
       } else {
         throw new Error(response.data.error || 'Error desconocido en validación');
@@ -347,7 +348,7 @@ class PolinizacionPrediccionService {
     limit?: number;
   }): Promise<HistorialPrediccionesResponse> {
     try {
-      console.log('🌸 Obteniendo historial de predicciones:', filtros);
+      logger.info('🌸 Obteniendo historial de predicciones:', filtros);
       
       const params = new URLSearchParams();
       if (filtros?.especie) params.append('especie', filtros.especie);
@@ -358,7 +359,7 @@ class PolinizacionPrediccionService {
       const response = await api.get(`predicciones/polinizacion/historial/?${params.toString()}`);
       
       if (response.data.success) {
-        console.log('✅ Historial obtenido exitosamente');
+        logger.success(' Historial obtenido exitosamente');
         return response.data.historial;
       } else {
         throw new Error(response.data.error || 'Error desconocido obteniendo historial');
@@ -382,7 +383,7 @@ class PolinizacionPrediccionService {
    */
   async obtenerEstadisticas(): Promise<EstadisticasPredicciones> {
     try {
-      console.log('🌸 Obteniendo estadísticas de predicciones de polinización');
+      logger.info('🌸 Obteniendo estadísticas de predicciones de polinización');
       
       // Por ahora retornamos estadísticas simuladas
       // En una implementación completa, esto haría una llamada al backend
@@ -422,7 +423,7 @@ class PolinizacionPrediccionService {
         ultima_actualizacion: new Date().toISOString()
       };
       
-      console.log('✅ Estadísticas obtenidas exitosamente');
+      logger.success(' Estadísticas obtenidas exitosamente');
       return estadisticasSimuladas;
       
     } catch (error: any) {
