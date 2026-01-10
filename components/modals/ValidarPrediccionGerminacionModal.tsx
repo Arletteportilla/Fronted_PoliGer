@@ -66,7 +66,7 @@ export const ValidarPrediccionGerminacionModal: React.FC<Props> = ({
       onClose();
 
     } catch (error: any) {
-      console.error('Error validando predicción:', error);
+      logger.error('Error validando predicción:', error);
       Alert.alert(
         'Error',
         error.message || 'No se pudo validar la predicción'

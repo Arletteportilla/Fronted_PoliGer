@@ -47,7 +47,7 @@ export default function GerminacionFilters({
       const options = await germinacionService.getFilterOptions();
       setFilterOptions(options);
     } catch (error) {
-      console.error('Error cargando opciones de filtros:', error);
+      logger.error('Error cargando opciones de filtros:', error);
     } finally {
       setLoading(false);
     }

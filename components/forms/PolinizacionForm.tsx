@@ -122,7 +122,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
           setCodigosDisponibles([]);
         }
       } catch (error) {
-        console.error('Error cargando códigos:', error);
+        logger.error('Error cargando códigos:', error);
         setCodigosDisponibles([]);
       }
     };
@@ -138,7 +138,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         setOpcionesMesas(response.mesas.opciones || []);
         setOpcionesParedes(response.paredes.opciones || []);
       } catch (error) {
-        console.error('Error cargando opciones de ubicación:', error);
+        logger.error('Error cargando opciones de ubicación:', error);
       }
     };
     cargarOpcionesUbicacion();
@@ -280,7 +280,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         logger.warn(` No se encontró información para código: ${codigo}`);
       }
     } catch (error) {
-      console.error(`❌ Error buscando información de planta ${tipo}:`, error);
+      logger.error(`❌ Error buscando información de planta ${tipo}:`, error);
     } finally {
       setBuscandoPlanta(null);
     }
@@ -418,7 +418,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         setPrediccionData(resultadoAdaptado);
         logger.success(' Predicción calculada:', resultadoAdaptado);
       } catch (error: any) {
-        console.error('❌ Error calculando predicción automática:', error);
+        logger.error('❌ Error calculando predicción automática:', error);
         setPrediccionData(null);
       } finally {
         setLoadingPrediccion(false);

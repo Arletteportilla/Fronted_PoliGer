@@ -51,7 +51,7 @@ const RegisterScreen = () => {
       toast.success('Tu cuenta ha sido creada exitosamente. Por favor inicia sesión.');
       router.replace('./login');
     } catch (error) {
-      console.error('Register error:', error);
+      logger.error('Register error:', error);
       // Mostrar el mensaje de error específico
       toast.error(error instanceof Error ? error.message : 'Ocurrió un error inesperado');
     } finally {

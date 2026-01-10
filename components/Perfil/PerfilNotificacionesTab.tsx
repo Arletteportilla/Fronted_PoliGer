@@ -54,7 +54,7 @@ export function PerfilNotificacionesTab({
         // Recargar notificaciones después de cambiar el estado
         await reloadNotifications();
       } catch (error) {
-        console.error('Error obteniendo germinación actual:', error);
+        logger.error('Error obteniendo germinación actual:', error);
         // Fallback: usar los datos de la notificación
         await onChangeStatusGerminacion(notificationData);
         await reloadNotifications();
@@ -72,7 +72,7 @@ export function PerfilNotificacionesTab({
         // Recargar notificaciones después de cambiar el estado
         await reloadNotifications();
       } catch (error) {
-        console.error('Error obteniendo polinización actual:', error);
+        logger.error('Error obteniendo polinización actual:', error);
         // Fallback: usar los datos de la notificación
         await onChangeStatusPolinizacion(notificationData);
         await reloadNotifications();
@@ -112,7 +112,7 @@ export function PerfilNotificacionesTab({
       try {
         await markAsRead(notification.id);
       } catch (error) {
-        console.error('Error marcando como leída:', error);
+        logger.error('Error marcando como leída:', error);
       }
     }
   };

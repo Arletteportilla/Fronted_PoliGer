@@ -38,7 +38,7 @@ export const usePrediccionMejorada = ({ onSuccess, onError }: UsePrediccionMejor
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      console.error('❌ usePrediccionMejorada - Error:', errorMessage);
+      logger.error('❌ usePrediccionMejorada - Error:', errorMessage);
       
       setError(errorMessage);
       
@@ -93,7 +93,7 @@ export const useAlertasGerminacion = () => {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error obteniendo alertas';
-      console.error('❌ useAlertasGerminacion - Error:', errorMessage);
+      logger.error('❌ useAlertasGerminacion - Error:', errorMessage);
       
       setError(errorMessage);
       throw err;
@@ -119,7 +119,7 @@ export const useAlertasGerminacion = () => {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error actualizando alerta';
-      console.error('❌ useAlertasGerminacion - Error:', errorMessage);
+      logger.error('❌ useAlertasGerminacion - Error:', errorMessage);
       
       setError(errorMessage);
       throw err;
@@ -158,7 +158,7 @@ export const useEstadisticasPrecision = () => {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error obteniendo estadísticas';
-      console.error('❌ useEstadisticasPrecision - Error:', errorMessage);
+      logger.error('❌ useEstadisticasPrecision - Error:', errorMessage);
       
       setError(errorMessage);
       throw err;
@@ -187,7 +187,7 @@ export const useEstadisticasPrecision = () => {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error reentrenando modelo';
-      console.error('❌ useEstadisticasPrecision - Error:', errorMessage);
+      logger.error('❌ useEstadisticasPrecision - Error:', errorMessage);
       
       setError(errorMessage);
       throw err;

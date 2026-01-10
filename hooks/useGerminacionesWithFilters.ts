@@ -95,7 +95,7 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
       setHasMore(!!response.next);
 
     } catch (error) {
-      console.error('❌ Error cargando germinaciones:', error);
+      logger.error('❌ Error cargando germinaciones:', error);
       setGerminaciones([]);
     } finally {
       loadingRef.current = false;
@@ -159,7 +159,7 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
       const options = await germinacionService.getFilterOptions();
       setEstadisticas(options.estadisticas);
     } catch (error) {
-      console.error('❌ Error cargando estadísticas:', error);
+      logger.error('❌ Error cargando estadísticas:', error);
     }
   }, []);
 

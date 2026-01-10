@@ -267,7 +267,7 @@ export default function HomeScreen() {
       setItemCards(cards);
 
     } catch (error) {
-      console.error('❌ Error cargando datos:', error);
+      logger.error('❌ Error cargando datos:', error);
       if (error instanceof Error && error.message.includes('autenticarte')) {
         router.replace('/login');
       }

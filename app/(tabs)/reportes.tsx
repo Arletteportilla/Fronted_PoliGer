@@ -43,7 +43,7 @@ export default function ReportesScreen() {
       }
       
     } catch (e) {
-      console.error('Error inesperado cargando estadísticas:', e);
+      logger.error('Error inesperado cargando estadísticas:', e);
       setError('Error inesperado cargando estadísticas');
     } finally {
       setLoading(false);

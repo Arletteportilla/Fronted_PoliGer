@@ -106,7 +106,7 @@ export default function AddGerminacionScreen() {
         setObservaciones(editData.observaciones || '');
         setResponsablePolinizacion(editData.responsable_polinizacion || '');
       } catch (error) {
-        console.error('Error parsing edit data:', error);
+        logger.error('Error parsing edit data:', error);
         toast.error('No se pudieron cargar los datos para editar');
       }
     }
@@ -165,7 +165,7 @@ export default function AddGerminacionScreen() {
 
       router.back();
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error:', error);
       toast.error('No se pudo guardar la germinación. Por favor, inténtalo de nuevo.');
     } finally {
       setIsLoading(false);

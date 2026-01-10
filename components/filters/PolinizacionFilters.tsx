@@ -37,7 +37,7 @@ export default function PolinizacionFilters({
       const options = await polinizacionService.getFilterOptions();
       setFilterOptions(options);
     } catch (error) {
-      console.error('Error cargando opciones de filtros de polinización:', error);
+      logger.error('Error cargando opciones de filtros de polinización:', error);
     } finally {
       setLoading(false);
     }

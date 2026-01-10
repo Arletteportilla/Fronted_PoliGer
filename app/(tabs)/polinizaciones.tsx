@@ -131,7 +131,7 @@ export default function PolinizacionesScreen() {
         }
       }
     } catch (error) {
-      console.error('❌ Error exportando PDF:', error);
+      logger.error('❌ Error exportando PDF:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido en la exportación';
       Alert.alert('Error', `Error al exportar: ${errorMessage}`);
     } finally {

@@ -32,7 +32,7 @@ export const useEspeciesGeneros = (): UseEspeciesGenerosResult => {
       setEspecies(especiesData);
       setGeneros(generosData);
     } catch (error) {
-      console.error('Error cargando especies y géneros:', error);
+      logger.error('Error cargando especies y géneros:', error);
     } finally {
       setCargandoEspecies(false);
       setCargandoGeneros(false);

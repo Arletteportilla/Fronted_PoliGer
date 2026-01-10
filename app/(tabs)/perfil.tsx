@@ -131,7 +131,7 @@ export default function PerfilScreen() {
             misPolinizaciones = Array.isArray(pols) ? pols : [];
           }
         } catch (error) {
-          console.error('Error obteniendo polinizaciones:', error);
+          logger.error('Error obteniendo polinizaciones:', error);
           misPolinizaciones = [];
         }
       }
@@ -156,7 +156,7 @@ export default function PerfilScreen() {
             misGerminaciones = Array.isArray(germs) ? germs : [];
           }
         } catch (error) {
-          console.error('Error obteniendo germinaciones:', error);
+          logger.error('Error obteniendo germinaciones:', error);
           misGerminaciones = [];
         }
       }
@@ -166,7 +166,7 @@ export default function PerfilScreen() {
         try {
           stats = await estadisticasService.getEstadisticasUsuario();
         } catch (error) {
-          console.error('Error obteniendo estadísticas:', error);
+          logger.error('Error obteniendo estadísticas:', error);
           stats = null;
         }
       }
@@ -204,7 +204,7 @@ export default function PerfilScreen() {
       }
 
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logger.error('Error fetching data:', error);
       Alert.alert('Error', 'No se pudieron cargar los datos');
     } finally {
       setLoading(false);
@@ -243,7 +243,7 @@ export default function PerfilScreen() {
       setPolinizacionesTotalPages(result.totalPages);
       setPolinizacionesTotalCount(result.count);
     } catch (error) {
-      console.error('Error buscando polinizaciones:', error);
+      logger.error('Error buscando polinizaciones:', error);
       Alert.alert('Error', 'No se pudieron buscar las polinizaciones');
     } finally {
       setLoading(false);
@@ -266,7 +266,7 @@ export default function PerfilScreen() {
       setGerminacionesTotalPages(result.totalPages);
       setGerminacionesTotalCount(result.count);
     } catch (error) {
-      console.error('Error buscando germinaciones:', error);
+      logger.error('Error buscando germinaciones:', error);
       Alert.alert('Error', 'No se pudieron buscar las germinaciones');
     } finally {
       setLoading(false);
@@ -415,8 +415,8 @@ export default function PerfilScreen() {
                 }
               }
             } catch (error: any) {
-              console.error(`❌ Error descargando PDF de ${tipo}:`, error);
-              console.error('❌ Error details:', {
+              logger.error(`❌ Error descargando PDF de ${tipo}:`, error);
+              logger.error('❌ Error details:', {
                 message: error.message,
                 response: error.response?.data,
                 status: error.response?.status
@@ -528,7 +528,7 @@ export default function PerfilScreen() {
       const germinacionActualizada = await germinacionService.getById(item.id);
       germinacionDetailsControls.open(germinacionActualizada);
     } catch (error) {
-      console.error('Error cargando germinación:', error);
+      logger.error('Error cargando germinación:', error);
       // Si falla, usar los datos en caché
       germinacionDetailsControls.open(item);
     }
@@ -579,7 +579,7 @@ export default function PerfilScreen() {
 
       toast.success(mensajes[nuevaEtapa]);
     } catch (error: any) {
-      console.error('Error cambiando etapa:', error);
+      logger.error('Error cambiando etapa:', error);
       toast.error(error.response?.data?.message || 'No se pudo cambiar la etapa de la germinación');
     } finally {
       setLoading(false);
@@ -641,7 +641,7 @@ export default function PerfilScreen() {
       
       toast.success('Germinación finalizada exitosamente');
     } catch (error: any) {
-      console.error('Error finalizando germinación:', error);
+      logger.error('Error finalizando germinación:', error);
       toast.error(error.response?.data?.error || 'No se pudo finalizar la germinación');
     } finally {
       setLoading(false);
@@ -705,7 +705,7 @@ export default function PerfilScreen() {
       
       toast.success('Estado de polinización actualizado correctamente');
     } catch (error: any) {
-      console.error('Error cambiando estado de polinización:', error);
+      logger.error('Error cambiando estado de polinización:', error);
       toast.error(error.response?.data?.error || 'No se pudo cambiar el estado de la polinización');
     } finally {
       setLoading(false);
@@ -798,7 +798,7 @@ export default function PerfilScreen() {
       await fetchData();
 
     } catch (error: any) {
-      console.error('Error finalizando polinización:', error);
+      logger.error('Error finalizando polinización:', error);
       toast.error(error.response?.data?.error || 'No se pudo finalizar la polinización');
     } finally {
       setLoading(false);
@@ -955,7 +955,7 @@ export default function PerfilScreen() {
                   setGerminacionesTotalPages(result.totalPages);
                   setGerminacionesTotalCount(result.count);
                 } catch (error) {
-                  console.error('Error recargando germinaciones:', error);
+                  logger.error('Error recargando germinaciones:', error);
                 } finally {
                   setLoading(false);
                 }
@@ -1075,7 +1075,7 @@ export default function PerfilScreen() {
                   setPolinizacionesTotalPages(result.totalPages);
                   setPolinizacionesTotalCount(result.count);
                 } catch (error) {
-                  console.error('Error recargando polinizaciones:', error);
+                  logger.error('Error recargando polinizaciones:', error);
                 } finally {
                   setLoading(false);
                 }
@@ -1125,7 +1125,7 @@ export default function PerfilScreen() {
                 await fetchData();
                 toast.success(`Estado cambiado a ${nuevoEstado.replace(/_/g, ' ')}`);
               } catch (error) {
-                console.error('Error cambiando estado:', error);
+                logger.error('Error cambiando estado:', error);
                 toast.error('Error al cambiar el estado');
               } finally {
                 setLoading(false);
@@ -1168,7 +1168,7 @@ export default function PerfilScreen() {
                 await fetchData();
                 toast.success(`Estado cambiado a ${nuevoEstado.replace(/_/g, ' ')}`);
               } catch (error) {
-                console.error('Error cambiando estado:', error);
+                logger.error('Error cambiando estado:', error);
                 toast.error('Error al cambiar el estado');
               } finally {
                 setLoading(false);

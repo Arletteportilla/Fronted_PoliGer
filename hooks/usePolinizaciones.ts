@@ -85,7 +85,7 @@ export const usePolinizaciones = () => {
         setPolinizaciones([]);
       }
     } catch (error) {
-      console.error('❌ Error loading polinizaciones', error);
+      logger.error('❌ Error loading polinizaciones', error);
 
       if ((error as any).response?.status === 401) {
         toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -225,7 +225,7 @@ export const usePolinizaciones = () => {
 
       return prediccionConFecha;
     } catch (error: any) {
-      console.error('❌ Error generando predicción ML:', error);
+      logger.error('❌ Error generando predicción ML:', error);
 
       let errorMessage = 'No se pudo generar la predicción.';
       if (error.message?.includes('timeout')) {
@@ -311,7 +311,7 @@ export const usePolinizaciones = () => {
       loadPolinizaciones();
       return true;
     } catch (error) {
-      console.error('Error saving polinización:', error);
+      logger.error('Error saving polinización:', error);
       toast.error(`No se pudo ${isEdit ? 'actualizar' : 'guardar'} la polinización`);
       return false;
     } finally {

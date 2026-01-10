@@ -107,7 +107,7 @@ export const useCRUDOperations = <T extends Record<string, any>>(
       return true;
 
     } catch (error: any) {
-      console.error(`Error eliminando ${entityName}:`, error);
+      logger.error(`Error eliminando ${entityName}:`, error);
       const errorMessage = error.response?.data?.message
         || error.message
         || `No se pudo eliminar el ${entityName}`;
@@ -125,7 +125,7 @@ export const useCRUDOperations = <T extends Record<string, any>>(
    */
   const handleUpdate = async (item: T, updates: Partial<T>): Promise<boolean> => {
     if (!service.update) {
-      console.error('El servicio no implementa el método update');
+      logger.error('El servicio no implementa el método update');
       return false;
     }
 
@@ -148,7 +148,7 @@ export const useCRUDOperations = <T extends Record<string, any>>(
       return true;
 
     } catch (error: any) {
-      console.error(`Error actualizando ${entityName}:`, error);
+      logger.error(`Error actualizando ${entityName}:`, error);
       const errorMessage = error.response?.data?.message
         || error.message
         || `No se pudo actualizar el ${entityName}`;
@@ -166,7 +166,7 @@ export const useCRUDOperations = <T extends Record<string, any>>(
    */
   const handleCreate = async (data: Partial<T>): Promise<T | null> => {
     if (!service.create) {
-      console.error('El servicio no implementa el método create');
+      logger.error('El servicio no implementa el método create');
       return null;
     }
 
@@ -183,7 +183,7 @@ export const useCRUDOperations = <T extends Record<string, any>>(
       return newItem;
 
     } catch (error: any) {
-      console.error(`Error creando ${entityName}:`, error);
+      logger.error(`Error creando ${entityName}:`, error);
       const errorMessage = error.response?.data?.message
         || error.message
         || `No se pudo crear el ${entityName}`;

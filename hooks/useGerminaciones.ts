@@ -57,7 +57,7 @@ export const useGerminaciones = (user: any) => {
       logger.success(' useGerminaciones: Códigos cargados y guardados en estado:', codes.length);
       logger.info('📋 useGerminaciones: Primeros 10 códigos disponibles:', codes.slice(0, 10));
     } catch (error) {
-      console.error('❌ useGerminaciones: Error cargando códigos:', error);
+      logger.error('❌ useGerminaciones: Error cargando códigos:', error);
       setCodigosDisponibles([]);
     }
   }, []);
@@ -77,7 +77,7 @@ export const useGerminaciones = (user: any) => {
       logger.success(' Especies únicas extraídas:', especiesUnicas.length);
       logger.info('📋 Primeras 5 especies:', especiesUnicas.slice(0, 5));
     } catch (error) {
-      console.error('❌ Error cargando códigos con especies:', error);
+      logger.error('❌ Error cargando códigos con especies:', error);
       setCodigosConEspecies([]);
       setEspeciesDisponibles([]);
     }
@@ -101,7 +101,7 @@ export const useGerminaciones = (user: any) => {
       logger.info('📋 useGerminaciones: Primeras 5 perchas:', perchasUnicas.slice(0, 5));
       logger.info('📋 useGerminaciones: Niveles:', nivelesUnicos);
     } catch (error) {
-      console.error('❌ useGerminaciones: Error cargando perchas y niveles:', error);
+      logger.error('❌ useGerminaciones: Error cargando perchas y niveles:', error);
       setPerchasDisponibles([]);
       setNivelesDisponibles([]);
     }
@@ -145,7 +145,7 @@ export const useGerminaciones = (user: any) => {
         logger.warn(' DEBUG - No se encontró germinación para el código:', codigoSeleccionado);
       }
     } catch (error) {
-      console.error('❌ Error en handleCodigoSelection:', error);
+      logger.error('❌ Error en handleCodigoSelection:', error);
     }
   }, []);
 
@@ -187,7 +187,7 @@ export const useGerminaciones = (user: any) => {
         logger.warn(' DEBUG - No se encontró germinación para la especie:', especieSeleccionada);
       }
     } catch (error) {
-      console.error('❌ Error en handleEspecieSelection:', error);
+      logger.error('❌ Error en handleEspecieSelection:', error);
     }
   }, []);
 
@@ -228,13 +228,13 @@ export const useGerminaciones = (user: any) => {
       logger.info('🎯 Estado de germinaciones actualizado. Total en estado:', sortedData.length);
 
     } catch (error: any) {
-      console.error('❌ Error loading germinaciones', error);
+      logger.error('❌ Error loading germinaciones', error);
       if (error.response) {
-        console.error('❌ Error response:', error.response.status, error.response.data);
+        logger.error('❌ Error response:', error.response.status, error.response.data);
       } else if (error.request) {
-        console.error('❌ Error request:', error.request);
+        logger.error('❌ Error request:', error.request);
       } else {
-        console.error('❌ Error message:', error.message);
+        logger.error('❌ Error message:', error.message);
       }
 
       if (error.response?.status === 401) {
@@ -338,7 +338,7 @@ export const useGerminaciones = (user: any) => {
 
       return true;
     } catch (error: any) {
-      console.error('❌ Error creating germinacion:', error);
+      logger.error('❌ Error creating germinacion:', error);
 
       let errorMessage = 'No se pudo crear la germinación';
 

@@ -30,7 +30,7 @@ const LoginScreen = () => {
     try {
       await login(username, password);
     } catch (error: any) {
-      console.error('Error en login:', error);
+      logger.error('Error en login:', error);
 
       let errorTitle = 'Error de autenticación';
       let errorMessage = 'No se pudo iniciar sesión. Por favor intente nuevamente.';

@@ -102,7 +102,7 @@ export const usePaginatedSearch = (
       setTotalCount(result.count || 0);
       setPage(1);
     } catch (error) {
-      console.error('Error en búsqueda paginada:', error);
+      logger.error('Error en búsqueda paginada:', error);
       setTotalPages(1);
       setTotalCount(0);
       setPage(1);
@@ -124,7 +124,7 @@ export const usePaginatedSearch = (
       setTotalPages(result.totalPages || 1);
       setTotalCount(result.count || 0);
     } catch (error) {
-      console.error('Error al refrescar datos paginados:', error);
+      logger.error('Error al refrescar datos paginados:', error);
     }
   }, [fetcher, page, pageSize, search, diasRecientes]);
 

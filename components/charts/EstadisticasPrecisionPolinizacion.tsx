@@ -73,7 +73,7 @@ export const EstadisticasPrecisionPolinizacion: React.FC<EstadisticasPrecisionPo
       logger.warn(' Función de estadísticas no disponible - endpoint eliminado');
       Alert.alert('No disponible', 'Las estadísticas de predicciones no están disponibles actualmente');
     } catch (error: any) {
-      console.error('❌ Error cargando estadísticas:', error);
+      logger.error('❌ Error cargando estadísticas:', error);
       Alert.alert('Error', 'No se pudieron cargar las estadísticas de predicciones');
     } finally {
       setLoading(false);

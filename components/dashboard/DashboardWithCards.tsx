@@ -316,7 +316,7 @@ export const DashboardWithCards: React.FC = () => {
       const cards = generateItemCards(germinaciones, polinizaciones);
       setItemCards(cards);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      logger.error('Error fetching dashboard data:', error);
       Alert.alert('Error', 'No se pudieron cargar los datos del dashboard');
     } finally {
       setLoading(false);
@@ -521,7 +521,7 @@ export const DashboardWithCards: React.FC = () => {
         const cards = generateItemCards(germinaciones, polinizaciones);
         setItemCards(cards);
       } catch (error) {
-        console.error('Error loading dashboard data:', error);
+        logger.error('Error loading dashboard data:', error);
       } finally {
         setLoading(false);
       }

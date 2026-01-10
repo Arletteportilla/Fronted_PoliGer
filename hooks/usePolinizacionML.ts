@@ -67,7 +67,7 @@ export function usePolinizacionML() {
       return resultado;
 
     } catch (err: any) {
-      console.error('Error en predicción ML:', err);
+      logger.error('Error en predicción ML:', err);
 
       let mensajeError = 'Error al realizar la predicción ML';
 
@@ -103,7 +103,7 @@ export function usePolinizacionML() {
       const info = await polinizacionMLService.obtenerInfoModelo();
       return info;
     } catch (err: any) {
-      console.error('Error obteniendo info del modelo:', err);
+      logger.error('Error obteniendo info del modelo:', err);
       throw err;
     }
   }, []);

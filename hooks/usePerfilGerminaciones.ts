@@ -33,7 +33,7 @@ export function usePerfilGerminaciones() {
       setTotalPages(Math.ceil((response.count || 0) / 10));
       setTotalCount(response.count || 0);
     } catch (error) {
-      console.error('Error al cargar germinaciones:', error);
+      logger.error('Error al cargar germinaciones:', error);
       setGerminaciones([]);
     } finally {
       setLoading(false);
@@ -71,7 +71,7 @@ export function usePerfilGerminaciones() {
       setSelectedItem(detalles);
       setShowDetailsModal(true);
     } catch (error) {
-      console.error('Error al cargar detalles:', error);
+      logger.error('Error al cargar detalles:', error);
       throw error;
     }
   }, []);
@@ -92,7 +92,7 @@ export function usePerfilGerminaciones() {
       await fetchGerminaciones(currentPage, searchText);
       onSuccess?.();
     } catch (error) {
-      console.error('Error al eliminar germinación:', error);
+      logger.error('Error al eliminar germinación:', error);
       throw error;
     }
   }, [currentPage, searchText, fetchGerminaciones]);
@@ -118,7 +118,7 @@ export function usePerfilGerminaciones() {
       await fetchGerminaciones(currentPage, searchText);
       onSuccess?.();
     } catch (error) {
-      console.error('Error al cambiar estado:', error);
+      logger.error('Error al cambiar estado:', error);
       throw error;
     }
   }, [currentPage, searchText, fetchGerminaciones]);

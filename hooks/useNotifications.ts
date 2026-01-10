@@ -37,7 +37,7 @@ export function useNotifications() {
         });
       }
     } catch (error) {
-      console.error('❌ Error cargando notificaciones:', error);
+      logger.error('❌ Error cargando notificaciones:', error);
       setNotifications([]);
       setAdminStats(null);
     } finally {
@@ -81,7 +81,7 @@ export function useNotifications() {
       
       logger.success(' Notificación marcada como leída localmente');
     } catch (error) {
-      console.error('❌ Error marcando notificación como leída:', error);
+      logger.error('❌ Error marcando notificación como leída:', error);
       throw error;
     }
   }, [adminStats]);
@@ -110,7 +110,7 @@ export function useNotifications() {
       logger.success(' Todas las notificaciones marcadas como leídas localmente');
       return result;
     } catch (error) {
-      console.error('❌ Error marcando todas las notificaciones como leídas:', error);
+      logger.error('❌ Error marcando todas las notificaciones como leídas:', error);
       throw error;
     }
   }, [adminStats]);
@@ -131,7 +131,7 @@ export function useNotifications() {
       logger.success(' Estado de favorita actualizado localmente');
       return result;
     } catch (error) {
-      console.error('❌ Error cambiando estado de favorita:', error);
+      logger.error('❌ Error cambiando estado de favorita:', error);
       throw error;
     }
   }, []);
@@ -157,7 +157,7 @@ export function useNotifications() {
       
       logger.success(' Notificación archivada y removida localmente');
     } catch (error) {
-      console.error('❌ Error archivando notificación:', error);
+      logger.error('❌ Error archivando notificación:', error);
       throw error;
     }
   }, [adminStats, notifications]);

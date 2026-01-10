@@ -111,7 +111,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
           mensaje: result.mensaje
         });
       } catch (error) {
-        console.error('Error validando código:', error);
+        logger.error('Error validando código:', error);
         setCodigoValidation({
           isValidating: false,
           disponible: null,
@@ -167,7 +167,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
         setPrediccionData(resultado);
         logger.success(' Predicción calculada:', resultado);
       } catch (error: any) {
-        console.error('❌ Error calculando predicción automática:', error);
+        logger.error('❌ Error calculando predicción automática:', error);
         setPrediccionData(null);
       } finally {
         setLoadingPrediccion(false);

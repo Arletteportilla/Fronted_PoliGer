@@ -106,7 +106,7 @@ export default function AddPolinizacionScreen() {
         setResponsable(editData.responsable || '');
         setObservaciones(editData.observaciones || '');
       } catch (error) {
-        console.error('Error parsing edit data:', error);
+        logger.error('Error parsing edit data:', error);
         toast.error('No se pudieron cargar los datos para editar');
       }
     }
@@ -148,7 +148,7 @@ export default function AddPolinizacionScreen() {
       toast.success(`Predicción generada: ${resultado.dias_estimados} días hasta maduración`);
 
     } catch (error: any) {
-      console.error('❌ Error generando predicción:', error);
+      logger.error('❌ Error generando predicción:', error);
 
       let errorMessage = 'No se pudo generar la predicción.';
 
@@ -218,7 +218,7 @@ export default function AddPolinizacionScreen() {
 
       router.back();
     } catch (error: any) {
-      console.error('Error completo:', error);
+      logger.error('Error completo:', error);
 
       let errorMessage = 'No se pudo guardar la polinización.';
 

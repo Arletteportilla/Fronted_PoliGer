@@ -18,7 +18,7 @@ export function usePerfilUsuarios() {
       const response = await rbacService.getAllUsers();
       setUsuarios(response);
     } catch (error) {
-      console.error('Error al cargar usuarios:', error);
+      logger.error('Error al cargar usuarios:', error);
       setUsuarios([]);
     } finally {
       setLoading(false);
@@ -47,11 +47,11 @@ export function usePerfilUsuarios() {
       
       return result;
     } catch (error: any) {
-      console.error('❌ Error al crear usuario:', error);
-      console.error('📊 Error status:', error.response?.status);
-      console.error('📝 Error data:', error.response?.data);
-      console.error('🔗 Error config URL:', error.config?.url);
-      console.error('🔑 Error config headers:', error.config?.headers);
+      logger.error('❌ Error al crear usuario:', error);
+      logger.error('📊 Error status:', error.response?.status);
+      logger.error('📝 Error data:', error.response?.data);
+      logger.error('🔗 Error config URL:', error.config?.url);
+      logger.error('🔑 Error config headers:', error.config?.headers);
       throw error;
     }
   }, [fetchUsuarios]);
@@ -69,7 +69,7 @@ export function usePerfilUsuarios() {
       setUserToEdit(null);
       onSuccess?.();
     } catch (error) {
-      console.error('Error al actualizar usuario:', error);
+      logger.error('Error al actualizar usuario:', error);
       throw error;
     }
   }, [fetchUsuarios]);
@@ -82,9 +82,9 @@ export function usePerfilUsuarios() {
       await fetchUsuarios();
       onSuccess?.();
     } catch (error: any) {
-      console.error('❌ Error al eliminar usuario:', error);
-      console.error('📊 Error response:', error.response?.data);
-      console.error('📊 Error status:', error.response?.status);
+      logger.error('❌ Error al eliminar usuario:', error);
+      logger.error('📊 Error response:', error.response?.data);
+      logger.error('📊 Error status:', error.response?.status);
       throw error;
     }
   }, [fetchUsuarios]);
@@ -96,7 +96,7 @@ export function usePerfilUsuarios() {
       await fetchUsuarios();
       onSuccess?.();
     } catch (error) {
-      console.error('Error al cambiar estado del usuario:', error);
+      logger.error('Error al cambiar estado del usuario:', error);
       throw error;
     }
   }, [fetchUsuarios]);

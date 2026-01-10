@@ -18,7 +18,7 @@ export function usePerfilEstadisticas(username: string = 'Usuario') {
       const data = await estadisticasService.getEstadisticasUsuario();
       setEstadisticas(data);
     } catch (error) {
-      console.error('Error al cargar estadísticas:', error);
+      logger.error('Error al cargar estadísticas:', error);
     } finally {
       setLoading(false);
     }

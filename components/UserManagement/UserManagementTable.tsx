@@ -149,8 +149,8 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
         logger.success(' onDeleteUser completado exitosamente');
         alert(`Usuario "${userName}" eliminado correctamente`);
       } catch (error: any) {
-        console.error('❌ Error al eliminar usuario:', error);
-        console.error('📊 Error completo:', {
+        logger.error('❌ Error al eliminar usuario:', error);
+        logger.error('📊 Error completo:', {
           message: error.message,
           status: error.response?.status,
           statusText: error.response?.statusText,
@@ -189,7 +189,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                 logger.success(' onDeleteUser completado exitosamente');
                 Alert.alert('Éxito', `Usuario "${userName}" eliminado correctamente`);
               } catch (error: any) {
-                console.error('❌ Error al eliminar usuario:', error);
+                logger.error('❌ Error al eliminar usuario:', error);
                 Alert.alert(
                   'Error al eliminar',
                   error.response?.data?.detail ||

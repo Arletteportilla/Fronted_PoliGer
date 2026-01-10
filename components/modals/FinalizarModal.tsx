@@ -78,7 +78,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
       await onConfirm(fechaISO);
       onClose();
     } catch (error) {
-      console.error('Error finalizando:', error);
+      logger.error('Error finalizando:', error);
       alert(`Error al finalizar la ${tipo}`);
     } finally {
       setLoading(false);

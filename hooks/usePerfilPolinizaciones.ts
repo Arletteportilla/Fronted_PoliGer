@@ -32,7 +32,7 @@ export function usePerfilPolinizaciones() {
       setTotalPages(Math.ceil((response.count || 0) / 10));
       setTotalCount(response.count || 0);
     } catch (error) {
-      console.error('Error al cargar polinizaciones:', error);
+      logger.error('Error al cargar polinizaciones:', error);
       setPolinizaciones([]);
     } finally {
       setLoading(false);
@@ -82,7 +82,7 @@ export function usePerfilPolinizaciones() {
       await fetchPolinizaciones(currentPage, searchText);
       onSuccess?.();
     } catch (error) {
-      console.error('Error al eliminar polinización:', error);
+      logger.error('Error al eliminar polinización:', error);
       throw error;
     }
   }, [currentPage, searchText, fetchPolinizaciones]);
@@ -108,7 +108,7 @@ export function usePerfilPolinizaciones() {
       await fetchPolinizaciones(currentPage, searchText);
       onSuccess?.();
     } catch (error) {
-      console.error('Error al cambiar estado:', error);
+      logger.error('Error al cambiar estado:', error);
       throw error;
     }
   }, [currentPage, searchText, fetchPolinizaciones]);

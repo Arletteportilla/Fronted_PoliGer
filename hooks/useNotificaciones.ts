@@ -19,7 +19,7 @@ export function useNotificaciones(filters?: NotificationFilters) {
       setNotifications(data);
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Error al obtener las notificaciones');
-      console.error('Error fetching notifications:', err);
+      logger.error('Error fetching notifications:', err);
     } finally {
       setLoading(false);
     }
@@ -36,7 +36,7 @@ export function useNotificaciones(filters?: NotificationFilters) {
       setStats(statsData);
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Error al obtener las notificaciones');
-      console.error('Error refreshing notifications:', err);
+      logger.error('Error refreshing notifications:', err);
     } finally {
       setRefreshing(false);
     }
@@ -65,7 +65,7 @@ export function useNotificaciones(filters?: NotificationFilters) {
       } catch (err: any) {
         if (isMounted) {
           setError(err?.response?.data?.error || 'Error al obtener las notificaciones');
-          console.error('Error fetching notifications:', err);
+          logger.error('Error fetching notifications:', err);
         }
       } finally {
         if (isMounted) {
@@ -97,7 +97,7 @@ export function useNotificaciones(filters?: NotificationFilters) {
         const statsData = await notificacionesService.getEstadisticas();
         setStats(statsData);
       } catch (err) {
-        console.error('Error polling stats:', err);
+        logger.error('Error polling stats:', err);
       }
     }, 60000);
 
@@ -127,10 +127,10 @@ export function useNotificaciones(filters?: NotificationFilters) {
         const statsData = await notificacionesService.getEstadisticas();
         setStats(statsData);
       } catch (statsErr) {
-        console.error('Error updating stats:', statsErr);
+        logger.error('Error updating stats:', statsErr);
       }
     } catch (err) {
-      console.error('Error marking as read:', err);
+      logger.error('Error marking as read:', err);
     }
   };
 
@@ -155,10 +155,10 @@ export function useNotificaciones(filters?: NotificationFilters) {
         const statsData = await notificacionesService.getEstadisticas();
         setStats(statsData);
       } catch (statsErr) {
-        console.error('Error updating stats:', statsErr);
+        logger.error('Error updating stats:', statsErr);
       }
     } catch (err) {
-      console.error('Error marking all as read:', err);
+      logger.error('Error marking all as read:', err);
     }
   };
 
@@ -172,7 +172,7 @@ export function useNotificaciones(filters?: NotificationFilters) {
         setSelectedNotification(prev => prev ? { ...prev, favorita: newFavorita } : null);
       }
     } catch (err) {
-      console.error('Error toggling favorite:', err);
+      logger.error('Error toggling favorite:', err);
     }
   };
 
@@ -184,7 +184,7 @@ export function useNotificaciones(filters?: NotificationFilters) {
         setSelectedNotification(null);
       }
     } catch (err) {
-      console.error('Error archiving:', err);
+      logger.error('Error archiving:', err);
     }
   };
 
@@ -196,7 +196,7 @@ export function useNotificaciones(filters?: NotificationFilters) {
         setSelectedNotification(null);
       }
     } catch (err) {
-      console.error('Error deleting:', err);
+      logger.error('Error deleting:', err);
     }
   };
 

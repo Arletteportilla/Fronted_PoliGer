@@ -209,7 +209,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       resetForm();
       onClose();
     } catch (error: any) {
-      console.error('❌ Error en handleSubmit:', error);
+      logger.error('❌ Error en handleSubmit:', error);
       
       let errorMessage = 'Error al crear usuario';
 

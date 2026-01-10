@@ -129,7 +129,7 @@ export const useExport = (options: UseExportOptions = {}) => {
 
       alert(mensaje);
     } catch (error) {
-      console.error('Error exportando reporte:', error);
+      logger.error('Error exportando reporte:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido en la exportación';
       alert(`Error al exportar reporte: ${errorMessage}`);
       throw error;

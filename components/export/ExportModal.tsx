@@ -59,7 +59,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       onClose();
     } catch (error) {
       // El error ya se maneja en el hook
-      console.error('Error en exportación:', error);
+      logger.error('Error en exportación:', error);
     }
   };
 

@@ -93,7 +93,7 @@ export function PrediccionMLPolinizacion({
       }
 
     } catch (err: any) {
-      console.error('❌ Error en predicción ML:', err);
+      logger.error('❌ Error en predicción ML:', err);
 
       let mensajeError = 'Error al realizar la predicción ML';
 
