@@ -89,8 +89,8 @@ class RBACService {
       return users;
       
     } catch (error: any) {
-      console.error('❌ Error fetching users:', error);
-      console.error('Error details:', {
+      logger.error('❌ Error fetching users:', error);
+      logger.error('Error details:', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data
@@ -137,7 +137,7 @@ class RBACService {
       return allUsers;
       
     } catch (error) {
-      console.error('❌ Error in paginated fetch:', error);
+      logger.error('❌ Error in paginated fetch:', error);
       throw error;
     }
   }
@@ -154,10 +154,10 @@ class RBACService {
       
       return response.data;
     } catch (error: any) {
-      console.error('❌ rbacService.createUser - Error:', error);
-      console.error('📊 Error status:', error.response?.status);
-      console.error('📝 Error data:', error.response?.data);
-      console.error('🔗 Error config:', error.config);
+      logger.error('❌ rbacService.createUser - Error:', error);
+      logger.error('📊 Error status:', error.response?.status);
+      logger.error('📝 Error data:', error.response?.data);
+      logger.error('🔗 Error config:', error.config);
       throw error;
     }
   }
@@ -180,11 +180,11 @@ class RBACService {
       logger.info('📊 Response status:', response.status);
       logger.info('📝 Response data:', response.data);
     } catch (error: any) {
-      console.error('❌ rbacService.deleteUser - Error:', error);
-      console.error('📊 Error status:', error.response?.status);
-      console.error('📝 Error data:', error.response?.data);
-      console.error('🔗 Error URL:', error.config?.url);
-      console.error('🔗 Error method:', error.config?.method);
+      logger.error('❌ rbacService.deleteUser - Error:', error);
+      logger.error('📊 Error status:', error.response?.status);
+      logger.error('📝 Error data:', error.response?.data);
+      logger.error('🔗 Error URL:', error.config?.url);
+      logger.error('🔗 Error method:', error.config?.method);
       throw error;
     }
   }
@@ -226,7 +226,7 @@ class RBACService {
       
       return modulePermissions[action as keyof typeof modulePermissions] || false;
     } catch (error) {
-      console.error('Error checking permission:', error);
+      logger.error('Error checking permission:', error);
       return false;
     }
   }
@@ -401,7 +401,7 @@ class RBACService {
       const response = await api.post(`/user-metas/${userId}/actualizar_progreso/`);
       return response.data;
     } catch (error: any) {
-      console.error('Error actualizando progreso:', error);
+      logger.error('Error actualizando progreso:', error);
       throw error;
     }
   }

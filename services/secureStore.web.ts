@@ -7,7 +7,7 @@ export const secureStore = {
       }
       return localStorage.getItem(key);
     } catch (error) {
-      console.error('Error getting item from localStorage:', error);
+      logger.error('Error getting item from localStorage:', error);
       return null;
     }
   },
@@ -19,7 +19,7 @@ export const secureStore = {
       }
       localStorage.setItem(key, value);
     } catch (error) {
-      console.error('Error setting item in localStorage:', error);
+      logger.error('Error setting item in localStorage:', error);
       throw error;
     }
   },
@@ -31,7 +31,7 @@ export const secureStore = {
       }
       localStorage.removeItem(key);
     } catch (error) {
-      console.error('Error removing item from localStorage:', error);
+      logger.error('Error removing item from localStorage:', error);
       throw error;
     }
   },
@@ -43,7 +43,7 @@ export const secureStore = {
       }
       localStorage.clear();
     } catch (error) {
-      console.error('Error clearing localStorage:', error);
+      logger.error('Error clearing localStorage:', error);
       throw error;
     }
   }

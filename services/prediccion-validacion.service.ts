@@ -71,7 +71,7 @@ class PrediccionValidacionService {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error validando predicción:', error);
+      logger.error('❌ Error validando predicción:', error);
       throw this.procesarError(error);
     }
   }
@@ -104,7 +104,7 @@ class PrediccionValidacionService {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo predicciones validadas:', error);
+      logger.error('❌ Error obteniendo predicciones validadas:', error);
       throw this.procesarError(error);
     }
   }
@@ -130,7 +130,7 @@ class PrediccionValidacionService {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error exportando datos:', error);
+      logger.error('❌ Error exportando datos:', error);
       throw this.procesarError(error);
     }
   }

@@ -71,7 +71,7 @@ api.interceptors.response.use(
     // Si no hay respuesta, es un error de red
     if (!error.response) {
       if (CONFIG.DEBUG_MODE) {
-        console.error('Error de red:', error);
+        logger.error('Error de red:', error);
       }
       
       // Detectar tipo específico de error de red

@@ -127,7 +127,7 @@ class GerminacionMLService {
       return response.data;
 
     } catch (error: any) {
-      console.error('❌ [ML Germinación] Error en predicción:', error);
+      logger.error('❌ [ML Germinación] Error en predicción:', error);
       throw this.procesarError(error);
     }
   }
@@ -156,7 +156,7 @@ class GerminacionMLService {
       return response.data;
 
     } catch (error: any) {
-      console.error('❌ [ML Germinación] Error obteniendo info del modelo:', error);
+      logger.error('❌ [ML Germinación] Error obteniendo info del modelo:', error);
       throw this.procesarError(error);
     }
   }

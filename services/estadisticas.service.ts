@@ -36,7 +36,7 @@ class EstadisticasService {
       
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas del usuario:', error);
+      logger.error('❌ Error obteniendo estadísticas del usuario:', error);
       
       // Si es un error 500 (servidor), usar datos de fallback
       if (error.response?.status === 500) {
@@ -70,7 +70,7 @@ class EstadisticasService {
       
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas del usuario:', error);
+      logger.error('❌ Error obteniendo estadísticas del usuario:', error);
       
       // Si es timeout o cualquier otro error, usar fallback
       if (error.name === 'AbortError') {
@@ -99,7 +99,7 @@ class EstadisticasService {
         
         return response.data;
       } catch (error: any) {
-        console.error(`❌ Intento ${attempt} falló:`, error);
+        logger.error(`❌ Intento ${attempt} falló:`, error);
         
         if (attempt === maxRetries) {
           logger.warn('⚠️ Todos los intentos fallaron, usando estadísticas de fallback');

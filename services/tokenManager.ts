@@ -65,7 +65,7 @@ class TokenManager {
       ]);
       logger.success(' TokenManager: Tokens limpiados exitosamente');
     } catch (error) {
-      console.error('❌ TokenManager: Error al limpiar tokens:', error);
+      logger.error('❌ TokenManager: Error al limpiar tokens:', error);
       // Error silencioso
     }
   }

@@ -14,7 +14,7 @@ export const secureStore = {
       }
       return await SecureStore.getItemAsync(key);
     } catch (error) {
-      console.error('Error getting item from secure store:', error);
+      logger.error('Error getting item from secure store:', error);
       return null;
     }
   },
@@ -30,7 +30,7 @@ export const secureStore = {
       }
       await SecureStore.setItemAsync(key, value);
     } catch (error) {
-      console.error('Error setting item in secure store:', error);
+      logger.error('Error setting item in secure store:', error);
       throw error;
     }
   },
@@ -46,7 +46,7 @@ export const secureStore = {
       }
       await SecureStore.deleteItemAsync(key);
     } catch (error) {
-      console.error('Error removing item from secure store:', error);
+      logger.error('Error removing item from secure store:', error);
       throw error;
     }
   },
@@ -64,7 +64,7 @@ export const secureStore = {
       // You would need to track keys and remove them individually
       logger.warn('SecureStore clear not implemented - use removeItem for specific keys');
     } catch (error) {
-      console.error('Error clearing secure store:', error);
+      logger.error('Error clearing secure store:', error);
       throw error;
     }
   }

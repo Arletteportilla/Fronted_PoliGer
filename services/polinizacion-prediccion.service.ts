@@ -217,7 +217,7 @@ class PolinizacionPrediccionService {
         parametros_usados: response.data.parametros_usados || data
       };
     } catch (error: any) {
-      console.error('❌ Error en predicción inicial de polinización:', error);
+      logger.error('❌ Error en predicción inicial de polinización:', error);
 
       // Manejar errores específicos del backend
       if (error.response?.data) {
@@ -270,7 +270,7 @@ class PolinizacionPrediccionService {
         throw new Error(response.data.error || 'Error desconocido en refinamiento');
       }
     } catch (error: any) {
-      console.error('❌ Error refinando predicción de polinización:', error);
+      logger.error('❌ Error refinando predicción de polinización:', error);
       
       // Manejar errores específicos del backend
       if (error.response?.data) {
@@ -325,7 +325,7 @@ class PolinizacionPrediccionService {
         throw new Error(response.data.error || 'Error desconocido en validación');
       }
     } catch (error: any) {
-      console.error('❌ Error validando predicción de polinización:', error);
+      logger.error('❌ Error validando predicción de polinización:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -365,7 +365,7 @@ class PolinizacionPrediccionService {
         throw new Error(response.data.error || 'Error desconocido obteniendo historial');
       }
     } catch (error: any) {
-      console.error('❌ Error obteniendo historial de predicciones:', error);
+      logger.error('❌ Error obteniendo historial de predicciones:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -427,7 +427,7 @@ class PolinizacionPrediccionService {
       return estadisticasSimuladas;
       
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas de predicciones:', error);
+      logger.error('❌ Error obteniendo estadísticas de predicciones:', error);
       throw new Error('Error inesperado al obtener estadísticas');
     }
   }

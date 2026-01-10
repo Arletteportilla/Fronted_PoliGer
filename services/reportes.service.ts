@@ -60,7 +60,7 @@ export const reportesService = {
         throw new Error(`Error descargando archivo: ${downloadResult.status}`);
       }
     } catch (error) {
-      console.error('❌ Error generando PDF de germinaciones:', error);
+      logger.error('❌ Error generando PDF de germinaciones:', error);
       throw error;
     }
   },
@@ -123,7 +123,7 @@ export const reportesService = {
         throw new Error(`Error descargando archivo: ${downloadResult.status}`);
       }
     } catch (error) {
-      console.error('Error generando reporte de germinaciones:', error);
+      logger.error('Error generando reporte de germinaciones:', error);
       throw error;
     }
   },
@@ -181,7 +181,7 @@ export const reportesService = {
         throw new Error(`Error descargando archivo: ${downloadResult.status}`);
       }
     } catch (error) {
-      console.error('Error generando reporte de polinizaciones:', error);
+      logger.error('Error generando reporte de polinizaciones:', error);
       throw error;
     }
   },
@@ -206,7 +206,7 @@ export const reportesService = {
       
       return res.data;
     } catch (error) {
-      console.error('Error obteniendo estadísticas de germinaciones:', error);
+      logger.error('Error obteniendo estadísticas de germinaciones:', error);
       throw error;
     }
   },
@@ -231,7 +231,7 @@ export const reportesService = {
       
       return res.data;
     } catch (error) {
-      console.error('Error obteniendo estadísticas de polinizaciones:', error);
+      logger.error('Error obteniendo estadísticas de polinizaciones:', error);
       throw error;
     }
   },
@@ -296,7 +296,7 @@ export const reportesService = {
         throw new Error(`Error descargando archivo: ${downloadResult.status}`);
       }
     } catch (error) {
-      console.error('Error generando reporte:', error);
+      logger.error('Error generando reporte:', error);
       throw error;
     }
   },

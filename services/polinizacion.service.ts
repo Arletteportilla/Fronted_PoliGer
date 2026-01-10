@@ -35,7 +35,7 @@ export const polinizacionService = {
         return [];
       }
     } catch (error: any) {
-      console.error('❌ Error obteniendo mis polinizaciones:', error);
+      logger.error('❌ Error obteniendo mis polinizaciones:', error);
       return [];
     }
   },
@@ -120,7 +120,7 @@ export const polinizacionService = {
         previous: response.data?.previous || null,
       };
     } catch (error: any) {
-      console.error('❌ Error obteniendo mis polinizaciones paginadas:', error);
+      logger.error('❌ Error obteniendo mis polinizaciones paginadas:', error);
       return {
         results: [],
         count: 0,
@@ -160,9 +160,9 @@ export const polinizacionService = {
         return [];
       }
     } catch (error: any) {
-      console.error('❌ polinizacionService.getAll() - Error en la llamada:', error);
-      console.error('❌ Detalles del error:', error.response?.data || error.message);
-      console.error('❌ Status del error:', error.response?.status);
+      logger.error('❌ polinizacionService.getAll() - Error en la llamada:', error);
+      logger.error('❌ Detalles del error:', error.response?.data || error.message);
+      logger.error('❌ Status del error:', error.response?.status);
       
       // Mejorar el manejo de errores específicos
       if (error.response?.status === 401) {
@@ -215,8 +215,8 @@ export const polinizacionService = {
       logger.warn('⚠️ polinizacionService.getAllForAdmin() - Formato de respuesta inesperado');
       return response.data;
     } catch (error: any) {
-      console.error('❌ polinizacionService.getAllForAdmin() - Error en la llamada:', error);
-      console.error('❌ Detalles del error:', error.response?.data || error.message);
+      logger.error('❌ polinizacionService.getAllForAdmin() - Error en la llamada:', error);
+      logger.error('❌ Detalles del error:', error.response?.data || error.message);
       
       // Mejorar el manejo de errores específicos
       if (error.response?.status === 401) {
@@ -326,9 +326,9 @@ export const polinizacionService = {
         hasPrevious: response.data?.has_previous || false
       };
     } catch (error: any) {
-      console.error('❌ Error en polinizacionService.getPaginated():', error);
-      console.error('❌ Status:', error.response?.status);
-      console.error('❌ Data:', error.response?.data);
+      logger.error('❌ Error en polinizacionService.getPaginated():', error);
+      logger.error('❌ Status:', error.response?.status);
+      logger.error('❌ Data:', error.response?.data);
       
       // En caso de error, devolver estructura vacía
       return {
@@ -374,9 +374,9 @@ export const polinizacionService = {
       
       return totalCount;
     } catch (error: any) {
-      console.error('❌ Error en polinizacionService.getTotalCount():', error);
-      console.error('❌ Status:', error.response?.status);
-      console.error('❌ Data:', error.response?.data);
+      logger.error('❌ Error en polinizacionService.getTotalCount():', error);
+      logger.error('❌ Status:', error.response?.status);
+      logger.error('❌ Data:', error.response?.data);
       
       // En caso de error, devolver 0
       return 0;
@@ -413,7 +413,7 @@ export const polinizacionService = {
       logger.success(' PDF de mis polinizaciones descargado exitosamente');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error descargando PDF de mis polinizaciones:', error);
+      logger.error('❌ Error descargando PDF de mis polinizaciones:', error);
       throw error;
     }
   },
@@ -555,7 +555,7 @@ export const polinizacionService = {
       logger.success(' polinizacionService.getCodigosNuevasPlantas() - Códigos obtenidos:', codigos.length);
       return codigos;
     } catch (error: any) {
-      console.error('❌ polinizacionService.getCodigosNuevasPlantas() - Error:', error);
+      logger.error('❌ polinizacionService.getCodigosNuevasPlantas() - Error:', error);
       return [];
     }
   },
@@ -570,7 +570,7 @@ export const polinizacionService = {
       logger.success(' polinizacionService.getCodigosConEspecies() - Códigos obtenidos:', response.data?.length || 0);
       return response.data || [];
     } catch (error: any) {
-      console.error('❌ polinizacionService.getCodigosConEspecies() - Error:', error);
+      logger.error('❌ polinizacionService.getCodigosConEspecies() - Error:', error);
       return [];
     }
   },
@@ -602,7 +602,7 @@ export const polinizacionService = {
       logger.warn(' DEBUG - No se encontró polinización para el código:', codigo);
       return null;
     } catch (error: any) {
-      console.error('❌ polinizacionService.getPolinizacionByCodigoNuevaPlanta() - Error:', error);
+      logger.error('❌ polinizacionService.getPolinizacionByCodigoNuevaPlanta() - Error:', error);
       return null;
     }
   },
@@ -628,7 +628,7 @@ export const polinizacionService = {
       logger.success(' Opciones de filtros obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo opciones de filtros:', error);
+      logger.error('❌ Error obteniendo opciones de filtros:', error);
       return {
         opciones: {
           estados: [],
@@ -656,7 +656,7 @@ export const polinizacionService = {
       logger.success(' Alertas de polinización obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo alertas de polinización:', error);
+      logger.error('❌ Error obteniendo alertas de polinización:', error);
 
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -683,7 +683,7 @@ export const polinizacionService = {
       logger.success(' Información de planta encontrada:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error buscando información de planta:', error);
+      logger.error('❌ Error buscando información de planta:', error);
 
       // Si es un 404, significa que no se encontró la planta
       if (error.response?.status === 404) {
@@ -714,7 +714,7 @@ export const polinizacionService = {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo opciones de ubicación:', error);
+      logger.error('❌ Error obteniendo opciones de ubicación:', error);
 
       // Devolver estructura vacía en caso de error
       return {
@@ -749,7 +749,7 @@ export const polinizacionService = {
       logger.success(' Estado cambiado exitosamente');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error cambiando estado de polinización:', error);
+      logger.error('❌ Error cambiando estado de polinización:', error);
       throw error;
     }
   },
@@ -776,7 +776,7 @@ export const polinizacionService = {
       logger.success(' Predicción de maduración calculada:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error prediciendo maduración:', error);
+      logger.error('❌ Error prediciendo maduración:', error);
 
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -795,7 +795,7 @@ export const polinizacionService = {
       logger.success(' Información del modelo obtenida:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo info del modelo:', error);
+      logger.error('❌ Error obteniendo info del modelo:', error);
 
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -825,7 +825,7 @@ export const polinizacionService = {
       logger.success(' Polinización marcada como revisada:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error marcando polinización como revisada:', error);
+      logger.error('❌ Error marcando polinización como revisada:', error);
       throw error;
     }
   },
@@ -840,7 +840,7 @@ export const polinizacionService = {
       logger.success(' Polinizaciones pendientes obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo polinizaciones pendientes:', error);
+      logger.error('❌ Error obteniendo polinizaciones pendientes:', error);
       throw error;
     }
   },
@@ -862,7 +862,7 @@ export const polinizacionService = {
       logger.success(' Estado de polinización actualizado:', response.data);
       return response.data.polinizacion;
     } catch (error: any) {
-      console.error('❌ Error cambiando estado de polinización:', error);
+      logger.error('❌ Error cambiando estado de polinización:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -889,7 +889,7 @@ export const polinizacionService = {
       logger.success(' Progreso de polinización actualizado:', response.data);
       return response.data.polinizacion;
     } catch (error: any) {
-      console.error('❌ Error actualizando progreso de polinización:', error);
+      logger.error('❌ Error actualizando progreso de polinización:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);

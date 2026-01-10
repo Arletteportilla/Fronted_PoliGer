@@ -76,7 +76,7 @@ class NotificationService {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo notificaciones:', error);
+      logger.error('❌ Error obteniendo notificaciones:', error);
       throw error;
     }
   }
@@ -92,7 +92,7 @@ class NotificationService {
       
       logger.success(' Notificación marcada como leída');
     } catch (error: any) {
-      console.error('❌ Error marcando notificación como leída:', error);
+      logger.error('❌ Error marcando notificación como leída:', error);
       throw error;
     }
   }
@@ -109,7 +109,7 @@ class NotificationService {
       logger.success(' Todas las notificaciones marcadas como leídas:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error marcando todas las notificaciones como leídas:', error);
+      logger.error('❌ Error marcando todas las notificaciones como leídas:', error);
       throw error;
     }
   }
@@ -126,7 +126,7 @@ class NotificationService {
       logger.success(' Estado de favorita cambiado:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error cambiando estado de favorita:', error);
+      logger.error('❌ Error cambiando estado de favorita:', error);
       throw error;
     }
   }
@@ -142,7 +142,7 @@ class NotificationService {
       
       logger.success(' Notificación archivada');
     } catch (error: any) {
-      console.error('❌ Error archivando notificación:', error);
+      logger.error('❌ Error archivando notificación:', error);
       throw error;
     }
   }
@@ -159,7 +159,7 @@ class NotificationService {
       logger.success(' Estadísticas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas:', error);
+      logger.error('❌ Error obteniendo estadísticas:', error);
       throw error;
     }
   }
@@ -176,7 +176,7 @@ class NotificationService {
       logger.success(' Alertas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo alertas:', error);
+      logger.error('❌ Error obteniendo alertas:', error);
       throw error;
     }
   }
@@ -195,7 +195,7 @@ class NotificationService {
       logger.success(' Registros pendientes obtenidos:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo registros pendientes:', error);
+      logger.error('❌ Error obteniendo registros pendientes:', error);
       throw error;
     }
   }

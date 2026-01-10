@@ -19,7 +19,7 @@ class EspeciesService {
       const response = await api.get('polinizaciones/especies_disponibles/');
       return response.data.especies || [];
     } catch (error) {
-      console.error('Error obteniendo especies:', error);
+      logger.error('Error obteniendo especies:', error);
       return [];
     }
   }
@@ -32,7 +32,7 @@ class EspeciesService {
       const response = await api.get('polinizaciones/generos_disponibles/');
       return response.data.generos || [];
     } catch (error) {
-      console.error('Error obteniendo géneros:', error);
+      logger.error('Error obteniendo géneros:', error);
       return [];
     }
   }
