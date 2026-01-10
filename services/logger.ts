@@ -3,16 +3,14 @@
  * En producción solo muestra errores, en desarrollo muestra todo
  */
 
-import { CONFIG } from './config';
-
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 class Logger {
   private isDevelopment: boolean;
 
   constructor() {
-    // Detectar si estamos en desarrollo
-    this.isDevelopment = CONFIG.DEBUG_MODE || __DEV__;
+    // Detectar si estamos en desarrollo usando __DEV__ de React Native
+    this.isDevelopment = __DEV__;
   }
 
   /**
