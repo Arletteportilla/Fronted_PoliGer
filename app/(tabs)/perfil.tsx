@@ -20,8 +20,8 @@ import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
 import { CambiarEstadoModal } from '@/components/modals/CambiarEstadoModal';
 import { FinalizarModal } from '@/components/modals/FinalizarModal';
 import { GerminacionDetailsModal } from '@/components/modals/GerminacionDetailsModal';
-import {
 import { logger } from '@/services/logger';
+import {
   PerfilResumen,
   PerfilHeader,
   PerfilTabSelector,

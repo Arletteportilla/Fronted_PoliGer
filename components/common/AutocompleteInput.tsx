@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
 import { logger } from '@/services/logger';
+import {
   View,
   TextInput,
   Text,
