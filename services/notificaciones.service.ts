@@ -10,6 +10,8 @@ const mapNotificationType = (tipo: string): 'info' | 'success' | 'warning' | 'er
     'ESTADO_ACTUALIZADO': 'info',
     'ESTADO_POLINIZACION_ACTUALIZADO': 'info',
     'RECORDATORIO_REVISION': 'warning',
+    'RECORDATORIO_5_DIAS': 'warning',
+    'RECORDATORIO_PREDICCION': 'info',
     'ERROR': 'error',
     'MENSAJE': 'info',
     'ACTUALIZACION': 'info',
@@ -25,6 +27,8 @@ export const getNotificationIconByType = (tipo: string): string => {
     'ESTADO_ACTUALIZADO': 'sync',
     'ESTADO_POLINIZACION_ACTUALIZADO': 'sync',
     'RECORDATORIO_REVISION': 'time',
+    'RECORDATORIO_5_DIAS': 'alarm',
+    'RECORDATORIO_PREDICCION': 'analytics',
     'ERROR': 'close-circle',
     'MENSAJE': 'chatbubble',
     'ACTUALIZACION': 'arrow-down-circle',
@@ -242,6 +246,31 @@ export const notificacionesService = {
     } catch (error) {
       logger.error('❌ Error obteniendo alertas:', error);
       throw error;
+    }
+  },
+
+  /**
+   * Obtiene recordatorios de 5 días no leídos (para banner persistente)
+   */
+  getRecordatorios5Dias: async (): Promise<Notification[]> => {
+    try {
+      const response = await api.get('notifications/?tipo=RECORDATORIO_5_DIAS&solo_no_leidas=true');
+      let results = response.data;
+
+      if (response.data.notificaciones) {
+        results = response.data.notificaciones;
+      } else if (response.data.results) {
+        results = response.data.results;
+      } else if (!Array.isArray(response.data)) {
+        results = [];
+      }
+
+      const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
+      logger.success('⏰ Recordatorios 5 días obtenidos:', notifications.length);
+      return notifications;
+    } catch (error) {
+      logger.error('❌ Error obteniendo recordatorios 5 días:', error);
+      return [];
     }
   },
 };

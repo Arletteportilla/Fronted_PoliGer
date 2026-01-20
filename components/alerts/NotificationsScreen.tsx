@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,10 @@ import { Notification } from '@/types';
 import { useNotificaciones } from '@/hooks/useNotificaciones';
 import { NotificationFilters } from '@/services/notificaciones.service';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useToast } from '@/contexts/ToastContext';
+import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
+import { germinacionService } from '@/services/germinacion.service';
+import { polinizacionService } from '@/services/polinizacion.service';
 
 // Usar los colores del sistema definidos en Colors.ts
 
@@ -22,6 +26,7 @@ interface NotificationDetailModalProps {
   visible: boolean;
   onClose: () => void;
   onToggleFavorita: (id: string) => void;
+  onCambiarEstado?: (notification: Notification, nuevoEstado: string) => Promise<void>;
 }
 
 function NotificationDetailModal({
@@ -29,11 +34,48 @@ function NotificationDetailModal({
   visible,
   onClose,
   onToggleFavorita,
+  onCambiarEstado,
 }: NotificationDetailModalProps) {
   const { colors: themeColors } = useTheme();
   const modalStyles = createModalStyles(themeColors);
-  
+
   if (!notification) return null;
+
+  // Determinar si es una notificacion que puede cambiar estado
+  const isRecordatorio = notification.tipo === 'RECORDATORIO_5_DIAS' ||
+                         notification.tipo === 'RECORDATORIO_PREDICCION' ||
+                         notification.tipo === 'RECORDATORIO_REVISION' ||
+                         notification.tipo === 'ESTADO_ACTUALIZADO' ||
+                         notification.tipo === 'ESTADO_POLINIZACION_ACTUALIZADO' ||
+                         notification.tipo === 'NUEVA_GERMINACION' ||
+                         notification.tipo === 'NUEVA_POLINIZACION';
+
+  const isGerminacion = !!notification.detalles?.germinacion_id;
+  const isPolinizacion = !!notification.detalles?.polinizacion_id;
+  const canChangeState = isRecordatorio && (isGerminacion || isPolinizacion);
+
+  // Obtener el estado actual
+  const estadoActual = notification.detalles?.estado as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO' || 'INICIAL';
+
+  // Determinar siguiente estado
+  const getNextState = () => {
+    switch (estadoActual) {
+      case 'INICIAL': return 'EN_PROCESO_TEMPRANO';
+      case 'EN_PROCESO_TEMPRANO': return 'EN_PROCESO_AVANZADO';
+      case 'EN_PROCESO_AVANZADO': return 'FINALIZADO';
+      default: return null;
+    }
+  };
+
+  const nextState = getNextState();
+  const getNextStateLabel = () => {
+    switch (nextState) {
+      case 'EN_PROCESO_TEMPRANO': return 'Iniciar Proceso';
+      case 'EN_PROCESO_AVANZADO': return 'Avanzar Proceso';
+      case 'FINALIZADO': return 'Finalizar';
+      default: return '';
+    }
+  };
 
   const getIconInfo = () => {
     // Usar el tipo original del backend si está disponible
@@ -44,6 +86,8 @@ function NotificationDetailModal({
         'ESTADO_ACTUALIZADO': { icon: 'sync', color: themeColors.accent.tertiary, bgColor: themeColors.status.infoLight },
         'ESTADO_POLINIZACION_ACTUALIZADO': { icon: 'sync', color: themeColors.accent.tertiary, bgColor: themeColors.status.infoLight },
         'RECORDATORIO_REVISION': { icon: 'time', color: themeColors.module.germinacion.primary, bgColor: themeColors.module.germinacion.light },
+        'RECORDATORIO_5_DIAS': { icon: 'alarm', color: themeColors.status.warning, bgColor: themeColors.status.warningLight },
+        'RECORDATORIO_PREDICCION': { icon: 'analytics', color: themeColors.accent.secondary, bgColor: themeColors.status.infoLight },
         'ERROR': { icon: 'close-circle', color: themeColors.status.error, bgColor: themeColors.status.errorLight },
         'MENSAJE': { icon: 'chatbubble', color: themeColors.accent.secondary, bgColor: themeColors.status.infoLight },
         'ACTUALIZACION': { icon: 'arrow-down-circle', color: themeColors.status.warning, bgColor: themeColors.status.warningLight },
@@ -141,6 +185,37 @@ function NotificationDetailModal({
           <ScrollView style={modalStyles.modalBodySection} showsVerticalScrollIndicator={false}>
             <Text style={[modalStyles.modalMessageText, { color: themeColors.text.secondary }]}>{notification.message}</Text>
 
+            {/* Barra de progreso para notificaciones con estado */}
+            {canChangeState && (
+              <View style={modalStyles.progressContainer}>
+                <EstadoProgressBar
+                  estadoActual={estadoActual}
+                  tipo={isGerminacion ? 'germinacion' : 'polinizacion'}
+                />
+              </View>
+            )}
+
+            {/* Info del registro */}
+            {canChangeState && notification.detalles && (
+              <View style={modalStyles.registroInfo}>
+                <View style={modalStyles.registroInfoRow}>
+                  <Ionicons name="barcode-outline" size={16} color={themeColors.text.tertiary} />
+                  <Text style={[modalStyles.registroInfoLabel, { color: themeColors.text.tertiary }]}>ID:</Text>
+                  <Text style={[modalStyles.registroInfoValue, { color: themeColors.text.primary }]}>
+                    {notification.detalles.codigo || 'N/A'}
+                  </Text>
+                </View>
+                {notification.detalles.ubicacion && (
+                  <View style={modalStyles.registroInfoRow}>
+                    <Ionicons name="location-outline" size={16} color={themeColors.text.tertiary} />
+                    <Text style={[modalStyles.registroInfoValue, { color: themeColors.text.primary }]}>
+                      {notification.detalles.ubicacion}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
             {/* Detalles adicionales */}
             {notification.detalles &&
              notification.tipo !== 'NUEVA_POLINIZACION' &&
@@ -176,6 +251,40 @@ function NotificationDetailModal({
 
           {/* Acciones */}
           <View style={modalStyles.modalActionsSection}>
+            {/* Boton Cambiar Estado */}
+            {canChangeState && nextState && onCambiarEstado && (
+              <TouchableOpacity
+                style={[
+                  modalStyles.cambiarEstadoButton,
+                  {
+                    backgroundColor: nextState === 'EN_PROCESO_TEMPRANO' ? '#0ea5e9' :
+                                    nextState === 'EN_PROCESO_AVANZADO' ? '#f59e0b' : '#10b981'
+                  }
+                ]}
+                onPress={() => onCambiarEstado(notification, nextState)}
+              >
+                <Ionicons
+                  name={nextState === 'FINALIZADO' ? 'checkmark-circle' :
+                        nextState === 'EN_PROCESO_AVANZADO' ? 'arrow-forward-circle' : 'play-circle'}
+                  size={20}
+                  color="#ffffff"
+                />
+                <Text style={modalStyles.cambiarEstadoButtonText}>
+                  {getNextStateLabel()}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Mensaje si ya esta finalizado */}
+            {canChangeState && estadoActual === 'FINALIZADO' && (
+              <View style={modalStyles.estadoFinalizadoContainer}>
+                <Ionicons name="checkmark-circle" size={20} color={themeColors.status.success} />
+                <Text style={modalStyles.estadoFinalizadoText}>
+                  {isGerminacion ? 'Germinacion finalizada' : 'Polinizacion finalizada'}
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
               style={[
                 modalStyles.modalActionButton,
@@ -206,12 +315,14 @@ function NotificationDetailModal({
 export function NotificationsScreen() {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
+  const toast = useToast();
 
   const [searchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [selectedNotificationForModal, setSelectedNotificationForModal] = useState<Notification | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
+  const [isChangingState, setIsChangingState] = useState(false);
 
   const filters: NotificationFilters = useMemo(() => {
     const filter: NotificationFilters = {};
@@ -269,7 +380,55 @@ export function NotificationsScreen() {
     await selectNotification(notification);
   };
 
+  const handleCambiarEstado = useCallback(async (notification: Notification, nuevoEstado: string) => {
+    if (isChangingState) return;
 
+    const isGerminacion = !!notification.detalles?.germinacion_id;
+    const id = notification.detalles?.germinacion_id || notification.detalles?.polinizacion_id;
+
+    if (!id) {
+      toast.error('No se encontro el ID del registro');
+      return;
+    }
+
+    try {
+      setIsChangingState(true);
+
+      if (isGerminacion) {
+        await germinacionService.cambiarEstadoGerminacion(
+          Number(id),
+          nuevoEstado as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'
+        );
+        toast.success('Estado de germinacion actualizado');
+      } else {
+        await polinizacionService.cambiarEstadoPolinizacion(
+          Number(id),
+          nuevoEstado as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'
+        );
+        toast.success('Estado de polinizacion actualizado');
+      }
+
+      // Actualizar la notificacion en el modal para reflejar el nuevo estado
+      if (selectedNotificationForModal && notification.detalles) {
+        setSelectedNotificationForModal({
+          ...selectedNotificationForModal,
+          detalles: {
+            ...selectedNotificationForModal.detalles,
+            estado: nuevoEstado
+          }
+        });
+      }
+
+      // Refrescar la lista de notificaciones
+      onRefresh();
+
+    } catch (error) {
+      console.error('Error cambiando estado:', error);
+      toast.error('Error al cambiar el estado');
+    } finally {
+      setIsChangingState(false);
+    }
+  }, [isChangingState, toast, onRefresh, selectedNotificationForModal]);
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -291,20 +450,34 @@ export function NotificationsScreen() {
 
   const renderModernNotificationItem = (notification: Notification) => {
     const getIconByType = () => {
-      if (notification.tipo === 'NUEVA_GERMINACION' || notification.message.toLowerCase().includes('germinación')) {
-        return { name: 'warning', color: themeColors.status.error, bgColor: themeColors.status.errorLight };
+      // Primero verificar por tipo del backend
+      if (notification.tipo === 'RECORDATORIO_5_DIAS') {
+        return { name: 'alarm', color: themeColors.status.warning, bgColor: themeColors.status.warningLight };
       }
-      if (notification.tipo === 'NUEVA_POLINIZACION' || notification.message.toLowerCase().includes('polinización')) {
-        return { name: 'document-text', color: themeColors.accent.secondary, bgColor: themeColors.status.infoLight };
+      if (notification.tipo === 'RECORDATORIO_PREDICCION') {
+        return { name: 'analytics', color: themeColors.accent.secondary, bgColor: themeColors.status.infoLight };
       }
-      if (notification.message.toLowerCase().includes('rrhh') || notification.message.toLowerCase().includes('evaluación')) {
-        return { name: 'chatbubble-ellipses', color: themeColors.status.success, bgColor: themeColors.status.successLight };
+      if (notification.tipo === 'RECORDATORIO_REVISION') {
+        return { name: 'time', color: themeColors.module.germinacion.primary, bgColor: themeColors.module.germinacion.light };
       }
-      if (notification.message.toLowerCase().includes('mantenimiento') || notification.message.toLowerCase().includes('actualizado')) {
-        return { name: 'construct', color: themeColors.text.tertiary, bgColor: themeColors.background.secondary };
+      if (notification.tipo === 'NUEVA_GERMINACION') {
+        return { name: 'leaf', color: themeColors.status.success, bgColor: themeColors.status.successLight };
       }
-      if (notification.message.toLowerCase().includes('política') || notification.message.toLowerCase().includes('cambio')) {
-        return { name: 'information-circle', color: themeColors.text.tertiary, bgColor: themeColors.background.secondary };
+      if (notification.tipo === 'NUEVA_POLINIZACION') {
+        return { name: 'flower', color: themeColors.accent.secondary, bgColor: themeColors.status.infoLight };
+      }
+      if (notification.tipo === 'ESTADO_ACTUALIZADO' || notification.tipo === 'ESTADO_POLINIZACION_ACTUALIZADO') {
+        return { name: 'sync', color: themeColors.accent.tertiary, bgColor: themeColors.status.infoLight };
+      }
+      if (notification.tipo === 'ERROR') {
+        return { name: 'close-circle', color: themeColors.status.error, bgColor: themeColors.status.errorLight };
+      }
+      // Fallback por contenido del mensaje
+      if (notification.message.toLowerCase().includes('germinación')) {
+        return { name: 'leaf', color: themeColors.status.success, bgColor: themeColors.status.successLight };
+      }
+      if (notification.message.toLowerCase().includes('polinización')) {
+        return { name: 'flower', color: themeColors.accent.secondary, bgColor: themeColors.status.infoLight };
       }
       return { name: 'notifications', color: themeColors.text.tertiary, bgColor: themeColors.background.secondary };
     };
@@ -520,6 +693,21 @@ export function NotificationsScreen() {
           <View style={styles.filterMenuDivider} />
 
           <TouchableOpacity
+            style={[styles.filterMenuItem, activeFilter === 'RECORDATORIO_5_DIAS' && styles.filterMenuItemActive]}
+            onPress={() => {
+              setActiveFilter('RECORDATORIO_5_DIAS');
+              setFilterMenuVisible(false);
+            }}
+          >
+            <View style={[styles.filterMenuIcon, { backgroundColor: themeColors.status.warningLight }]}>
+              <Ionicons name="alarm" size={18} color={themeColors.status.warning} />
+            </View>
+            <Text style={[styles.filterMenuText, activeFilter === 'RECORDATORIO_5_DIAS' && styles.filterMenuTextActive]}>
+              Alertas pendientes
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.filterMenuItem, activeFilter === 'RECORDATORIO_REVISION' && styles.filterMenuItemActive]}
             onPress={() => {
               setActiveFilter('RECORDATORIO_REVISION');
@@ -607,6 +795,7 @@ export function NotificationsScreen() {
           setSelectedNotificationForModal(null);
         }}
         onToggleFavorita={toggleFavorita}
+        onCambiarEstado={handleCambiarEstado}
       />
     </View>
   );
@@ -1405,6 +1594,62 @@ const createModalStyles = (colors: ReturnType<typeof import('@/utils/colors').ge
     textAlign: 'center',
     marginBottom: 20,
     color: colors.text.secondary,
+  },
+  progressContainer: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  registroInfo: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    gap: 8,
+  },
+  registroInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  registroInfoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  registroInfoValue: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  cambiarEstadoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  cambiarEstadoButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  estadoFinalizadoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 12,
+    backgroundColor: colors.status.successLight,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  estadoFinalizadoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.status.success,
   },
   modalDetailsSection: {
     borderRadius: 16,

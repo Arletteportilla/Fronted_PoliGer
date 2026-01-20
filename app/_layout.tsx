@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { PersistentAlertProvider } from '@/contexts/PersistentAlertContext';
 import '@/utils/suppressWarnings'; // Suprimir warnings innecesarios
 import { logger } from '@/services/logger';
 
@@ -108,7 +109,9 @@ export default function RootLayout() {
         <ToastProvider>
           <AuthProvider>
             <SidebarProvider>
-              <RootLayoutNav />
+              <PersistentAlertProvider>
+                <RootLayoutNav />
+              </PersistentAlertProvider>
             </SidebarProvider>
           </AuthProvider>
         </ToastProvider>
