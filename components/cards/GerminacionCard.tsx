@@ -199,7 +199,6 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
       {item.estado_germinacion && (
         <View style={{
           marginTop: 8,
-          backgroundColor: '#f9fafb',
           borderRadius: 12,
           paddingVertical: 4
         }}>

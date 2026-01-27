@@ -709,8 +709,17 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 tipo="germinacion"
               />
 
-              {/* Botón de acción */}
+              {/* Botones de acción */}
               <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.cancelButton]}
+                  onPress={onClose}
+                  disabled={saving}
+                >
+                  <Text style={styles.cancelButtonText}>
+                    Cancelar
+                  </Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.saveButton]}
                   onPress={onSubmit}
@@ -934,8 +943,18 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#182d49',
   },
+  cancelButton: {
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
   actionButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cancelButtonText: {
+    color: '#6b7280',
     fontSize: 16,
     fontWeight: '600',
   },

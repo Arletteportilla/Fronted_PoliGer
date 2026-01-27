@@ -37,11 +37,11 @@ const MetricCard: React.FC<MetricCardProps> = ({
       <View style={styles.metricHeader}>
         <Text style={styles.metricTitle}>{title}</Text>
         <View style={[styles.metricIcon, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon as any} size={18} color={iconColor} />
+          <Ionicons name={icon as any} size={20} color={iconColor} />
         </View>
       </View>
       
-      <View style={styles.metricValueContainer}>
+      <View style={styles.metricBody}>
         <Text style={styles.metricValue}>{value}</Text>
       </View>
     </View>
@@ -54,12 +54,12 @@ interface PolinizacionesContentProps {
   cosechasRealizadas: number;
   search: string;
   activeFiltersCount: number;
-  isExporting?: boolean;
+  tipoRegistro?: 'historicos' | 'nuevos' | 'todos';
   onSearchChange: (text: string) => void;
   onClearSearch: () => void;
   onShowFilters: () => void;
-  onShowDateFilter?: () => void;
   onShowExportModal: () => void;
+  onTipoRegistroChange?: (tipo: 'historicos' | 'nuevos' | 'todos') => void;
 }
 
 export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
@@ -68,12 +68,12 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
   cosechasRealizadas,
   search,
   activeFiltersCount,
-  isExporting = false,
+  tipoRegistro = 'todos',
   onSearchChange,
   onClearSearch,
   onShowFilters,
-  onShowDateFilter,
   onShowExportModal,
+  onTipoRegistroChange
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
@@ -83,29 +83,29 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
       {/* Métricas */}
       <View style={styles.metricsContainer}>
         <MetricCard
-          title="Polinizaciones Activas"
+          title="POLINIZACIONES ACTIVAS"
           value={totalPolinizaciones}
           icon="flower-outline"
-          iconColor="#10b981"
-          iconBg="#d1fae5"
+          iconColor={themeColors.primary.main}
+          iconBg={themeColors.primary.light}
           styles={styles}
         />
         
         <MetricCard
-          title="Tasa de Éxito"
+          title="TASA DE ÉXITO (MES)"
           value={`${tasaExito}%`}
           icon="checkmark-circle-outline"
-          iconColor="#3b82f6"
-          iconBg="#dbeafe"
+          iconColor={themeColors.accent.primary}
+          iconBg={themeColors.accent.tertiary}
           styles={styles}
         />
         
         <MetricCard
-          title="Cosechas Realizadas"
+          title="COSECHAS REALIZADAS"
           value={cosechasRealizadas}
           icon="leaf-outline"
-          iconColor="#f59e0b"
-          iconBg="#fef3c7"
+          iconColor={themeColors.status.warning}
+          iconBg={themeColors.status.warningLight}
           styles={styles}
         />
       </View>
@@ -145,10 +145,7 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={onShowDateFilter}
-          >
+          <TouchableOpacity style={styles.actionButton}>
             <Ionicons name="calendar-outline" size={18} color={themeColors.text.tertiary} />
             <Text style={styles.actionButtonText}>Fecha</Text>
           </TouchableOpacity>
@@ -156,10 +153,75 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           <TouchableOpacity
             style={styles.actionButton}
             onPress={onShowExportModal}
-            disabled={isExporting}
           >
             <Ionicons name="download-outline" size={18} color={themeColors.text.tertiary} />
-            <Text style={styles.actionButtonText}>{isExporting ? 'Exportando...' : 'Exportar'}</Text>
+            <Text style={styles.actionButtonText}>Exportar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Filtros de tipo de registro */}
+      <View style={styles.filterTypeContainer}>
+        <Text style={styles.filterTypeLabel}>Tipo de registro:</Text>
+        <View style={styles.filterTypeButtons}>
+          <TouchableOpacity
+            style={[
+              styles.filterTypeButton,
+              tipoRegistro === 'todos' && styles.filterTypeButtonActive
+            ]}
+            onPress={() => onTipoRegistroChange?.('todos')}
+          >
+            <Ionicons 
+              name="list" 
+              size={16} 
+              color={tipoRegistro === 'todos' ? '#FFFFFF' : themeColors.text.tertiary} 
+            />
+            <Text style={[
+              styles.filterTypeButtonText,
+              tipoRegistro === 'todos' && styles.filterTypeButtonTextActive
+            ]}>
+              Todos
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.filterTypeButton,
+              tipoRegistro === 'nuevos' && styles.filterTypeButtonActive
+            ]}
+            onPress={() => onTipoRegistroChange?.('nuevos')}
+          >
+            <Ionicons 
+              name="add-circle" 
+              size={16} 
+              color={tipoRegistro === 'nuevos' ? '#FFFFFF' : themeColors.text.tertiary} 
+            />
+            <Text style={[
+              styles.filterTypeButtonText,
+              tipoRegistro === 'nuevos' && styles.filterTypeButtonTextActive
+            ]}>
+              Nuevos
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.filterTypeButton,
+              tipoRegistro === 'historicos' && styles.filterTypeButtonActive
+            ]}
+            onPress={() => onTipoRegistroChange?.('historicos')}
+          >
+            <Ionicons 
+              name="archive" 
+              size={16} 
+              color={tipoRegistro === 'historicos' ? '#FFFFFF' : themeColors.text.tertiary} 
+            />
+            <Text style={[
+              styles.filterTypeButtonText,
+              tipoRegistro === 'historicos' && styles.filterTypeButtonTextActive
+            ]}>
+              Históricos
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -176,8 +238,8 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   metricCard: {
     flex: 1,
     backgroundColor: colors.background.primary,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
     borderColor: colors.border.default,
     shadowColor: colors.shadow.color,
@@ -185,33 +247,36 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
-    position: 'relative',
   },
   metricHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
   metricTitle: {
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: '700',
     color: colors.text.tertiary,
-    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    flex: 1,
   },
   metricIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  metricValueContainer: {
+  metricBody: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
+    alignItems: 'baseline',
+    gap: 12,
+    marginBottom: 8,
   },
   metricValue: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '800',
     color: colors.text.primary,
     letterSpacing: -1,
@@ -250,11 +315,11 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 20,
+    gap: 12,
+    marginBottom: 24,
     backgroundColor: colors.background.secondary,
-    padding: 10,
-    borderRadius: 12,
+    padding: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border.default,
   },
@@ -263,18 +328,18 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background.primary,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border.default,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     color: colors.text.primary,
   },
   clearSearchButton: {
@@ -287,17 +352,17 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     backgroundColor: colors.background.primary,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.border.default,
     position: 'relative',
   },
   actionButtonText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: colors.text.secondary,
   },
@@ -319,5 +384,54 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     color: colors.text.inverse,
     fontSize: 10,
     fontWeight: '800',
+  },
+  
+  filterTypeContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.background.secondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+    marginBottom: 16,
+  },
+
+  filterTypeLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 8,
+  },
+
+  filterTypeButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+
+  filterTypeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: colors.background.primary,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+
+  filterTypeButtonActive: {
+    backgroundColor: colors.primary.main,
+    borderColor: colors.primary.main,
+  },
+
+  filterTypeButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.text.tertiary,
+  },
+
+  filterTypeButtonTextActive: {
+    color: colors.text.inverse,
+    fontWeight: '600',
   },
 });

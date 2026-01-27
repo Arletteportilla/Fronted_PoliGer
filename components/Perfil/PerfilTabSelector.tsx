@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { styles } from '@/utils/Perfil/styles';
+import { createStyles } from '@/utils/Perfil/styles';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export type TabType = 'resumen' | 'polinizaciones' | 'germinaciones' | 'usuarios' | 'notificaciones';
 
@@ -19,6 +20,9 @@ export function PerfilTabSelector({
   canViewGerminaciones,
   isAdmin
 }: PerfilTabSelectorProps) {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
+  
   return (
     <View style={styles.tabsContainer}>
       <TouchableOpacity

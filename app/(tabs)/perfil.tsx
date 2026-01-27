@@ -5,7 +5,6 @@ import * as Sharing from 'expo-sharing';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { germinacionService } from '@/services/germinacion.service';
 import { estadisticasService } from '@/services/estadisticas.service';
@@ -20,7 +19,7 @@ import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
 import { CambiarEstadoModal } from '@/components/modals/CambiarEstadoModal';
 import { FinalizarModal } from '@/components/modals/FinalizarModal';
 import { GerminacionDetailsModal } from '@/components/modals/GerminacionDetailsModal';
-import { logger } from '@/services/logger';
+import { PolinizacionDetailsModal } from '@/components/modals/PolinizacionDetailsModal';
 import {
   PerfilResumen,
   PerfilHeader,
@@ -31,17 +30,18 @@ import {
   PerfilUsuariosTab,
   type TabType
 } from '@/components/Perfil';
-import { createPerfilStyles } from '@/utils/Perfil/styles';
+import { createStyles } from '@/utils/Perfil/styles';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { Polinizacion, Germinacion, EstadisticasUsuario } from '@/types/index';
 
 export default function PerfilScreen() {
   const { user, forceLogout, refreshUser } = useAuth();
   const toast = useToast();
-  const { colors: themeColors } = useTheme();
-  const styles = createPerfilStyles(themeColors);
   const { canViewGerminaciones, canViewPolinizaciones, isAdmin } = usePermissions();
   const { showConfirmation } = useConfirmation();
   const params = useLocalSearchParams();
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
 
   // Estados principales
   const [tab, setTab] = useState<TabType>('resumen');
@@ -93,6 +93,95 @@ export default function PerfilScreen() {
   const [changeStatusPolinizacionModal, changeStatusPolinizacionControls] = useModalState<Polinizacion>();
   const [finalizarPolinizacionModal, finalizarPolinizacionControls] = useModalState<Polinizacion>();
 
+  // Estados para formularios de edición
+  const [polinizacionEditForm, setPolinizacionEditForm] = useState<any>(null);
+  const [germinacionEditForm, setGerminacionEditForm] = useState<any>(null);
+
+  // Sincronizar formulario cuando se abre el modal de edición de polinización
+  useEffect(() => {
+    if (polinizacionEditModal.visible && polinizacionEditModal.selectedItem) {
+      const item = polinizacionEditModal.selectedItem;
+      setPolinizacionEditForm({
+        id: item.id || item.numero,
+        fecha_polinizacion: item.fechapol || '',
+        fecha_maduracion: item.fechamad || '',
+        tipo_polinizacion: item.tipo_polinizacion || item.Tipo || 'SELF',
+        madre_codigo: item.madre_codigo || '',
+        madre_genero: item.madre_genero || item.genero || '',
+        madre_especie: item.madre_especie || item.especie || '',
+        madre_clima: item.madre_clima || 'I',
+        padre_codigo: item.padre_codigo || '',
+        padre_genero: item.padre_genero || '',
+        padre_especie: item.padre_especie || '',
+        padre_clima: item.padre_clima || 'I',
+        nueva_codigo: item.nueva_codigo || '',
+        nueva_genero: item.nueva_genero || '',
+        nueva_especie: item.nueva_especie || '',
+        nueva_clima: item.nueva_clima || 'I',
+        vivero: item.vivero || '',
+        mesa: item.mesa || '',
+        pared: item.pared || '',
+        ubicacion_tipo: item.ubicacion_tipo || 'vivero',
+        ubicacion_nombre: item.ubicacion_nombre || '',
+        cantidad_capsulas: item.cantidad_capsulas || 1,
+        cantidad: item.cantidad || 1,
+        cantidad_solicitada: item.cantidad_solicitada?.toString() || '',
+        cantidad_disponible: item.cantidad_disponible?.toString() || '',
+        cantidad_semilla: '',
+        responsable: item.responsable || '',
+        observaciones: item.observaciones || '',
+        estado: item.estado || 'INGRESADO',
+        // Campos de predicción ML
+        dias_maduracion_predichos: item.dias_maduracion_predichos || null,
+        fecha_maduracion_predicha: item.fecha_maduracion_predicha || null,
+        metodo_prediccion: item.metodo_prediccion || '',
+        confianza_prediccion: item.confianza_prediccion || null,
+        // Campos legacy
+        clima: '',
+        ubicacion: '',
+        etapa_actual: 'Ingresado',
+        planta_madre_codigo: '',
+        planta_madre_genero: '',
+        planta_madre_especie: '',
+        planta_padre_codigo: '',
+        planta_padre_genero: '',
+        planta_padre_especie: '',
+        nueva_planta_codigo: '',
+        nueva_planta_genero: '',
+        nueva_planta_especie: '',
+      });
+    }
+  }, [polinizacionEditModal.visible, polinizacionEditModal.selectedItem]);
+
+  // Sincronizar formulario cuando se abre el modal de edición de germinación
+  useEffect(() => {
+    if (germinacionEditModal.visible && germinacionEditModal.selectedItem) {
+      const item = germinacionEditModal.selectedItem;
+      setGerminacionEditForm({
+        codigo: item.codigo || '',
+        genero: item.genero || '',
+        especie_variedad: item.especie_variedad || '',
+        fecha_siembra: item.fecha_siembra || '',
+        fecha_polinizacion: item.fecha_polinizacion || '',
+        clima: item.clima || 'I',
+        percha: item.percha || '',
+        nivel: item.nivel || '',
+        clima_lab: item.clima_lab || 'I',
+        finca: item.finca || '',
+        numero_vivero: item.numero_vivero || '',
+        cantidad_solicitada: item.cantidad_solicitada?.toString() || '',
+        no_capsulas: item.no_capsulas?.toString() || '',
+        estado_capsula: item.estado_capsula || 'CERRADA',
+        estado_semilla: item.estado_semilla || 'MADURA',
+        cantidad_semilla: item.cantidad_semilla || 'ABUNDANTE',
+        semilla_en_stock: item.semilla_en_stock || false,
+        observaciones: item.observaciones || '',
+        responsable: item.responsable || '',
+        etapa_actual: item.etapa_actual || 'INGRESADO',
+      });
+    }
+  }, [germinacionEditModal.visible, germinacionEditModal.selectedItem]);
+
   // Efectos
   useEffect(() => {
     const newTab = params['tab'];
@@ -131,7 +220,7 @@ export default function PerfilScreen() {
             misPolinizaciones = Array.isArray(pols) ? pols : [];
           }
         } catch (error) {
-          logger.error('Error obteniendo polinizaciones:', error);
+          console.error('Error obteniendo polinizaciones:', error);
           misPolinizaciones = [];
         }
       }
@@ -145,7 +234,7 @@ export default function PerfilScreen() {
               page_size: 20,
               ...(searchGerminaciones && { search: searchGerminaciones }),
               dias_recientes: 0, // 0 = ver todas las germinaciones sin filtro de fecha
-              excluir_importadas: true // Excluir germinaciones importadas desde CSV/Excel
+              excluir_importadas: true // Solo mostrar las germinaciones creadas por el usuario, no las importadas
             });
             misGerminaciones = Array.isArray(result.results) ? result.results : [];
             setGerminacionesTotalPages(result.totalPages);
@@ -156,7 +245,7 @@ export default function PerfilScreen() {
             misGerminaciones = Array.isArray(germs) ? germs : [];
           }
         } catch (error) {
-          logger.error('Error obteniendo germinaciones:', error);
+          console.error('Error obteniendo germinaciones:', error);
           misGerminaciones = [];
         }
       }
@@ -166,7 +255,7 @@ export default function PerfilScreen() {
         try {
           stats = await estadisticasService.getEstadisticasUsuario();
         } catch (error) {
-          logger.error('Error obteniendo estadísticas:', error);
+          console.error('Error obteniendo estadísticas:', error);
           stats = null;
         }
       }
@@ -179,13 +268,11 @@ export default function PerfilScreen() {
           total_polinizaciones: misPolinizaciones.length,
           total_germinaciones: misGerminaciones.length,
           polinizaciones_actuales: misPolinizaciones.filter(p =>
-            p.estado_polinizacion === 'INICIAL' ||
-            p.estado_polinizacion === 'EN_PROCESO_TEMPRANO' ||
-            p.estado_polinizacion === 'EN_PROCESO_AVANZADO'
+            p.estado_polinizacion === 'EN_PROCESO' || p.estado_polinizacion === 'INICIAL'
           ).length,
           germinaciones_actuales: misGerminaciones.filter(g =>
-            g.estado_germinacion === 'INICIAL' ||
-            g.estado_germinacion === 'EN_PROCESO_TEMPRANO' ||
+            g.estado_germinacion === 'INICIAL' || 
+            g.estado_germinacion === 'EN_PROCESO_TEMPRANO' || 
             g.estado_germinacion === 'EN_PROCESO_AVANZADO'
           ).length,
           usuario: user?.username || 'Usuario'
@@ -204,7 +291,7 @@ export default function PerfilScreen() {
       }
 
     } catch (error) {
-      logger.error('Error fetching data:', error);
+      console.error('Error fetching data:', error);
       Alert.alert('Error', 'No se pudieron cargar los datos');
     } finally {
       setLoading(false);
@@ -243,7 +330,7 @@ export default function PerfilScreen() {
       setPolinizacionesTotalPages(result.totalPages);
       setPolinizacionesTotalCount(result.count);
     } catch (error) {
-      logger.error('Error buscando polinizaciones:', error);
+      console.error('Error buscando polinizaciones:', error);
       Alert.alert('Error', 'No se pudieron buscar las polinizaciones');
     } finally {
       setLoading(false);
@@ -260,13 +347,14 @@ export default function PerfilScreen() {
         page: 1,
         page_size: 20,
         ...(searchGerminaciones && { search: searchGerminaciones }),
-        dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
+        dias_recientes: 0, // 0 = ver todas las germinaciones sin filtro de fecha
+        excluir_importadas: true // Solo mostrar las germinaciones creadas por el usuario
       });
       setGerminaciones(Array.isArray(result.results) ? result.results : []);
       setGerminacionesTotalPages(result.totalPages);
       setGerminacionesTotalCount(result.count);
     } catch (error) {
-      logger.error('Error buscando germinaciones:', error);
+      console.error('Error buscando germinaciones:', error);
       Alert.alert('Error', 'No se pudieron buscar las germinaciones');
     } finally {
       setLoading(false);
@@ -313,11 +401,7 @@ export default function PerfilScreen() {
 
   // Funciones de descarga de PDF optimizadas
   const handleDescargarPDF = useCallback(async (tipo: 'polinizaciones' | 'germinaciones') => {
-    logger.info('🚀 handleDescargarPDF llamado con tipo:', tipo);
-    logger.info('👤 Usuario actual:', user);
-
     if (!user) {
-      logger.error(' Usuario no autenticado');
       Alert.alert('Error', 'Usuario no autenticado');
       return;
     }
@@ -325,18 +409,12 @@ export default function PerfilScreen() {
     const search = tipo === 'polinizaciones' ? searchPolinizaciones : searchGerminaciones;
     const searchText = search ? ` (Búsqueda: "${search}")` : '';
 
-    logger.info('📋 Mostrando diálogo de confirmación...');
-
     // Función de descarga (compartida entre web y mobile)
     const ejecutarDescarga = async () => {
       let loadingSet = false;
       try {
               setLoading(true);
               loadingSet = true;
-
-              logger.start(` Iniciando descarga de PDF de ${tipo}...`);
-              logger.debug(` Usuario: ${user?.username}`);
-              logger.debug(` Búsqueda: ${search}`);
 
               // Obtener token de autenticación
               const token = await SecureStore.secureStore.getItem('authToken');
@@ -349,7 +427,6 @@ export default function PerfilScreen() {
               if (search) params.append('search', search);
 
               const url = `${CONFIG.API_BASE_URL}/${tipo}/mis-${tipo}-pdf/?${params.toString()}`;
-              logger.debug(` URL completa: ${url}`);
 
               // Crear nombre de archivo
               const timestamp = new Date().toISOString().slice(0, 10);
@@ -360,7 +437,6 @@ export default function PerfilScreen() {
 
               if (Platform.OS === 'web') {
                 // Descarga para web
-                logger.info('🌐 Descargando en web...');
                 const response = await fetch(url, {
                   headers: {
                     'Authorization': `Bearer ${token}`,
@@ -384,11 +460,9 @@ export default function PerfilScreen() {
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(downloadUrl);
 
-                logger.success(` PDF de ${tipo} descargado exitosamente en web`);
                 Alert.alert('Éxito', `PDF de ${tipo} descargado correctamente`);
               } else {
                 // Descarga para móvil
-                logger.info('📱 Descargando en móvil...');
                 const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
                 const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
@@ -398,8 +472,6 @@ export default function PerfilScreen() {
                   }
                 });
 
-                logger.info(`📥 Resultado de descarga: ${downloadResult.status}`);
-
                 if (downloadResult.status === 200) {
                   // Compartir archivo
                   if (await Sharing.isAvailableAsync()) {
@@ -408,15 +480,14 @@ export default function PerfilScreen() {
                       dialogTitle: `Mis ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} PDF`,
                     });
                   }
-                  logger.success(` PDF de ${tipo} descargado exitosamente en móvil`);
                   Alert.alert('Éxito', `PDF de ${tipo} descargado correctamente`);
                 } else {
                   throw new Error(`Error en la descarga: ${downloadResult.status}`);
                 }
               }
             } catch (error: any) {
-              logger.error(`❌ Error descargando PDF de ${tipo}:`, error);
-              logger.error('❌ Error details:', {
+              console.error(`❌ Error descargando PDF de ${tipo}:`, error);
+              console.error('❌ Error details:', {
                 message: error.message,
                 response: error.response?.data,
                 status: error.response?.status
@@ -455,16 +526,12 @@ export default function PerfilScreen() {
     );
 
     if (confirmed) {
-      logger.success(' Usuario confirmó descarga');
       await ejecutarDescarga();
-    } else {
-      logger.error(' Usuario canceló descarga');
     }
   }, [user, searchPolinizaciones, searchGerminaciones, showConfirmation]);
 
   // Función de logout optimizada
   const handleLogout = useCallback(async () => {
-    logger.info('⚪️ [DEBUG] handleLogout llamado');
     const confirmed = await showConfirmation(
       'Cerrar Sesión',
       '¿Está seguro que desea cerrar sesión?',
@@ -473,11 +540,9 @@ export default function PerfilScreen() {
     );
 
     if (!confirmed) {
-      logger.info('[DEBUG] Logout cancelado');
       return;
     }
 
-    logger.info('[DEBUG] Confirmado logout, llamando a forceLogout...');
     forceLogout();
   }, [forceLogout, showConfirmation]);
 
@@ -528,7 +593,7 @@ export default function PerfilScreen() {
       const germinacionActualizada = await germinacionService.getById(item.id);
       germinacionDetailsControls.open(germinacionActualizada);
     } catch (error) {
-      logger.error('Error cargando germinación:', error);
+      console.error('Error cargando germinación:', error);
       // Si falla, usar los datos en caché
       germinacionDetailsControls.open(item);
     }
@@ -542,12 +607,12 @@ export default function PerfilScreen() {
     try {
       setLoading(true);
       // Mapear etapas antiguas a estados nuevos
-      const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'> = {
+      const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO'> = {
         'INGRESADO': 'INICIAL',
-        'EN_PROCESO': 'EN_PROCESO_TEMPRANO',
+        'EN_PROCESO': 'EN_PROCESO',
         'FINALIZADO': 'FINALIZADO'
       };
-      const nuevoEstado = estadoMap[nuevaEtapa] || 'EN_PROCESO_TEMPRANO';
+      const nuevoEstado = estadoMap[nuevaEtapa] || 'EN_PROCESO';
       await germinacionService.cambiarEstadoGerminacion(germinacionId, nuevoEstado, fechaGerminacion);
 
       // Actualizar la germinación seleccionada en el modal de edición con el nuevo estado
@@ -579,7 +644,7 @@ export default function PerfilScreen() {
 
       toast.success(mensajes[nuevaEtapa]);
     } catch (error: any) {
-      logger.error('Error cambiando etapa:', error);
+      console.error('Error cambiando etapa:', error);
       toast.error(error.response?.data?.message || 'No se pudo cambiar la etapa de la germinación');
     } finally {
       setLoading(false);
@@ -606,8 +671,6 @@ export default function PerfilScreen() {
         'FINALIZADO',
         fechaGerminacion
       );
-
-      logger.success(' Respuesta del servidor:', response);
 
       // Actualizar la germinación en la lista local
       setGerminaciones(prevGerminaciones =>
@@ -641,7 +704,7 @@ export default function PerfilScreen() {
       
       toast.success('Germinación finalizada exitosamente');
     } catch (error: any) {
-      logger.error('Error finalizando germinación:', error);
+      console.error('Error finalizando germinación:', error);
       toast.error(error.response?.data?.error || 'No se pudo finalizar la germinación');
     } finally {
       setLoading(false);
@@ -660,10 +723,10 @@ export default function PerfilScreen() {
     finalizarPolinizacionControls.open(item);
   };
 
-  const handleCambiarEstadoPolinizacion = async (polinizacionId: number, nuevoEstado: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO', fechaMaduracion?: string) => {
+  const handleCambiarEstadoPolinizacion = async (polinizacionId: number, nuevoEstado: 'INICIAL' | 'EN_PROCESO' | 'FINALIZADO', fechaMaduracion?: string) => {
     try {
       setLoading(true);
-
+      
       await polinizacionService.cambiarEstadoPolinizacion(polinizacionId, nuevoEstado, fechaMaduracion);
 
       // Actualizar la polinización en la lista local
@@ -705,7 +768,7 @@ export default function PerfilScreen() {
       
       toast.success('Estado de polinización actualizado correctamente');
     } catch (error: any) {
-      logger.error('Error cambiando estado de polinización:', error);
+      console.error('Error cambiando estado de polinización:', error);
       toast.error(error.response?.data?.error || 'No se pudo cambiar el estado de la polinización');
     } finally {
       setLoading(false);
@@ -727,21 +790,15 @@ export default function PerfilScreen() {
         fechaMaduracion
       );
 
-      logger.success(' Respuesta del servidor:', response);
-
       // 2. Validar predicción si existe
       const tienePrediccion = polinizacion.fecha_maduracion_predicha || polinizacion.prediccion_fecha_estimada;
 
       if (tienePrediccion) {
         try {
-          logger.info('📊 Validando predicción automáticamente...');
-
           const validacion = await prediccionValidacionService.validarPrediccionPolinizacion(
             polinizacion.numero,
             fechaMaduracion
           );
-
-          logger.success(' Predicción validada:', validacion);
 
           // Mostrar resultado de validación al usuario
           const { precision, calidad, diferencia_dias } = validacion.validacion;
@@ -759,7 +816,7 @@ export default function PerfilScreen() {
 
           toast.success(mensajeValidacion);
         } catch (validacionError) {
-          logger.warn('⚠️ No se pudo validar la predicción:', validacionError);
+          console.warn('⚠️ No se pudo validar la predicción:', validacionError);
           // No bloquear el flujo si falla la validación
           toast.success('Polinización finalizada exitosamente');
         }
@@ -798,7 +855,7 @@ export default function PerfilScreen() {
       await fetchData();
 
     } catch (error: any) {
-      logger.error('Error finalizando polinización:', error);
+      console.error('Error finalizando polinización:', error);
       toast.error(error.response?.data?.error || 'No se pudo finalizar la polinización');
     } finally {
       setLoading(false);
@@ -815,8 +872,6 @@ export default function PerfilScreen() {
         germinaciones={germinaciones}
         onViewPolinizacion={handleViewPolinizacion}
         onViewGerminacion={handleViewGerminacion}
-        onVerTodasPolinizaciones={() => setTab('polinizaciones')}
-        onVerTodasGerminaciones={() => setTab('germinaciones')}
       />
     );
   };
@@ -890,8 +945,19 @@ export default function PerfilScreen() {
         )}
         {tab === 'notificaciones' && canViewGerminaciones() && (
           <PerfilNotificacionesTab
-            onChangeStatusGerminacion={handleOpenChangeStatus}
+            polinizaciones={polinizaciones}
+            germinaciones={germinaciones}
+            loading={loading}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            onViewPolinizacion={handleViewPolinizacion}
+            onEditPolinizacion={handleEditPolinizacion}
+            onDeletePolinizacion={handleDeletePolinizacion}
             onChangeStatusPolinizacion={handleOpenChangeStatusPolinizacion}
+            onViewGerminacion={handleViewGerminacion}
+            onEditGerminacion={handleEditGerminacion}
+            onDeleteGerminacion={handleDeleteGerminacion}
+            onChangeStatusGerminacion={handleOpenChangeStatus}
           />
         )}
         {tab === 'usuarios' && isAdmin() && <PerfilUsuariosTab />}
@@ -906,61 +972,53 @@ export default function PerfilScreen() {
         onOpenFinalizar={handleOpenFinalizarModal}
       />
 
+      {/* Modal de detalles de polinización */}
+      <PolinizacionDetailsModal
+        visible={_polinizacionDetailsModal.visible}
+        polinizacion={_polinizacionDetailsModal.selectedItem}
+        onClose={() => polinizacionDetailsControls.close()}
+      />
+
       {/* Modal de edición de germinación */}
-      {germinacionEditModal.selectedItem && (
+      {germinacionEditModal.selectedItem && germinacionEditForm && (
         <GerminacionForm
           visible={germinacionEditModal.visible}
           onClose={() => {
             germinacionEditControls.close();
           }}
-          form={{
-            codigo: germinacionEditModal.selectedItem.codigo || '',
-            genero: germinacionEditModal.selectedItem.genero || '',
-            especie_variedad: germinacionEditModal.selectedItem.especie_variedad || '',
-            fecha_siembra: germinacionEditModal.selectedItem.fecha_siembra || '',
-            fecha_polinizacion: germinacionEditModal.selectedItem.fecha_polinizacion || '',
-            clima: germinacionEditModal.selectedItem.clima || 'I',
-            percha: germinacionEditModal.selectedItem.percha || '',
-            nivel: germinacionEditModal.selectedItem.nivel || '',
-            clima_lab: germinacionEditModal.selectedItem.clima_lab || 'I',
-            finca: germinacionEditModal.selectedItem.finca || '',
-            numero_vivero: germinacionEditModal.selectedItem.numero_vivero || '',
-            cantidad_solicitada: germinacionEditModal.selectedItem.cantidad_solicitada?.toString() || '',
-            no_capsulas: germinacionEditModal.selectedItem.no_capsulas?.toString() || '',
-            estado_capsula: germinacionEditModal.selectedItem.estado_capsula || 'CERRADA',
-            estado_semilla: germinacionEditModal.selectedItem.estado_semilla || 'MADURA',
-            cantidad_semilla: germinacionEditModal.selectedItem.cantidad_semilla || 'ABUNDANTE',
-            semilla_en_stock: germinacionEditModal.selectedItem.semilla_en_stock || false,
-            observaciones: germinacionEditModal.selectedItem.observaciones || '',
-            responsable: germinacionEditModal.selectedItem.responsable || '',
-            etapa_actual: germinacionEditModal.selectedItem.etapa_actual || 'INGRESADO',
-          }}
-          setForm={() => {}} // No se usa en modo edición
+          form={germinacionEditForm}
+          setForm={setGerminacionEditForm}
           onSubmit={async () => {
             try {
-              // Aquí iría la lógica de actualización
+              const item = germinacionEditModal.selectedItem!;
+              // Actualizar germinación con los datos del formulario
+              await germinacionService.update(item.id, {
+                codigo: germinacionEditForm.codigo,
+                genero: germinacionEditForm.genero,
+                especie_variedad: germinacionEditForm.especie_variedad,
+                fecha_siembra: germinacionEditForm.fecha_siembra,
+                fecha_polinizacion: germinacionEditForm.fecha_polinizacion,
+                clima: germinacionEditForm.clima,
+                percha: germinacionEditForm.percha,
+                nivel: germinacionEditForm.nivel,
+                clima_lab: germinacionEditForm.clima_lab,
+                finca: germinacionEditForm.finca,
+                numero_vivero: germinacionEditForm.numero_vivero,
+                cantidad_solicitada: germinacionEditForm.cantidad_solicitada,
+                no_capsulas: germinacionEditForm.no_capsulas,
+                estado_capsula: germinacionEditForm.estado_capsula,
+                estado_semilla: germinacionEditForm.estado_semilla,
+                cantidad_semilla: germinacionEditForm.cantidad_semilla,
+                semilla_en_stock: germinacionEditForm.semilla_en_stock,
+                observaciones: germinacionEditForm.observaciones,
+                responsable: germinacionEditForm.responsable,
+                etapa_actual: germinacionEditForm.etapa_actual,
+              });
+
               Alert.alert('Éxito', 'Germinación actualizada correctamente');
               germinacionEditControls.close();
               // Recargar datos
-              const fetchData = async () => {
-                setLoading(true);
-                try {
-                  const result = await germinacionService.getMisGerminacionesPaginated({
-                    page: germinacionesPage,
-                    page_size: 20,
-                    ...(searchGerminaciones && { search: searchGerminaciones }),
-                    dias_recientes: 0 // 0 = ver todas las germinaciones sin filtro de fecha
-                  });
-                  setGerminaciones(Array.isArray(result.results) ? result.results : []);
-                  setGerminacionesTotalPages(result.totalPages);
-                  setGerminacionesTotalCount(result.count);
-                } catch (error) {
-                  logger.error('Error recargando germinaciones:', error);
-                } finally {
-                  setLoading(false);
-                }
-              };
-              fetchData();
+              await fetchData();
             } catch (error: any) {
               Alert.alert('Error', error.message || 'No se pudo actualizar la germinación');
             }
@@ -976,111 +1034,58 @@ export default function PerfilScreen() {
       )}
 
       {/* Modal de edición de polinización */}
-      {polinizacionEditModal.selectedItem && (
+      {polinizacionEditModal.selectedItem && polinizacionEditForm && (
         <PolinizacionForm
           visible={polinizacionEditModal.visible}
           onClose={() => {
             polinizacionEditControls.close();
           }}
-          form={{
-            id: polinizacionEditModal.selectedItem.id || polinizacionEditModal.selectedItem.numero,
-            fecha_polinizacion: polinizacionEditModal.selectedItem.fechapol || '',
-            fecha_maduracion: polinizacionEditModal.selectedItem.fechamad || '',
-            tipo_polinizacion: polinizacionEditModal.selectedItem.tipo_polinizacion || polinizacionEditModal.selectedItem.Tipo || 'SELF',
-            madre_codigo: polinizacionEditModal.selectedItem.madre_codigo || '',
-            madre_genero: polinizacionEditModal.selectedItem.madre_genero || polinizacionEditModal.selectedItem.genero || '',
-            madre_especie: polinizacionEditModal.selectedItem.madre_especie || polinizacionEditModal.selectedItem.especie || '',
-            madre_clima: polinizacionEditModal.selectedItem.madre_clima || 'I',
-            padre_codigo: polinizacionEditModal.selectedItem.padre_codigo || '',
-            padre_genero: polinizacionEditModal.selectedItem.padre_genero || '',
-            padre_especie: polinizacionEditModal.selectedItem.padre_especie || '',
-            padre_clima: polinizacionEditModal.selectedItem.padre_clima || 'I',
-            nueva_codigo: polinizacionEditModal.selectedItem.nueva_codigo || '',
-            nueva_genero: polinizacionEditModal.selectedItem.nueva_genero || '',
-            nueva_especie: polinizacionEditModal.selectedItem.nueva_especie || '',
-            nueva_clima: polinizacionEditModal.selectedItem.nueva_clima || 'I',
-            vivero: polinizacionEditModal.selectedItem.vivero || '',
-            mesa: polinizacionEditModal.selectedItem.mesa || '',
-            pared: polinizacionEditModal.selectedItem.pared || '',
-            ubicacion_tipo: polinizacionEditModal.selectedItem.ubicacion_tipo || 'vivero',
-            ubicacion_nombre: polinizacionEditModal.selectedItem.ubicacion_nombre || '',
-            cantidad_capsulas: polinizacionEditModal.selectedItem.cantidad_capsulas || 1,
-            cantidad: polinizacionEditModal.selectedItem.cantidad || 1,
-            responsable: polinizacionEditModal.selectedItem.responsable || '',
-            observaciones: polinizacionEditModal.selectedItem.observaciones || '',
-            estado: polinizacionEditModal.selectedItem.estado || 'INGRESADO',
-            clima: '',
-            ubicacion: '',
-            cantidad_solicitada: '',
-            cantidad_disponible: '',
-            cantidad_semilla: '',
-            etapa_actual: 'Ingresado',
-            planta_madre_codigo: '',
-            planta_madre_genero: '',
-            planta_madre_especie: '',
-            planta_padre_codigo: '',
-            planta_padre_genero: '',
-            planta_padre_especie: '',
-            nueva_planta_codigo: '',
-            nueva_planta_genero: '',
-            nueva_planta_especie: '',
-          }}
-          setForm={() => {}} // No se usa en modo edición
+          form={polinizacionEditForm}
+          setForm={setPolinizacionEditForm}
           onSave={async () => {
             try {
               const item = polinizacionEditModal.selectedItem!;
-              // Actualizar polinización
+              // Actualizar polinización con los datos del formulario
               await polinizacionService.update(item.id || item.numero, {
-                fechapol: item.fechapol,
-                fechamad: item.fechamad,
-                tipo_polinizacion: item.tipo_polinizacion,
-                madre_codigo: item.madre_codigo,
-                madre_genero: item.madre_genero,
-                madre_especie: item.madre_especie,
-                madre_clima: item.madre_clima,
-                padre_codigo: item.padre_codigo,
-                padre_genero: item.padre_genero,
-                padre_especie: item.padre_especie,
-                padre_clima: item.padre_clima,
-                nueva_codigo: item.nueva_codigo,
-                nueva_genero: item.nueva_genero,
-                nueva_especie: item.nueva_especie,
-                nueva_clima: item.nueva_clima,
-                vivero: item.vivero,
-                mesa: item.mesa,
-                pared: item.pared,
-                ubicacion_tipo: item.ubicacion_tipo,
-                ubicacion_nombre: item.ubicacion_nombre,
-                cantidad_capsulas: item.cantidad_capsulas,
-                cantidad: item.cantidad,
-                responsable: item.responsable,
-                observaciones: item.observaciones,
-                estado: item.estado,
+                fechapol: polinizacionEditForm.fecha_polinizacion,
+                fechamad: polinizacionEditForm.fecha_maduracion,
+                tipo_polinizacion: polinizacionEditForm.tipo_polinizacion,
+                madre_codigo: polinizacionEditForm.madre_codigo,
+                madre_genero: polinizacionEditForm.madre_genero,
+                madre_especie: polinizacionEditForm.madre_especie,
+                madre_clima: polinizacionEditForm.madre_clima,
+                padre_codigo: polinizacionEditForm.padre_codigo,
+                padre_genero: polinizacionEditForm.padre_genero,
+                padre_especie: polinizacionEditForm.padre_especie,
+                padre_clima: polinizacionEditForm.padre_clima,
+                nueva_codigo: polinizacionEditForm.nueva_codigo,
+                nueva_genero: polinizacionEditForm.nueva_genero,
+                nueva_especie: polinizacionEditForm.nueva_especie,
+                nueva_clima: polinizacionEditForm.nueva_clima,
+                vivero: polinizacionEditForm.vivero,
+                mesa: polinizacionEditForm.mesa,
+                pared: polinizacionEditForm.pared,
+                ubicacion_tipo: polinizacionEditForm.ubicacion_tipo,
+                ubicacion_nombre: polinizacionEditForm.ubicacion_nombre,
+                cantidad_capsulas: polinizacionEditForm.cantidad_capsulas,
+                cantidad: polinizacionEditForm.cantidad,
+                cantidad_solicitada: polinizacionEditForm.cantidad_solicitada,
+                cantidad_disponible: polinizacionEditForm.cantidad_disponible,
+                responsable: polinizacionEditForm.responsable,
+                observaciones: polinizacionEditForm.observaciones,
+                estado: polinizacionEditForm.estado,
+                // Campos de predicción ML
+                dias_maduracion_predichos: polinizacionEditForm.dias_maduracion_predichos,
+                fecha_maduracion_predicha: polinizacionEditForm.fecha_maduracion_predicha,
+                metodo_prediccion: polinizacionEditForm.metodo_prediccion,
+                confianza_prediccion: polinizacionEditForm.confianza_prediccion,
               });
 
               Alert.alert('Éxito', 'Polinización actualizada correctamente');
               polinizacionEditControls.close();
-              
+
               // Recargar datos
-              const fetchData = async () => {
-                setLoading(true);
-                try {
-                  const result = await polinizacionService.getMisPolinizacionesPaginated({
-                    page: polinizacionesPage,
-                    page_size: 20,
-                    ...(searchPolinizaciones && { search: searchPolinizaciones }),
-                    dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
-                  });
-                  setPolinizaciones(Array.isArray(result.results) ? result.results : []);
-                  setPolinizacionesTotalPages(result.totalPages);
-                  setPolinizacionesTotalCount(result.count);
-                } catch (error) {
-                  logger.error('Error recargando polinizaciones:', error);
-                } finally {
-                  setLoading(false);
-                }
-              };
-              fetchData();
+              await fetchData();
             } catch (error: any) {
               Alert.alert('Error', error.message || 'No se pudo actualizar la polinización');
             }
@@ -1100,36 +1105,15 @@ export default function PerfilScreen() {
         onClose={() => {
           changeStatusGerminacionControls.close();
         }}
-        onCambiarEstado={async (estado) => {
+        onCambiarEstado={(estado) => {
           if (changeStatusGerminacionModal.selectedItem) {
             if (estado === 'FINALIZADO') {
               // Abrir modal de finalizar con calendario
               handleOpenFinalizarModal(changeStatusGerminacionModal.selectedItem);
             } else {
-              // Mapear los estados del modal a los estados del backend
-              const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'> = {
-                'INICIAL': 'INICIAL',
-                'EN_PROCESO': 'EN_PROCESO_TEMPRANO',
-                'EN_PROCESO_AVANZADO': 'EN_PROCESO_AVANZADO',
-                'FINALIZADO': 'FINALIZADO'
-              };
-              const nuevoEstado = estadoMap[estado] || 'EN_PROCESO_TEMPRANO';
-
-              try {
-                setLoading(true);
-                await germinacionService.cambiarEstadoGerminacion(
-                  changeStatusGerminacionModal.selectedItem.id,
-                  nuevoEstado
-                );
-                changeStatusGerminacionControls.close();
-                await fetchData();
-                toast.success(`Estado cambiado a ${nuevoEstado.replace(/_/g, ' ')}`);
-              } catch (error) {
-                logger.error('Error cambiando estado:', error);
-                toast.error('Error al cambiar el estado');
-              } finally {
-                setLoading(false);
-              }
+              // Mapear INICIAL a INGRESADO para compatibilidad
+              const estadoMapeado = estado === 'INICIAL' ? 'INGRESADO' : estado;
+              handleCambiarEtapaGerminacion(changeStatusGerminacionModal.selectedItem.id, estadoMapeado as 'INGRESADO' | 'EN_PROCESO' | 'FINALIZADO');
             }
           }
         }}
@@ -1143,36 +1127,14 @@ export default function PerfilScreen() {
         onClose={() => {
           changeStatusPolinizacionControls.close();
         }}
-        onCambiarEstado={async (estado) => {
+        onCambiarEstado={(estado) => {
           if (changeStatusPolinizacionModal.selectedItem) {
             if (estado === 'FINALIZADO') {
               // Abrir modal de finalizar con calendario
               handleOpenFinalizarPolinizacionModal(changeStatusPolinizacionModal.selectedItem);
             } else {
-              // Mapear los estados del modal a los estados del backend
-              const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'> = {
-                'INICIAL': 'INICIAL',
-                'EN_PROCESO': 'EN_PROCESO_TEMPRANO',
-                'EN_PROCESO_AVANZADO': 'EN_PROCESO_AVANZADO',
-                'FINALIZADO': 'FINALIZADO'
-              };
-              const nuevoEstado = estadoMap[estado] || 'EN_PROCESO_TEMPRANO';
-
-              try {
-                setLoading(true);
-                await polinizacionService.cambiarEstadoPolinizacion(
-                  changeStatusPolinizacionModal.selectedItem.numero,
-                  nuevoEstado
-                );
-                changeStatusPolinizacionControls.close();
-                await fetchData();
-                toast.success(`Estado cambiado a ${nuevoEstado.replace(/_/g, ' ')}`);
-              } catch (error) {
-                logger.error('Error cambiando estado:', error);
-                toast.error('Error al cambiar el estado');
-              } finally {
-                setLoading(false);
-              }
+              // Cambiar estado directamente
+              handleCambiarEstadoPolinizacion(changeStatusPolinizacionModal.selectedItem.numero, estado);
             }
           }
         }}

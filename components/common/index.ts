@@ -4,3 +4,4 @@ export { default as SimpleCalendarPicker } from './SimpleCalendarPicker';
 export { default as RolePermissionsBadge } from './RolePermissionsBadge';
 export { default as IndicadorConfianza } from './IndicadorConfianza';
 export { default as ProcessLine } from './ProcessLine';
+export { ThemeToggle } from './ThemeToggle';

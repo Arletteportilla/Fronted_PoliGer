@@ -1,16 +1,18 @@
 import { StyleSheet } from 'react-native';
-import { getColors } from '@/utils/colors';
+import { Colors } from '@/constants/Colors';
+import type { ReturnType } from '@/utils/colors';
 
-// Función para crear estilos dinámicos basados en el tema
-export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => StyleSheet.create({
+// Función para crear estilos basados en el tema
+export function createStyles(colors: ReturnType<typeof import('@/utils/colors').getColors>) {
+  return StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.primary,
     flexDirection: 'row',
   },
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.primary,
   },
   scrollContent: {
     paddingBottom: 40,
@@ -29,7 +31,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 25,
-    shadowColor: colors.shadow.color,
+    shadowColor: '#121212',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -38,9 +40,9 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     borderColor: 'transparent',
   },
   activeTab: {
-    backgroundColor: colors.accent.primary,
-    borderColor: colors.primary.main,
-    shadowColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
+    borderColor: colors.accent.primary,
+    shadowColor: colors.primary.main,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -53,7 +55,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     textAlign: 'center',
   },
   activeTabText: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontWeight: '700',
   },
   contentContainer: {
@@ -96,14 +98,14 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     borderRadius: 16,
     padding: 16,
     flex: 1,
-    shadowColor: colors.shadow.color,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 6,
     minHeight: 85,
     borderWidth: 1,
-    borderColor: colors.border.light,
+    borderColor: '#e5f3f0',
     borderLeftWidth: 4,
   },
   statsCardContent: {
@@ -134,7 +136,6 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   statsValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.text.primary,
     textAlign: 'left',
     letterSpacing: -0.5,
   },
@@ -143,13 +144,13 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     borderRadius: 16,
     padding: 24,
     marginBottom: 24,
-    shadowColor: colors.shadow.color,
+    shadowColor: '#121212',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
     elevation: 8,
     borderWidth: 1,
-    borderColor: colors.border.light,
+    borderColor: '#e5f3f0',
   },
   progressCardsContainer: {
     flexDirection: 'row',
@@ -184,14 +185,14 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   },
   progressBarMain: {
     height: 8,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: '#f1f5f9',
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 8,
   },
   progressFillMain: {
     height: '100%',
-    backgroundColor: colors.status.success,
+    backgroundColor: '#22c55e',
     borderRadius: 4,
   },
   progressText: {
@@ -261,13 +262,13 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: colors.shadow.color,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
     borderWidth: 1,
-    borderColor: colors.border.light,
+    borderColor: '#e5f3f0',
   },
   alertaCardHeader: {
     flexDirection: 'row',
@@ -337,8 +338,6 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     overflow: 'hidden',
   },
   notificacionNoLeida: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#3b82f6',
     backgroundColor: '#f8fafc',
   },
   notificacionCardHeader: {
@@ -391,6 +390,122 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     fontSize: 12,
     color: '#9ca3af',
   },
+  // Estilos adicionales para NotificationCard (en inglés para compatibilidad)
+  notificationCard: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    overflow: 'hidden',
+  },
+  notificationCardUnread: {
+    backgroundColor: colors.background.secondary,
+  },
+  unreadIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  notificationTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  notificationIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationTypeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 6,
+  },
+  notificationTitleUnread: {
+    fontWeight: '700',
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: colors.text.secondary,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  notificationFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+  },
+  notificationMeta: {
+    flex: 1,
+  },
+  notificationUser: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    marginBottom: 4,
+  },
+  notificationDate: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+  },
+  notificationReference: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginLeft: 8,
+  },
+  notificationReferenceText: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    fontWeight: '500',
+  },
+  statusButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    backgroundColor: colors.primary.main,
+    borderWidth: 1,
+    borderColor: colors.primary.main,
+    gap: 6,
+  },
+  statusButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.background.primary,
+  },
   detailModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -425,7 +540,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   detailModalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.accent.primary,
+    color: colors.primary.main,
   },
   modalCloseButton: {
     padding: 6,
@@ -491,14 +606,14 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     borderBottomRightRadius: 16,
   },
   modalCloseFooterButton: {
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
   },
   modalCloseFooterButtonText: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -538,19 +653,19 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   usuariosTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.accent.primary,
+    color: colors.primary.main,
   },
   addUserButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     gap: 6,
   },
   addUserButtonText: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -747,7 +862,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   createUserButtonSmall: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 6,
@@ -761,7 +876,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     elevation: 1,
   },
   createUserButtonTextSmall: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -785,16 +900,34 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.accent.primary,
+    color: colors.primary.main,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
     color: '#6B7280',
     textAlign: 'center',
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text.primary,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  statSubtext: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
   statIconContainer: {
-    marginBottom: 4,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   recentSection: {
     marginTop: 24,
@@ -803,114 +936,13 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   recentSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    paddingHorizontal: 4,
-  },
-  recentSectionHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 12,
     gap: 8,
   },
   recentSectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text.primary,
-  },
-  viewAllLink: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  viewAllText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.status.success,
-  },
-  cardsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    paddingHorizontal: 4,
-  },
-  polinizacionCard: {
-    width: '48%',
-    backgroundColor: colors.background.primary,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: colors.shadow.color,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: colors.shadow.opacity,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  cardDecoration: {
-    position: 'absolute',
-    top: -20,
-    right: -20,
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.background.tertiary,
-    opacity: 0.5,
-  },
-  tipoBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  tipoBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textTransform: 'uppercase',
-  },
-  cardPolId: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text.secondary,
-    marginBottom: 8,
-  },
-  cardPlantName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text.primary,
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  cardInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-  },
-  cardInfoText: {
-    fontSize: 12,
-    color: colors.text.tertiary,
-    flex: 1,
-  },
-  cardStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.text.disabled,
-  },
-  cardStatusText: {
-    fontSize: 11,
-    color: colors.text.tertiary,
-    fontWeight: '500',
+    color: '#1F2937',
   },
   recentItem: {
     flexDirection: 'row',
@@ -925,7 +957,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     shadowRadius: 4,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
   },
   recentItemContent: {
     flex: 1,
@@ -1006,7 +1038,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     flex: 1,
     marginLeft: 12,
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
   },
   filterContainer: {
     flexDirection: 'row',
@@ -1017,16 +1049,26 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background.secondary,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
     gap: 6,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary.main,
+    borderColor: colors.accent.primary,
   },
   filterButtonText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.text.secondary,
     fontWeight: '500',
+  },
+  filterButtonTextActive: {
+    color: colors.background.primary,
+    fontWeight: '600',
   },
   usuariosListTable: {
     flex: 1,
@@ -1189,24 +1231,24 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   },
   // Estilos para la tabla
   tableContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 8,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
     marginHorizontal: 16,
     marginBottom: 16,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.secondary,
     borderBottomWidth: 2,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border.default,
     paddingVertical: 12,
   },
   tableHeaderCell: {
@@ -1223,7 +1265,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   headerText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#374151',
+    color: colors.text.secondary,
     textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1231,8 +1273,8 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: colors.border.light,
+    backgroundColor: colors.background.primary,
     minHeight: 60,
   },
   tableRowLast: {
@@ -1263,7 +1305,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   usuarioName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: colors.accent.primary,
+    color: colors.primary.main,
     marginBottom: 4,
   },
   usuarioEmail: {
@@ -1273,7 +1315,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   },
   usuarioRole: {
     fontSize: 12,
-    color: colors.primary.main,
+    color: colors.accent.primary,
     fontWeight: '600',
   },
   usuarioActions: {
@@ -1322,7 +1364,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   createUserModalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.accent.primary,
+    color: colors.primary.main,
   },
   closeButton: {
     padding: 4,
@@ -1370,8 +1412,8 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     backgroundColor: '#fff',
   },
   createUserRoleOptionSelected: {
-    backgroundColor: colors.primary.main,
-    borderColor: colors.primary.main,
+    backgroundColor: colors.accent.primary,
+    borderColor: colors.accent.primary,
   },
   createUserRoleOptionText: {
     fontSize: 12,
@@ -1379,7 +1421,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     fontWeight: '500',
   },
   createUserRoleOptionTextSelected: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontWeight: '600',
   },
   createUserModalFooter: {
@@ -1411,7 +1453,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: colors.primary.main,
+    backgroundColor: colors.accent.primary,
     color: '#fff',
     alignItems: 'center',
     marginLeft: 8,
@@ -1420,7 +1462,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     backgroundColor: '#9ca3af',
   },
   createButtonText: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -1503,7 +1545,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     elevation: 6,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
   },
 
   profileImageContainer: {
@@ -1511,7 +1553,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     height: 120,
     borderRadius: 60,
     marginBottom: 20,
-    shadowColor: colors.accent.primary,
+    shadowColor: colors.primary.main,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -1525,7 +1567,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     height: 120,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: colors.primary.main,
+    borderColor: colors.accent.primary,
   },
 
   userInfoContainer: {
@@ -1586,12 +1628,12 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
     borderColor: '#FFFFFF',
-    shadowColor: colors.accent.primary,
+    shadowColor: colors.primary.main,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1599,7 +1641,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   },
 
   userAvatarText: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontSize: 48,
     fontWeight: '700',
     letterSpacing: 1,
@@ -1820,7 +1862,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   editUserTextInput: {
     backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -1831,7 +1873,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   pickerContainer: {
     backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -1943,7 +1985,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     backgroundColor: '#F9FAFB',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
   },
 
   progresoActualTitle: {
@@ -1976,7 +2018,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1988,7 +2030,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   assignMetasButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text.inverse,
+    color: colors.background.primary,
   },
 
   disabledInput: {
@@ -2098,14 +2140,14 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
   editModalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.text.inverse,
+    color: colors.background.primary,
   },
   editModalCloseButton: {
     padding: 4,
@@ -2182,16 +2224,16 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   },
   professionalTableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background.secondary,
     borderBottomWidth: 2,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: colors.border.default,
     paddingVertical: 16,
     paddingHorizontal: 12,
   },
   professionalTableHeaderCell: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#475569',
+    color: colors.text.secondary,
     textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -2199,7 +2241,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   professionalTableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: colors.border.light,
     paddingVertical: 16,
     paddingHorizontal: 12,
     alignItems: 'center',
@@ -2263,30 +2305,30 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   codigoText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1E293B',
+    color: colors.text.primary,
     textAlign: 'center',
   },
   especieText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#1E293B',
+    color: colors.text.primary,
     lineHeight: 18,
   },
   generoText: {
     fontSize: 12,
-    color: '#64748B',
+    color: colors.text.tertiary,
     fontWeight: '500',
   },
   fechaText: {
     fontSize: 11,
-    color: '#64748B',
+    color: colors.text.tertiary,
     textAlign: 'center',
     fontWeight: '500',
   },
   cantidadText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1E293B',
+    color: colors.text.primary,
     textAlign: 'center',
   },
   accionButtonPrimary: {
@@ -2311,13 +2353,13 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   },
   emptyTableText: {
     fontSize: 16,
-    color: '#64748B',
+    color: colors.text.tertiary,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptyTableSubtext: {
     fontSize: 14,
-    color: '#94A3B8',
+    color: colors.text.tertiary,
     textAlign: 'center',
   },
 
@@ -2327,7 +2369,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   roleOption: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
@@ -2429,12 +2471,12 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   newItemButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     gap: 8,
-    shadowColor: colors.accent.primary,
+    shadowColor: colors.primary.main,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -2442,7 +2484,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   },
   
   newItemButtonText: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -2456,7 +2498,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     borderRadius: 8,
     gap: 8,
     borderWidth: 1,
-    borderColor: colors.accent.primary,
+    borderColor: colors.primary.main,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -2465,7 +2507,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   },
   
   exportButtonText: {
-    color: colors.accent.primary,
+    color: colors.primary.main,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -2474,9 +2516,9 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   searchAndFiltersContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background.secondary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border.default,
   },
   
   searchBar: {
@@ -2487,8 +2529,8 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
+    borderColor: colors.border.default,
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -2499,7 +2541,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     flex: 1,
     marginLeft: 12,
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.text.tertiary,
   },
 
   // Estilos para cards de items optimizados
@@ -2514,7 +2556,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
   },
 
   itemHeader: {
@@ -2564,9 +2606,9 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   actionIconButton: {
     padding: 6,
     borderRadius: 6,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.secondary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
   },
 
   // Estilos para modales de detalles
@@ -2610,7 +2652,7 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
     marginBottom: 12,
     paddingBottom: 8,
     borderBottomWidth: 2,
-    borderBottomColor: colors.accent.primary,
+    borderBottomColor: colors.primary.main,
   },
   // Estilos adicionales para modal simplificado
   fieldGroup: {
@@ -2655,9 +2697,9 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   // Estilos para contenedor de filas con progreso
   tableRowContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border.default,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
   },
   tableRowContainerLast: {
     borderBottomWidth: 0,
@@ -2780,172 +2822,9 @@ export const createPerfilStyles = (colors: ReturnType<typeof getColors>) => Styl
   etapasContainer: {
     gap: 12,
   },
-  // =============================================================================
-  // ESTILOS PARA NOTIFICACIONES
-  // =============================================================================
-  
-  notificationCard: {
-    backgroundColor: colors.background.primary,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    shadowColor: colors.shadow.color,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    position: 'relative',
-  },
-  
-  notificationCardUnread: {
-    borderLeftWidth: 4,
-    borderLeftColor: colors.accent.primary,
-    backgroundColor: colors.background.primary,
-  },
-  
-  unreadIndicator: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  
-  notificationContent: {
-    flex: 1,
-  },
-  
-  notificationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  
-  notificationTypeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  
-  notificationIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  
-  notificationTypeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  
-  notificationActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  
-  notificationActionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background.secondary,
-  },
-  
-  notificationTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: 4,
-    lineHeight: 22,
-  },
-  
-  notificationTitleUnread: {
-    fontWeight: '700',
-  },
-  
-  notificationMessage: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  
-  notificationFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  
-  notificationMeta: {
-    flex: 1,
-  },
-  
-  notificationUser: {
-    fontSize: 12,
-    color: colors.text.tertiary,
-    marginBottom: 2,
-    fontWeight: '500',
-  },
-  
-  notificationDate: {
-    fontSize: 12,
-    color: colors.text.tertiary,
-  },
-  
-  notificationReference: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.background.secondary,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  
-  notificationReferenceText: {
-    fontSize: 11,
-    color: colors.text.tertiary,
-    fontWeight: '500',
-  },
-  
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.background.primary,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-  },
-  
-  filterButtonActive: {
-    backgroundColor: colors.accent.light,
-    borderColor: colors.accent.primary,
-  },
-  
-  filterButtonText: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    fontWeight: '500',
-  },
-  
-  filterButtonTextActive: {
-    color: colors.accent.primary,
-    fontWeight: '600',
-  },
+  });
+}
 
-});
-
-// Exportar estilos por defecto para compatibilidad (tema claro)
-export const styles = createPerfilStyles(getColors('light'));
+// Estilos por defecto para compatibilidad hacia atrás (usa tema claro)
+import { getColors } from '@/utils/colors';
+export const styles = createStyles(getColors('light'));

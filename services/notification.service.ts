@@ -50,7 +50,6 @@ class NotificationService {
     solo_propias?: boolean;  // Forzar solo las notificaciones del usuario actual (útil para perfil)
   } = {}): Promise<Notification[] | NotificationResponse> {
     try {
-      logger.info('🔔 notificationService.getNotifications - Parámetros:', params);
 
       const queryParams: any = {};
       if (params.solo_no_leidas) {
@@ -67,13 +66,6 @@ class NotificationService {
         params: queryParams
       });
 
-      logger.success(' Notificaciones recibidas:', {
-        type: typeof response.data,
-        isArray: Array.isArray(response.data),
-        hasStats: response.data?.estadisticas_admin ? true : false,
-        count: Array.isArray(response.data) ? response.data.length : response.data?.notificaciones?.length || 0
-      });
-
       return response.data;
     } catch (error: any) {
       logger.error('❌ Error obteniendo notificaciones:', error);
@@ -86,11 +78,7 @@ class NotificationService {
    */
   async markAsRead(notificationId: number): Promise<void> {
     try {
-      logger.info('📖 Marcando notificación como leída:', notificationId);
-      
       await api.post(`notifications/${notificationId}/marcar-leida/`);
-      
-      logger.success(' Notificación marcada como leída');
     } catch (error: any) {
       logger.error('❌ Error marcando notificación como leída:', error);
       throw error;
@@ -102,11 +90,7 @@ class NotificationService {
    */
   async markAllAsRead(): Promise<{ count: number }> {
     try {
-      logger.info('📖 Marcando todas las notificaciones como leídas');
-      
       const response = await api.post('notifications/marcar-todas-leidas/');
-      
-      logger.success(' Todas las notificaciones marcadas como leídas:', response.data);
       return response.data;
     } catch (error: any) {
       logger.error('❌ Error marcando todas las notificaciones como leídas:', error);
@@ -119,11 +103,9 @@ class NotificationService {
    */
   async toggleFavorite(notificationId: number): Promise<{ favorita: boolean }> {
     try {
-      logger.info('⭐ Cambiando estado de favorita:', notificationId);
       
       const response = await api.post(`notifications/${notificationId}/toggle-favorita/`);
       
-      logger.success(' Estado de favorita cambiado:', response.data);
       return response.data;
     } catch (error: any) {
       logger.error('❌ Error cambiando estado de favorita:', error);
@@ -136,11 +118,9 @@ class NotificationService {
    */
   async archive(notificationId: number): Promise<void> {
     try {
-      logger.info('🗄️ Archivando notificación:', notificationId);
       
       await api.post(`notifications/${notificationId}/archivar/`);
       
-      logger.success(' Notificación archivada');
     } catch (error: any) {
       logger.error('❌ Error archivando notificación:', error);
       throw error;
@@ -152,11 +132,9 @@ class NotificationService {
    */
   async getStats(): Promise<any> {
     try {
-      logger.info('📊 Obteniendo estadísticas de notificaciones');
       
       const response = await api.get('notifications/estadisticas/');
       
-      logger.success(' Estadísticas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       logger.error('❌ Error obteniendo estadísticas:', error);
@@ -169,11 +147,9 @@ class NotificationService {
    */
   async getAlerts(): Promise<any> {
     try {
-      logger.info('🚨 Obteniendo alertas pendientes');
       
       const response = await api.get('notifications/alertas/');
       
-      logger.success(' Alertas obtenidas:', response.data);
       return response.data;
     } catch (error: any) {
       logger.error('❌ Error obteniendo alertas:', error);
@@ -186,13 +162,11 @@ class NotificationService {
    */
   async getPendingRecords(dias: number = 5): Promise<any> {
     try {
-      logger.info('📋 Obteniendo registros pendientes de revisión');
       
       const response = await api.get('notifications/registros-pendientes/', {
         params: { dias }
       });
       
-      logger.success(' Registros pendientes obtenidos:', response.data);
       return response.data;
     } catch (error: any) {
       logger.error('❌ Error obteniendo registros pendientes:', error);

@@ -8,6 +8,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { SimpleCalendarPicker } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 import { logger } from '@/services/logger';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const TIPOS_POLINIZACION = [
   { label: 'Self', value: 'SELF' },
@@ -61,6 +62,7 @@ export default function AddPolinizacionScreen() {
   const params = useLocalSearchParams();
   const toast = useToast();
   const responsive = useResponsive();
+  const { colors } = useTheme();
 
   // Campos del formulario
   const [fechaPolinizacion, setFechaPolinizacion] = useState(todayStr());
@@ -259,6 +261,8 @@ export default function AddPolinizacionScreen() {
     </View>
   );
 
+  const styles = createStyles(colors);
+
   return (
     <Modal
       visible={true}
@@ -286,7 +290,7 @@ export default function AddPolinizacionScreen() {
               style={styles.closeButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="close" size={24} color="#182d49" />
+              <Ionicons name="close" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>
               {isEditMode ? 'Editar Polinización' : 'Nueva Polinización'}
@@ -509,17 +513,17 @@ export default function AddPolinizacionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   // Estilos del modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(71, 85, 105, 0.75)',
+    backgroundColor: colors.background.modal,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 20,
     width: '100%',
     maxWidth: 500,
@@ -530,7 +534,7 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
     borderWidth: 2,
-    borderColor: '#e9ad14',
+    borderColor: colors.primary.main,
   },
   modalContainerTablet: {
     maxWidth: 700,
@@ -547,15 +551,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    backgroundColor: '#f8f9fa',
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.background.secondary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#182d49',
+    color: colors.text.primary,
     textAlign: 'center',
     flex: 1,
   },
@@ -563,7 +567,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.background.tertiary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -582,20 +586,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#182d49',
+    color: colors.text.primary,
     marginBottom: 8,
   },
   required: {
-    color: '#ef4444',
+    color: colors.status.error,
   },
   input: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border.default,
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
-    color: '#374151',
+    color: colors.text.secondary,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -607,9 +611,9 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   pickerContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border.default,
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -620,10 +624,10 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 50,
-    color: '#374151',
+    color: colors.text.secondary,
   },
   predictionButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: colors.status.success,
     padding: 14,
     borderRadius: 12,
     alignItems: 'center',
@@ -631,34 +635,34 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     flexDirection: 'row',
     justifyContent: 'center',
-    shadowColor: '#10b981',
+    shadowColor: colors.status.success,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
   },
   predictionButtonDisabled: {
-    backgroundColor: '#9ca3af',
-    shadowColor: '#9ca3af',
+    backgroundColor: colors.text.disabled,
+    shadowColor: colors.text.disabled,
   },
   predictionButtonText: {
-    color: '#fff',
+    color: colors.text.inverse,
     fontWeight: '600',
     fontSize: 15,
     marginLeft: 8,
   },
   prediccionContainer: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#0ea5e9',
+    borderColor: colors.accent.tertiary,
   },
   prediccionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0c4a6e',
+    color: colors.text.primary,
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -667,20 +671,20 @@ const styles = StyleSheet.create({
   },
   prediccionText: {
     fontSize: 14,
-    color: '#0c4a6e',
+    color: colors.text.secondary,
     marginBottom: 6,
   },
   prediccionLabel: {
     fontWeight: 'bold',
   },
   closePrediccionButton: {
-    backgroundColor: '#0ea5e9',
+    backgroundColor: colors.accent.tertiary,
     padding: 10,
     borderRadius: 8,
     alignItems: 'center',
   },
   closePrediccionText: {
-    color: '#fff',
+    color: colors.text.inverse,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -702,22 +706,22 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cancelButton: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.background.tertiary,
     borderWidth: 2,
-    borderColor: '#d1d5db',
+    borderColor: colors.border.medium,
   },
   cancelButtonText: {
-    color: '#374151',
+    color: colors.text.secondary,
     fontSize: 16,
     fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: '#e9ad14',
+    backgroundColor: colors.primary.main,
     borderWidth: 2,
-    borderColor: '#182d49',
+    borderColor: colors.accent.primary,
   },
   submitButtonText: {
-    color: '#182d49',
+    color: colors.accent.primary,
     fontSize: 16,
     fontWeight: '600',
   },

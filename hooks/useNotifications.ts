@@ -17,7 +17,6 @@ export function useNotifications() {
   } = {}) => {
     setLoading(true);
     try {
-      logger.info('🔔 useNotifications.fetchNotifications - Iniciando carga');
 
       const response = await notificationService.getNotifications(params);
       
@@ -26,15 +25,10 @@ export function useNotifications() {
         // Usuario normal - respuesta directa como array
         setNotifications(response);
         setAdminStats(null);
-        logger.info('👤 Usuario normal - Notificaciones cargadas:', response.length);
       } else {
         // Administrador - respuesta con estadísticas
         setNotifications(response.notificaciones || []);
         setAdminStats(response.estadisticas_admin || null);
-        logger.info('👑 Administrador - Notificaciones cargadas:', {
-          notificaciones: response.notificaciones?.length || 0,
-          estadisticas: response.estadisticas_admin
-        });
       }
     } catch (error) {
       logger.error('❌ Error cargando notificaciones:', error);
@@ -79,7 +73,6 @@ export function useNotifications() {
         } : null);
       }
       
-      logger.success(' Notificación marcada como leída localmente');
     } catch (error) {
       logger.error('❌ Error marcando notificación como leída:', error);
       throw error;
@@ -107,7 +100,6 @@ export function useNotifications() {
         } : null);
       }
       
-      logger.success(' Todas las notificaciones marcadas como leídas localmente');
       return result;
     } catch (error) {
       logger.error('❌ Error marcando todas las notificaciones como leídas:', error);
@@ -128,7 +120,6 @@ export function useNotifications() {
         )
       );
       
-      logger.success(' Estado de favorita actualizado localmente');
       return result;
     } catch (error) {
       logger.error('❌ Error cambiando estado de favorita:', error);
@@ -155,7 +146,6 @@ export function useNotifications() {
         } : null);
       }
       
-      logger.success(' Notificación archivada y removida localmente');
     } catch (error) {
       logger.error('❌ Error archivando notificación:', error);
       throw error;

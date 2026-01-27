@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -8,6 +8,16 @@ import { useNotificaciones } from '@/hooks/useNotificaciones';
 export function Navbar() {
   const router = useRouter();
   const { theme, toggleTheme, colors: themeColors } = useTheme();
+  const thumbPosition = useRef(new Animated.Value(theme === 'dark' ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(thumbPosition, {
+      toValue: theme === 'dark' ? 1 : 0,
+      useNativeDriver: true,
+      friction: 7,
+      tension: 80,
+    }).start();
+  }, [theme, thumbPosition]);
   
   // Obtener notificaciones no leídas
   const { notifications } = useNotificaciones({ leida: false });
@@ -38,15 +48,37 @@ export function Navbar() {
       <View style={styles.iconsContainer}>
         {/* Theme Toggle */}
         <TouchableOpacity
-          style={styles.iconButton}
+          style={styles.themeToggleContainer}
           onPress={toggleTheme}
-          activeOpacity={0.7}
+          activeOpacity={0.9}
         >
-          <Ionicons
-            name={theme === 'dark' ? 'moon' : 'moon-outline'}
-            size={24}
-            color={theme === 'dark' ? '#fbbf24' : themeColors.text.tertiary}
-          />
+          <Animated.View style={[
+            styles.themeToggleThumb,
+            {
+              transform: [{
+                translateX: thumbPosition.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 36],
+                })
+              }]
+            }
+          ]}>
+            <Ionicons
+              name={theme === 'dark' ? 'moon' : 'sunny'}
+              size={16}
+              color={theme === 'dark' ? '#fbbf24' : '#f59e0b'}
+            />
+          </Animated.View>
+          <View style={[
+            styles.themeToggleInactiveIcon,
+            theme === 'dark' && styles.themeToggleInactiveIconDark
+          ]}>
+            <Ionicons
+              name={theme === 'dark' ? 'sunny' : 'moon'}
+              size={16}
+              color="#6B7280"
+            />
+          </View>
         </TouchableOpacity>
 
         {/* Notifications */}
@@ -132,6 +164,42 @@ const createStyles = (
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  themeToggleContainer: {
+    width: 68,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: theme === 'dark' ? '#374151' : '#E5E7EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    position: 'relative',
+  },
+  themeToggleThumb: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+    position: 'absolute',
+    left: 3,
+    zIndex: 2,
+  },
+  themeToggleInactiveIcon: {
+    position: 'absolute',
+    right: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  themeToggleInactiveIconDark: {
+    left: 8,
+    right: 'auto',
   },
   notificationContainer: {
     position: 'relative',

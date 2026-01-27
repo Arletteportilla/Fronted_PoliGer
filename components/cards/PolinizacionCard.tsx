@@ -547,7 +547,6 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
       {item.estado_polinizacion && (
         <View style={{
           marginTop: 8,
-          backgroundColor: '#f9fafb',
           borderRadius: 12,
           paddingVertical: 4
         }}>

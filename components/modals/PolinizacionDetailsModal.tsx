@@ -99,22 +99,30 @@ export function PolinizacionDetailsModal({
                 )}
 
                 <View style={styles.detailSection}>
-                  <Text style={styles.sectionTitle}>Nueva Planta</Text>
+                  <Text style={styles.sectionTitle}>Información General</Text>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Género:</Text>
-                    <Text style={styles.detailValue}>{polinizacion.nueva_genero || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>
+                      {polinizacion.nueva_genero || polinizacion.genero || polinizacion.madre_genero || 'N/A'}
+                    </Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Especie:</Text>
-                    <Text style={styles.detailValue}>{polinizacion.nueva_especie || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>
+                      {polinizacion.nueva_especie || polinizacion.especie || polinizacion.madre_especie || 'N/A'}
+                    </Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Código:</Text>
-                    <Text style={styles.detailValue}>{polinizacion.nueva_codigo || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>
+                      {polinizacion.nueva_codigo || polinizacion.codigo || polinizacion.madre_codigo || 'N/A'}
+                    </Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Clima:</Text>
-                    <Text style={styles.detailValue}>{polinizacion.nueva_clima || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>
+                      {polinizacion.nueva_clima || polinizacion.madre_clima || 'N/A'}
+                    </Text>
                   </View>
                 </View>
 
@@ -149,46 +157,90 @@ export function PolinizacionDetailsModal({
                 <View style={styles.detailSection}>
                   <Text style={styles.sectionTitle}>Ubicación</Text>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Tipo:</Text>
-                    <Text style={styles.detailValue}>{polinizacion.ubicacion_tipo || 'N/A'}</Text>
+                    <Text style={styles.detailLabel}>Vivero:</Text>
+                    <Text style={styles.detailValue}>{polinizacion.vivero || 'N/A'}</Text>
                   </View>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Nombre:</Text>
-                    <Text style={styles.detailValue}>{polinizacion.ubicacion_nombre || 'N/A'}</Text>
+                    <Text style={styles.detailLabel}>Mesa:</Text>
+                    <Text style={styles.detailValue}>{polinizacion.mesa || 'N/A'}</Text>
                   </View>
-                  {polinizacion.vivero && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Pared:</Text>
+                    <Text style={styles.detailValue}>{polinizacion.pared || 'N/A'}</Text>
+                  </View>
+                  {polinizacion.ubicacion && (
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Vivero:</Text>
-                      <Text style={styles.detailValue}>{polinizacion.vivero}</Text>
-                    </View>
-                  )}
-                  {polinizacion.mesa && (
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Mesa:</Text>
-                      <Text style={styles.detailValue}>{polinizacion.mesa}</Text>
-                    </View>
-                  )}
-                  {polinizacion.pared && (
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Pared:</Text>
-                      <Text style={styles.detailValue}>{polinizacion.pared}</Text>
+                      <Text style={styles.detailLabel}>Ubicación General:</Text>
+                      <Text style={styles.detailValue}>{polinizacion.ubicacion}</Text>
                     </View>
                   )}
                 </View>
 
                 <View style={styles.detailSection}>
-                  <Text style={styles.sectionTitle}>Información Adicional</Text>
+                  <Text style={styles.sectionTitle}>Predicción de Maduración</Text>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Días Predichos:</Text>
+                    <Text style={styles.detailValue}>
+                      {polinizacion.dias_maduracion_predichos
+                        ? `${polinizacion.dias_maduracion_predichos} días`
+                        : 'N/A'}
+                    </Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Fecha Estimada:</Text>
+                    <Text style={styles.detailValue}>
+                      {polinizacion.fecha_maduracion_predicha
+                        ? new Date(polinizacion.fecha_maduracion_predicha).toLocaleDateString('es-ES')
+                        : polinizacion.prediccion_fecha_estimada
+                        ? new Date(polinizacion.prediccion_fecha_estimada).toLocaleDateString('es-ES')
+                        : 'N/A'}
+                    </Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Método:</Text>
+                    <Text style={styles.detailValue}>
+                      {polinizacion.metodo_prediccion || 'N/A'}
+                    </Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Confianza:</Text>
+                    <Text style={styles.detailValue}>
+                      {polinizacion.confianza_prediccion
+                        ? `${polinizacion.confianza_prediccion}%`
+                        : 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.detailSection}>
+                  <Text style={styles.sectionTitle}>Cantidades</Text>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Cápsulas:</Text>
                     <Text style={styles.detailValue}>{polinizacion.cantidad_capsulas || 0}</Text>
                   </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Cantidad Solicitada:</Text>
+                    <Text style={styles.detailValue}>{polinizacion.cantidad_solicitada || 0}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Cantidad Disponible:</Text>
+                    <Text style={styles.detailValue}>{polinizacion.cantidad_disponible || 0}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.detailSection}>
+                  <Text style={styles.sectionTitle}>Información Adicional</Text>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Estado:</Text>
                     <Text style={styles.detailValue}>{polinizacion.estado || 'INGRESADO'}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Responsable:</Text>
-                    <Text style={styles.detailValue}>{polinizacion.responsable || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>
+                      {typeof polinizacion.responsable === 'string'
+                        ? polinizacion.responsable
+                        : polinizacion.responsable?.username || 'N/A'}
+                    </Text>
                   </View>
                   {polinizacion.observaciones && (
                     <View style={styles.detailRow}>

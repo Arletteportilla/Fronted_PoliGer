@@ -5,136 +5,155 @@ import {
   ActivityIndicator,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Pagination from '@/components/filters/Pagination';
 import { useTheme } from '@/contexts/ThemeContext';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 
-interface GerminacionesContentProps {
-  germinaciones: any[];
+interface PolinizacionesTableContentProps {
+  polinizaciones: any[];
   loading: boolean;
   refreshing: boolean;
   totalCount: number;
   currentPage: number;
   totalPages: number;
   activeFiltersCount: number;
-  tipoRegistro?: 'historicos' | 'nuevos' | 'todos';
-  responsive: any;
   onRefresh: () => void;
-  onShowFilters: () => void;
-  onShowForm: () => void;
   onPrevPage: () => void;
   onNextPage: () => void;
   onGoToPage: (page: number) => void;
   onItemPress?: (item: any) => void;
-  onTipoRegistroChange?: (tipo: 'historicos' | 'nuevos' | 'todos') => void;
+  onEdit?: (item: any) => void;
 }
 
-export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
-  germinaciones,
+export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProps> = ({
+  polinizaciones,
   loading,
   refreshing,
   totalCount,
   currentPage,
   totalPages,
   activeFiltersCount,
-  tipoRegistro = 'todos',
-  responsive,
   onRefresh,
-  onShowFilters,
-  onShowForm,
   onPrevPage,
   onNextPage,
   onGoToPage,
   onItemPress,
-  onTipoRegistroChange,
+  onEdit,
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
 
-  // Función para obtener color de fondo del estado (versión clara)
-  const getEstadoBgColor = (estado: string) => {
-    const estadoLower = estado?.toLowerCase() || '';
-    if (estadoLower === 'completado' || estadoLower === 'finalizado' || estadoLower === 'lista' || estadoLower === 'listo') return '#D1FAE5';
-    if (estadoLower === 'en proceso' || estadoLower === 'en_proceso' || estadoLower === 'pendiente') return '#FEF3C7';
-    if (estadoLower === 'en desarrollo') return '#FEF3C7';
-    if (estadoLower === 'ingresado' || estadoLower === 'inicial') return '#E5E7EB';
-    if (estadoLower === 'cerrada') return '#E5E7EB';
+  // Función para obtener color de tipo
+  const getTipoColor = (tipo: string) => {
+    const tipoUpper = tipo?.toUpperCase() || '';
+    if (tipoUpper === 'SELF') return '#FEF3C7';
+    if (tipoUpper === 'CROSS') return '#DBEAFE';
     return '#F3F4F6';
   };
 
-  // Función para obtener color de texto del estado
-  const getEstadoTextColor = (estado: string) => {
-    const estadoLower = estado?.toUpperCase() || '';
-    if (estadoLower === 'INGRESADO' || estadoLower === 'PENDIENTE' || estadoLower === 'EN DESARROLLO' || estadoLower === 'CERRADA') return '#374151';
-    if (estadoLower === 'EN_PROCESO' || estadoLower === 'EN PROCESO') return '#92400E';
-    if (estadoLower === 'LISTA' || estadoLower === 'LISTO' || estadoLower === 'COMPLETADO' || estadoLower === 'FINALIZADO') return '#065F46';
+  // Función para obtener color de texto del tipo
+  const getTipoTextColor = (tipo: string) => {
+    const tipoUpper = tipo?.toUpperCase() || '';
+    if (tipoUpper === 'SELF') return '#92400E';
+    if (tipoUpper === 'CROSS') return '#1E40AF';
     return '#374151';
+  };
+
+  // Función para obtener color de fondo del estado
+  const getEstadoBgColor = (estado: string, fechamad: any, prediccionFecha: any) => {
+    if (fechamad) return '#D1FAE5'; // Completado
+    if (prediccionFecha && new Date(prediccionFecha) <= new Date()) return '#FEF3C7'; // En Proceso
+    return '#F3F4F6'; // Pendiente/Ingresado
+  };
+
+  // Función para obtener color de texto del estado
+  const getEstadoTextColor = (estado: string, fechamad: any, prediccionFecha: any) => {
+    if (fechamad) return '#065F46'; // Completado
+    if (prediccionFecha && new Date(prediccionFecha) <= new Date()) return '#92400E'; // En Proceso
+    return '#374151'; // Pendiente
+  };
+
+  // Función para obtener etiqueta del estado
+  const getEstadoLabel = (item: any) => {
+    if (item.fechamad) return 'Completado';
+    if (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) return 'En Proceso';
+    return 'Ingresado';
   };
 
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={themeColors.primary.main} />
-        <Text style={styles.loadingText}>Cargando germinaciones...</Text>
+        <Text style={styles.loadingText}>Cargando polinizaciones...</Text>
       </View>
     );
   }
 
   return (
     <>
-      {/* Tabla de germinaciones */}
-      {germinaciones.length === 0 ? (
+      {/* Tabla de polinizaciones */}
+      {polinizaciones.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="leaf-outline" size={64} color={themeColors.border.default} />
-          <Text style={styles.emptyTitle}>No hay germinaciones</Text>
+          <Ionicons name="flower-outline" size={64} color={themeColors.border.default} />
+          <Text style={styles.emptyTitle}>No hay polinizaciones</Text>
           <Text style={styles.emptySubtitle}>
-            {activeFiltersCount > 0 ? 'No se encontraron resultados para tu búsqueda' : 'Crea tu primera germinación'}
+            {activeFiltersCount > 0 ? 'No se encontraron resultados para tu búsqueda' : 'Crea tu primera polinización'}
           </Text>
         </View>
       ) : (
         <View style={styles.tableContainer}>
           {/* Header de la tabla */}
           <View style={styles.tableHeader}>
+            <View style={[styles.tableHeaderCell, { flex: 0.8 }]}>
+              <Text style={styles.headerText}>Tipo</Text>
+            </View>
             <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
               <Text style={styles.headerText}>Código</Text>
             </View>
-            <View style={[styles.tableHeaderCell, { flex: 2.5 }]}>
-              <Text style={styles.headerText}>Especie/Variedad</Text>
+            <View style={[styles.tableHeaderCell, { flex: 2 }]}>
+              <Text style={styles.headerText}>Especie</Text>
             </View>
             <View style={[styles.tableHeaderCell, { flex: 1 }]}>
               <Text style={styles.headerText}>Género</Text>
             </View>
             <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-              <Text style={styles.headerText}>Fecha Siembra</Text>
+              <Text style={styles.headerText}>Fecha Pol.</Text>
             </View>
             <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-              <Text style={styles.headerText}>Fecha Estimada</Text>
+              <Text style={styles.headerText}>Fecha Est.</Text>
             </View>
             <View style={[styles.tableHeaderCell, { flex: 1 }]}>
               <Text style={styles.headerText}>Estado</Text>
             </View>
+            <View style={[styles.tableHeaderCell, { flex: 1 }]}>
+              <Text style={styles.headerText}>Acciones</Text>
+            </View>
           </View>
 
           {/* Filas de datos */}
-          {germinaciones.map((item, index) => {
-            const especieCompleta = item.especie_variedad || item.especie || 'Sin especie';
-            const generoCompleto = item.genero || 'Sin género';
-            const codigoCompleto = item.codigo || item.nombre || 'Sin código';
-            const fechaSiembra = item.fecha_siembra
-              ? new Date(item.fecha_siembra).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+          {polinizaciones.map((item, index) => {
+            const especieCompleta = item.nueva_especie || item.especie || item.madre_especie || 'Sin especie';
+            const generoCompleto = item.nueva_genero || item.genero || item.madre_genero || 'Sin género';
+            const codigoCompleto = item.codigo || item.nueva_codigo || item.madre_codigo || `#POL-${item.numero}`;
+            const fechaPolinizacion = item.fechapol
+              ? new Date(item.fechapol).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
               : 'Sin fecha';
-            const fechaEstimadaValue = item.prediccion_fecha_estimada || item.fecha_germinacion_estimada;
+            const fechaEstimadaValue = item.fecha_maduracion_predicha || item.prediccion_fecha_estimada;
             const fechaEstimada = fechaEstimadaValue
               ? new Date(fechaEstimadaValue).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
               : '-';
-            const estadoActual = item.etapa_actual || item.estado_capsula || item.estado || 'En desarrollo';
+            const estadoActual = getEstadoLabel(item);
+            const tipo = item.tipo_polinizacion || item.tipo || 'SELF';
 
-            const itemKey = item.id?.toString() || `germ-${index}`;
-            const estadoBgColor = getEstadoBgColor(estadoActual);
-            const estadoTextColor = getEstadoTextColor(estadoActual);
-            const isLastRow = index === germinaciones.length - 1;
+            const itemKey = item.numero?.toString() || item.id?.toString() || `pol-${index}`;
+            const estadoBgColor = getEstadoBgColor(estadoActual, item.fechamad, fechaEstimadaValue);
+            const estadoTextColor = getEstadoTextColor(estadoActual, item.fechamad, fechaEstimadaValue);
+            const tipoBgColor = getTipoColor(tipo);
+            const tipoTextColor = getTipoTextColor(tipo);
+            const isLastRow = index === polinizaciones.length - 1;
 
             return (
               <View
@@ -145,12 +164,17 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                 ]}
               >
                 <View style={styles.tableRow}>
+                  <View style={[styles.tableCell, { flex: 0.8, alignItems: 'center' }]}>
+                    <View style={[styles.tipoBadgeTable, { backgroundColor: tipoBgColor }]}>
+                      <Text style={[styles.tipoBadgeTableText, { color: tipoTextColor }]}>{tipo}</Text>
+                    </View>
+                  </View>
                   <View style={[styles.tableCell, { flex: 1.2 }]}>
                     <Text style={styles.codigoTextTable} numberOfLines={1} ellipsizeMode="tail">
                       {codigoCompleto}
                     </Text>
                   </View>
-                  <View style={[styles.tableCell, { flex: 2.5 }]}>
+                  <View style={[styles.tableCell, { flex: 2 }]}>
                     <Text style={styles.especieTextTable} numberOfLines={2} ellipsizeMode="tail">
                       {especieCompleta}
                     </Text>
@@ -161,7 +185,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                     </Text>
                   </View>
                   <View style={[styles.tableCell, { flex: 1 }]}>
-                    <Text style={styles.fechaTextTable}>{fechaSiembra}</Text>
+                    <Text style={styles.fechaTextTable}>{fechaPolinizacion}</Text>
                   </View>
                   <View style={[styles.tableCell, { flex: 1.2 }]}>
                     {fechaEstimadaValue ? (
@@ -202,10 +226,26 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                       <Text style={[styles.estadoBadgeTableText, { color: estadoTextColor }]}>{estadoActual}</Text>
                     </View>
                   </View>
+                  <View style={[styles.tableCell, { flex: 1 }]}>
+                    <View style={styles.actionsCell}>
+                      <TouchableOpacity
+                        onPress={() => onItemPress?.(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="eye-outline" size={20} color="#3B82F6" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => onEdit?.(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="create-outline" size={20} color="#F59E0B" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
 
                 {/* Barra de progreso por etapas */}
-                {item.estado_germinacion && (
+                {item.estado_polinizacion && (
                   <View style={{
                     marginTop: 8,
                     marginHorizontal: 8,
@@ -214,8 +254,8 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                     paddingVertical: 4
                   }}>
                     <EstadoProgressBar
-                      estadoActual={item.estado_germinacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
-                      tipo="germinacion"
+                      estadoActual={item.estado_polinizacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
+                      tipo="polinizacion"
                     />
                   </View>
                 )}
@@ -346,6 +386,17 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     fontSize: 12,
     color: colors.text.secondary,
   },
+  tipoBadgeTable: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    alignSelf: 'center',
+  },
+  tipoBadgeTableText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
   estadoBadgeTable: {
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -357,36 +408,15 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     fontWeight: '700',
     textTransform: 'uppercase',
   },
-  progressRow: {
+  actionsCell: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingBottom: 8,
-    gap: 12,
+    justifyContent: 'center',
+    gap: 8,
   },
-  progressInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  progressLabel: {
-    fontSize: 11,
-    color: colors.text.tertiary,
-    fontWeight: '600',
-  },
-  progressPercentage: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  progressBarContainer: {
-    flex: 1,
-    height: 6,
+  actionIconButton: {
+    padding: 6,
+    borderRadius: 8,
     backgroundColor: colors.background.secondary,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 3,
   },
 });

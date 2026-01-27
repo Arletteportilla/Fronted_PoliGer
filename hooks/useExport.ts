@@ -91,7 +91,6 @@ export const useExport = (options: UseExportOptions = {}) => {
   const exportForMobile = async (filtros: ExportFilters): Promise<void> => {
     // Si es PDF de germinaciones sin estadísticas, usar endpoint optimizado
     if (tipoEntidad === 'germinaciones' && formatoReporte === 'pdf' && incluirEstadisticas === 'no') {
-      logger.info('📄 Usando endpoint optimizado para PDF de germinaciones...');
       await reportesService.descargarPDFGerminaciones(filtros['search']);
       return;
     }

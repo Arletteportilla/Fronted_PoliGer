@@ -22,13 +22,10 @@ class EstadisticasService {
     try {
       // Verificar cache primero
       if (this.cache && (Date.now() - this.cacheTimestamp) < this.CACHE_DURATION) {
-        logger.info('📊 Usando estadísticas en cache');
         return this.cache;
       }
 
-      logger.info('📊 Obteniendo estadísticas del usuario...');
       const response = await api.get('estadisticas/usuario/');
-      logger.success(' Estadísticas obtenidas exitosamente');
       
       // Guardar en cache
       this.cache = response.data;
@@ -40,12 +37,10 @@ class EstadisticasService {
       
       // Si es un error 500 (servidor), usar datos de fallback
       if (error.response?.status === 500) {
-        logger.warn('⚠️ Usando estadísticas de fallback debido a error del servidor');
         return FALLBACK_STATS;
       }
       
       // Para otros errores, también usar fallback para no bloquear la app
-      logger.warn('⚠️ Usando estadísticas de fallback debido a error de conexión');
       return FALLBACK_STATS;
     }
   }
@@ -53,7 +48,6 @@ class EstadisticasService {
   // Método para obtener estadísticas con timeout ultra-corto
   async getEstadisticasUsuarioWithTimeout(timeoutMs: number = 2000): Promise<EstadisticasUsuario> {
     try {
-      logger.info('📊 Obteniendo estadísticas del usuario con timeout...');
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
@@ -62,7 +56,6 @@ class EstadisticasService {
       });
       
       clearTimeout(timeoutId);
-      logger.success(' Estadísticas obtenidas exitosamente');
       
       // Guardar en cache
       this.cache = response.data;
@@ -74,11 +67,8 @@ class EstadisticasService {
       
       // Si es timeout o cualquier otro error, usar fallback
       if (error.name === 'AbortError') {
-        logger.warn('⏰ Timeout alcanzado, usando estadísticas de fallback');
       } else if (error.response?.status === 500) {
-        logger.warn('⚠️ Error del servidor, usando estadísticas de fallback');
       } else {
-        logger.warn('⚠️ Error de conexión, usando estadísticas de fallback');
       }
       
       return FALLBACK_STATS;
@@ -89,9 +79,7 @@ class EstadisticasService {
   async getEstadisticasUsuarioWithRetry(maxRetries: number = 1): Promise<EstadisticasUsuario> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        logger.info(`📊 Intento ${attempt} de ${maxRetries} para obtener estadísticas...`);
         const response = await api.get('estadisticas/usuario/');
-        logger.success(' Estadísticas obtenidas exitosamente');
         
         // Guardar en cache
         this.cache = response.data;
@@ -102,7 +90,6 @@ class EstadisticasService {
         logger.error(`❌ Intento ${attempt} falló:`, error);
         
         if (attempt === maxRetries) {
-          logger.warn('⚠️ Todos los intentos fallaron, usando estadísticas de fallback');
           return FALLBACK_STATS;
         }
         
@@ -118,7 +105,6 @@ class EstadisticasService {
   clearCache(): void {
     this.cache = null;
     this.cacheTimestamp = 0;
-    logger.info('🗑️ Cache de estadísticas limpiado');
   }
 
   // Método para obtener estadísticas rápidas (con cache)

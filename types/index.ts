@@ -93,7 +93,8 @@ export interface Polinizacion {
   cantidad: number;
   disponible: boolean;
   tipo_polinizacion: string;
-  cantidad_disponible: number;
+  cantidad_solicitada?: number;
+  cantidad_disponible?: number;
   estado: 'INGRESADO' | 'EN_PROCESO' | 'LISTO' | 'pendiente';
   observaciones?: string;
   creado_por?: number;
@@ -676,5 +677,27 @@ export interface PolinizacionFilterParams {
   ubicacion_nombre?: string;
   responsable?: string;
   estado?: string;
+  tipo_registro?: 'historicos' | 'nuevos'; // Filtro para registros históricos vs nuevos
+  ordering?: string;
+}
+
+export interface GerminacionFilterParams {
+  search?: string;
+  fecha_siembra_desde?: string;
+  fecha_siembra_hasta?: string;
+  fecha_polinizacion_desde?: string;
+  fecha_polinizacion_hasta?: string;
+  codigo?: string;
+  genero?: string;
+  especie_variedad?: string;
+  clima?: string;
+  percha?: string;
+  nivel?: string;
+  estado_capsula?: string;
+  estado_semilla?: string;
+  cantidad_semilla?: string;
+  responsable?: string;
+  estado_germinacion?: string;
+  tipo_registro?: 'historicos' | 'nuevos'; // Filtro para registros históricos vs nuevos
   ordering?: string;
 }

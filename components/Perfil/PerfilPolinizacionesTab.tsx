@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { styles } from '@/utils/Perfil/styles';
-import { Colors } from '@/constants/Colors';
+import { createStyles } from '@/utils/Perfil/styles';
+import { useTheme } from '@/contexts/ThemeContext';
 import Pagination from '@/components/filters/Pagination';
 import type { Polinizacion } from '@/types/index';
 import { getEstadoColor, getTipoColor } from '@/utils/colorHelpers';
@@ -50,11 +50,13 @@ export function PerfilPolinizacionesTab({
   onDescargarPDF
 }: PerfilPolinizacionesTabProps) {
   const router = useRouter();
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.light.tint} />
+        <ActivityIndicator size="large" color={themeColors.primary.main} />
         <Text style={styles.loadingText}>Cargando polinizaciones...</Text>
       </View>
     );
@@ -80,7 +82,7 @@ export function PerfilPolinizacionesTab({
             style={styles.newItemButton}
             onPress={() => router.push('/(tabs)/addPolinizacion')}
           >
-            <Ionicons name="add-circle" size={20} color={Colors.light.background} />
+            <Ionicons name="add-circle" size={20} color={themeColors.background.primary} />
             <Text style={styles.newItemButtonText}>Nueva Polinización</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -90,7 +92,7 @@ export function PerfilPolinizacionesTab({
               onDescargarPDF();
             }}
           >
-            <Ionicons name="download-outline" size={20} color={Colors.light.tint} />
+            <Ionicons name="download-outline" size={20} color={themeColors.primary.main} />
             <Text style={styles.exportButtonText}>Descargar PDF</Text>
           </TouchableOpacity>
         </View>
@@ -99,7 +101,7 @@ export function PerfilPolinizacionesTab({
       {/* Barra de búsqueda */}
       <View style={styles.searchAndFiltersContainer}>
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#6b7280" />
+          <Ionicons name="search" size={20} color={themeColors.text.tertiary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar por código, género, especie..."
@@ -110,14 +112,14 @@ export function PerfilPolinizacionesTab({
           {searchPolinizaciones.length > 0 && (
             <>
               <TouchableOpacity onPress={handleBuscarPolinizaciones} style={{ marginRight: 8 }}>
-                <Ionicons name="search" size={20} color={Colors.light.tint} />
+                <Ionicons name="search" size={20} color={themeColors.primary.main} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => {
                 setSearchPolinizaciones('');
                 setPolinizacionesPage(1);
                 fetchData();
               }}>
-                <Ionicons name="close-circle" size={20} color="#6b7280" />
+                <Ionicons name="close-circle" size={20} color={themeColors.text.tertiary} />
               </TouchableOpacity>
             </>
           )}
@@ -127,7 +129,7 @@ export function PerfilPolinizacionesTab({
       {/* Tabla de polinizaciones */}
       {filteredPolinizaciones.length === 0 ? (
         <View style={styles.listEmptyContainer}>
-          <Ionicons name="leaf-outline" size={48} color="#6b7280" />
+          <Ionicons name="leaf-outline" size={48} color={themeColors.text.tertiary} />
           <Text style={styles.listEmptyText}>
             {searchPolinizaciones ? 'No se encontraron polinizaciones' : 'No hay polinizaciones registradas'}
           </Text>
@@ -273,7 +275,7 @@ export function PerfilPolinizacionesTab({
                                 </Text>
                               )}
                               {/* Mostrar tipo de predicción */}
-                              <Text style={{ fontSize: 8, color: '#6B7280', fontStyle: 'italic' }}>
+                              <Text style={{ fontSize: 8, color: themeColors.text.tertiary, fontStyle: 'italic' }}>
                                 {item.metodo_prediccion === 'ejemplo_automatico' ? 'Ejemplo' : 
                                  item.fecha_maduracion_predicha ? 'ML' : 'Legacy'}
                               </Text>
@@ -281,7 +283,7 @@ export function PerfilPolinizacionesTab({
                           );
                         } else {
                           return (
-                            <Text style={[styles.fechaText, { fontSize: 10, color: '#9CA3AF' }]}>
+                            <Text style={[styles.fechaText, { fontSize: 10, color: themeColors.text.tertiary }]}>
                               Sin predicción
                             </Text>
                           );
@@ -321,7 +323,6 @@ export function PerfilPolinizacionesTab({
                   {item.estado_polinizacion && (
                     <View style={{
                       marginTop: 8,
-                      backgroundColor: '#f9fafb',
                       borderRadius: 12,
                       paddingVertical: 4
                     }}>
@@ -339,14 +340,16 @@ export function PerfilPolinizacionesTab({
       )}
 
       {/* Paginación */}
-      {polinizacionesTotalPages > 1 && (
+      {polinizacionesTotalCount > 0 && polinizacionesTotalPages > 1 && (
         <View style={{ paddingVertical: 16, paddingHorizontal: 16 }}>
-          <Text style={{ marginBottom: 8, textAlign: 'center', color: '#6b7280' }}>
+          <Text style={{ marginBottom: 8, textAlign: 'center', color: themeColors.text.tertiary }}>
             Mostrando {polinizaciones.length} de {polinizacionesTotalCount} polinizaciones
           </Text>
           <Pagination
             currentPage={polinizacionesPage}
             totalPages={polinizacionesTotalPages}
+            totalCount={polinizacionesTotalCount}
+            pageSize={20}
             goToPage={handlePolinizacionesPageChange}
             nextPage={handlePolinizacionesNextPage}
             prevPage={handlePolinizacionesPrevPage}

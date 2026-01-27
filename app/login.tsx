@@ -6,6 +6,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { authService } from '@/services/auth.service';
 import * as SecureStore from '@/services/secureStore';
+import { logger } from '@/services/logger';
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');

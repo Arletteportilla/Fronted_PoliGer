@@ -23,7 +23,6 @@ export const usePrediccionMejorada = ({ onSuccess, onError }: UsePrediccionMejor
       setLoading(true);
       setError(null);
 
-      logger.info('🔮 usePrediccionMejorada - Calculando predicción con:', formData);
 
       const resultado = await germinacionService.calcularPrediccionMejorada(formData);
 
@@ -33,7 +32,6 @@ export const usePrediccionMejorada = ({ onSuccess, onError }: UsePrediccionMejor
         onSuccess(resultado);
       }
 
-      logger.success(' usePrediccionMejorada - Predicción calculada exitosamente');
       return resultado;
 
     } catch (err) {
@@ -82,13 +80,11 @@ export const useAlertasGerminacion = () => {
       setLoading(true);
       setError(null);
 
-      logger.info('🔔 useAlertasGerminacion - Obteniendo alertas...');
 
       const resultado = await germinacionService.obtenerAlertasGerminacion();
       
       setAlertas(resultado.alertas || []);
       
-      logger.success(' useAlertasGerminacion - Alertas obtenidas:', resultado.alertas?.length || 0);
       return resultado;
 
     } catch (err) {
@@ -115,7 +111,6 @@ export const useAlertasGerminacion = () => {
           : alerta
       ));
 
-      logger.success(' useAlertasGerminacion - Alerta actualizada');
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error actualizando alerta';
@@ -147,13 +142,11 @@ export const useEstadisticasPrecision = () => {
       setLoading(true);
       setError(null);
 
-      logger.info('📊 useEstadisticasPrecision - Obteniendo estadísticas...');
 
       const resultado = await germinacionService.obtenerEstadisticasPrecision();
       
       setEstadisticas(resultado);
       
-      logger.success(' useEstadisticasPrecision - Estadísticas obtenidas');
       return resultado;
 
     } catch (err) {
@@ -172,11 +165,9 @@ export const useEstadisticasPrecision = () => {
       setLoading(true);
       setError(null);
 
-      logger.info('🤖 useEstadisticasPrecision - Reentrenando modelo...');
 
       const resultado = await germinacionService.reentrenarModelo();
       
-      logger.success(' useEstadisticasPrecision - Modelo reentrenado');
       
       // Actualizar estadísticas después del reentrenamiento
       if (resultado.success) {

@@ -13,27 +13,31 @@ export const EstadoProgressBar: React.FC<EstadoProgressBarProps> = ({
   estadoActual,
   tipo = 'germinacion'
 }) => {
-  // Definir las etapas
+  // Definir las etapas con sus colores
   const etapas = [
     {
       id: 'INICIAL',
       label: tipo === 'germinacion' ? 'Inicial' : 'Inicial',
-      icon: 'play-circle' as const
+      icon: 'play-circle' as const,
+      color: '#3b82f6' // Azul
     },
     {
       id: 'EN_PROCESO_TEMPRANO',
       label: 'Proceso\nTemprano',
-      icon: 'leaf' as const
+      icon: 'leaf' as const,
+      color: '#f59e0b' // Amarillo/Naranja
     },
     {
       id: 'EN_PROCESO_AVANZADO',
       label: 'Avanzar\nProceso',
-      icon: 'trending-up' as const
+      icon: 'trending-up' as const,
+      color: '#f97316' // Naranja
     },
     {
       id: 'FINALIZADO',
       label: 'Finalizado',
-      icon: 'flag' as const
+      icon: 'flag' as const,
+      color: '#10b981' // Verde
     }
   ];
 
@@ -56,6 +60,8 @@ export const EstadoProgressBar: React.FC<EstadoProgressBarProps> = ({
       {etapas.map((etapa, index) => {
         const estado = getEtapaEstado(index);
         const isLast = index === etapas.length - 1;
+        const etapaColor = etapa.color;
+        const nextEtapaColor = index < etapas.length - 1 ? etapas[index + 1].color : etapaColor;
 
         return (
           <View key={etapa.id} style={styles.etapaContainer}>
@@ -65,15 +71,26 @@ export const EstadoProgressBar: React.FC<EstadoProgressBarProps> = ({
               <View
                 style={[
                   styles.circle,
-                  estado === 'completed' && styles.circleCompleted,
-                  estado === 'active' && styles.circleActive,
+                  estado === 'completed' && {
+                    backgroundColor: etapaColor,
+                    borderColor: etapaColor,
+                  },
+                  estado === 'active' && {
+                    backgroundColor: etapaColor,
+                    borderColor: etapaColor,
+                    shadowColor: etapaColor,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 8,
+                    elevation: 4,
+                  },
                   estado === 'pending' && styles.circlePending
                 ]}
               >
                 {estado === 'completed' ? (
-                  <Ionicons name="checkmark" size={10} color="#ffffff" />
+                  <Ionicons name="checkmark" size={16} color="#ffffff" />
                 ) : estado === 'active' ? (
-                  <Ionicons name={etapa.icon} size={10} color="#ffffff" />
+                  <Ionicons name={etapa.icon} size={16} color="#ffffff" />
                 ) : (
                   <View style={styles.pendingDot} />
                 )}
@@ -83,8 +100,14 @@ export const EstadoProgressBar: React.FC<EstadoProgressBarProps> = ({
               <Text
                 style={[
                   styles.label,
-                  estado === 'completed' && styles.labelCompleted,
-                  estado === 'active' && styles.labelActive,
+                  estado === 'completed' && {
+                    color: etapaColor,
+                    fontWeight: '600',
+                  },
+                  estado === 'active' && {
+                    color: etapaColor,
+                    fontWeight: '700',
+                  },
                   estado === 'pending' && styles.labelPending
                 ]}
                 numberOfLines={2}
@@ -98,8 +121,12 @@ export const EstadoProgressBar: React.FC<EstadoProgressBarProps> = ({
               <View
                 style={[
                   styles.line,
-                  estado === 'completed' && styles.lineCompleted,
-                  estado === 'active' && styles.lineActive,
+                  estado === 'completed' && {
+                    backgroundColor: nextEtapaColor,
+                  },
+                  estado === 'active' && {
+                    backgroundColor: '#d1d5db',
+                  },
                   estado === 'pending' && styles.linePending
                 ]}
               />
@@ -116,8 +143,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingVertical: 6,
-    paddingHorizontal: 4,
+    paddingVertical: 20,
+    paddingHorizontal: 10,
   },
   etapaContainer: {
     flex: 1,
@@ -126,68 +153,41 @@ const styles = StyleSheet.create({
   },
   etapaContent: {
     alignItems: 'center',
-    gap: 2,
+    gap: 8,
     flex: 1,
   },
   circle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  circleCompleted: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
-  },
-  circleActive: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 2,
   },
   circlePending: {
     backgroundColor: '#ffffff',
     borderColor: '#d1d5db',
   },
   pendingDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#d1d5db',
   },
   label: {
-    fontSize: 7,
+    fontSize: 11,
     textAlign: 'center',
-    lineHeight: 9,
-  },
-  labelCompleted: {
-    color: '#3b82f6',
-    fontWeight: '600',
-  },
-  labelActive: {
-    color: '#3b82f6',
-    fontWeight: '700',
+    lineHeight: 14,
   },
   labelPending: {
     color: '#9ca3af',
     fontWeight: '400',
   },
   line: {
-    height: 1.5,
+    height: 2,
     flex: 1,
-    marginTop: 9,
-    marginHorizontal: 1,
-  },
-  lineCompleted: {
-    backgroundColor: '#3b82f6',
-  },
-  lineActive: {
-    backgroundColor: '#d1d5db',
+    marginTop: 15,
+    marginHorizontal: 4,
   },
   linePending: {
     backgroundColor: '#e5e7eb',

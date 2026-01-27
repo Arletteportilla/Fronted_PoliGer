@@ -5,6 +5,7 @@ import { germinacionService } from '@/services/germinacion.service';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { SimpleCalendarPicker } from '@/components/common';
 import { PrediccionMLGerminacion } from '@/components/germinaciones';
 import { Ionicons } from '@expo/vector-icons';
@@ -58,6 +59,7 @@ export default function AddGerminacionScreen() {
   const params = useLocalSearchParams();
   const { user } = useAuth();
   const toast = useToast();
+  const { colors } = useTheme();
   const responsive = useResponsive();
 
   // Campos del formulario según especificación
@@ -179,7 +181,7 @@ export default function AddGerminacionScreen() {
 
   const renderFormField = (label: string, children: React.ReactNode, required = false) => (
     <View style={styles.fieldContainer}>
-      <Text style={styles.label}>
+      <Text style={[styles.label, { color: colors.text.primary }]}>
         {label} {required && <Text style={styles.required}>*</Text>}
       </Text>
       {children}
@@ -202,6 +204,7 @@ export default function AddGerminacionScreen() {
         <TouchableOpacity
           style={[
             styles.modalContainer,
+            { backgroundColor: colors.background.primary },
             responsive.isTablet && styles.modalContainerTablet,
             responsive.isLargeScreen && styles.modalContainerLarge,
           ]}
@@ -209,14 +212,14 @@ export default function AddGerminacionScreen() {
           onPress={(e) => e.stopPropagation()}
         >
           {/* Header del modal */}
-          <View style={styles.modalHeader}>
+          <View style={[styles.modalHeader, { backgroundColor: colors.background.secondary, borderBottomColor: colors.border.default }]}>
             <TouchableOpacity
-              style={styles.closeButton}
+              style={[styles.closeButton, { backgroundColor: colors.interactive.hover }]}
               onPress={() => router.back()}
             >
-              <Ionicons name="close" size={24} color="#182d49" />
+              <Ionicons name="close" size={24} color={colors.text.primary} />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>
+            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
               {isEditMode ? 'Editar Germinación' : 'Nueva Germinación'}
             </Text>
             <View style={styles.placeholder} />
@@ -246,40 +249,43 @@ export default function AddGerminacionScreen() {
           {/* Código */}
           {renderFormField('Código', (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={codigo}
               onChangeText={setCodigo}
               placeholder="Ingresa el código"
+              placeholderTextColor={colors.text.tertiary}
             />
           ), true)}
 
           {/* Género */}
           {renderFormField('Género', (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={genero}
               onChangeText={setGenero}
               placeholder="Ingresa el género"
+              placeholderTextColor={colors.text.tertiary}
             />
           ), true)}
 
           {/* Especie */}
           {renderFormField('Especie', (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={especie}
               onChangeText={setEspecie}
               placeholder="Ingresa la especie"
+              placeholderTextColor={colors.text.tertiary}
             />
           ), true)}
 
           {/* Clima */}
           {renderFormField('Clima', (
-            <View style={styles.pickerContainer}>
+            <View style={[styles.pickerContainer, { backgroundColor: colors.background.primary, borderColor: colors.border.default }]}>
               <Picker
                 selectedValue={clima}
                 onValueChange={setClima}
-                style={styles.picker}
+                style={[styles.picker, { color: colors.text.primary }]}
               >
                 {CLIMAS.map((climaOption) => (
                   <Picker.Item
@@ -295,30 +301,33 @@ export default function AddGerminacionScreen() {
           {/* Ubicación - Percha */}
           {renderFormField('Percha', (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={percha}
               onChangeText={setPercha}
               placeholder="Ingresa la percha"
+              placeholderTextColor={colors.text.tertiary}
             />
           ))}
 
           {/* Ubicación - Nivel */}
           {renderFormField('Nivel', (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={nivel}
               onChangeText={setNivel}
               placeholder="Ingresa el nivel"
+              placeholderTextColor={colors.text.tertiary}
             />
           ))}
 
           {/* Cantidad Solicitada */}
           {renderFormField('Cantidad Solicitada', (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={cantidadSolicitada}
               onChangeText={setCantidadSolicitada}
               placeholder="Ingresa la cantidad"
+              placeholderTextColor={colors.text.tertiary}
               keyboardType="numeric"
             />
           ), true)}
@@ -326,21 +335,22 @@ export default function AddGerminacionScreen() {
           {/* Número de Cápsulas */}
           {renderFormField('Número de Cápsulas', (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={numeroCapsulas}
               onChangeText={setNumeroCapsulas}
               placeholder="Ingresa el número de cápsulas"
+              placeholderTextColor={colors.text.tertiary}
               keyboardType="numeric"
             />
           ), true)}
 
           {/* Estado de Cápsulas */}
           {renderFormField('Estado de Cápsulas', (
-            <View style={styles.pickerContainer}>
+            <View style={[styles.pickerContainer, { backgroundColor: colors.background.primary, borderColor: colors.border.default }]}>
               <Picker
                 selectedValue={estadoCapsulas}
                 onValueChange={setEstadoCapsulas}
-                style={styles.picker}
+                style={[styles.picker, { color: colors.text.primary }]}
               >
                 {ESTADOS_CAPSULA.map((estado) => (
                   <Picker.Item
@@ -356,10 +366,11 @@ export default function AddGerminacionScreen() {
           {/* Observaciones */}
           {renderFormField('Observaciones', (
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={observaciones}
               onChangeText={setObservaciones}
               placeholder="Ingresa observaciones adicionales"
+              placeholderTextColor={colors.text.tertiary}
               multiline
               numberOfLines={3}
             />
@@ -368,28 +379,30 @@ export default function AddGerminacionScreen() {
           {/* Responsable de Polinización */}
           {renderFormField('Responsable de Polinización', (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background.primary, color: colors.text.primary, borderColor: colors.border.default }]}
               value={responsablePolinizacion}
               onChangeText={setResponsablePolinizacion}
               placeholder="Ingresa el responsable de polinización"
+              placeholderTextColor={colors.text.tertiary}
             />
           ))}
 
           {/* Responsable de Germinación (automático) */}
           {renderFormField('Responsable de Germinación', (
             <TextInput
-              style={[styles.input, styles.disabledInput]}
+              style={[styles.input, styles.disabledInput, { backgroundColor: colors.background.secondary, color: colors.text.disabled, borderColor: colors.border.default }]}
               value={user?.username || ''}
               editable={false}
               placeholder="Usuario logueado"
+              placeholderTextColor={colors.text.disabled}
             />
           ))}
 
           {/* Predicción ML de Germinación */}
           <View style={styles.prediccionSection}>
-            <View style={styles.prediccionHeader}>
+            <View style={[styles.prediccionHeader, { borderBottomColor: colors.border.default }]}>
               <Ionicons name="analytics" size={20} color="#2E7D32" />
-              <Text style={styles.prediccionTitle}>Predicción ML (Random Forest)</Text>
+              <Text style={[styles.prediccionTitle, { color: colors.text.primary }]}>Predicción ML (Random Forest)</Text>
             </View>
             <PrediccionMLGerminacion
               formData={{
@@ -408,11 +421,11 @@ export default function AddGerminacionScreen() {
           {/* Botones */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
+              style={[styles.button, styles.cancelButton, { backgroundColor: colors.background.tertiary, borderColor: colors.border.medium }]}
               onPress={() => router.back()}
               disabled={isLoading}
             >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text style={[styles.cancelButtonText, { color: colors.text.primary }]}>Cancelar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

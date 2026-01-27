@@ -1,17 +1,15 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { StyleSheet, ScrollView, ActivityIndicator, View, Text, TouchableOpacity, RefreshControl, FlatList } from 'react-native';
+import { StyleSheet, ScrollView, ActivityIndicator, View, Text, TouchableOpacity, RefreshControl, FlatList, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { Germinacion, Polinizacion } from '@/types';
 import { ResponsiveLayout } from '@/components/layout';
 import { useTheme } from '@/contexts/ThemeContext';
-import Svg, { Line } from 'react-native-svg';
 
 // IMPORTS DIRECTOS - NO LAZY
 import { germinacionService } from '@/services/germinacion.service';
 import { polinizacionService } from '@/services/polinizacion.service';
-import { logger } from '@/services/logger';
 
 interface StatusCounts {
   ingresado: number;
@@ -38,11 +36,12 @@ export default function HomeScreen() {
   const { token } = useAuth();
   const router = useRouter();
   const { colors: themeColors } = useTheme();
-  const styles = createStyles(themeColors);
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobile = windowWidth < 768;
+  const styles = createStyles(themeColors, isMobile);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [chartDimensions, setChartDimensions] = useState({ width: 229, height: 120 });
 
   // Estadísticas
   const [germinacionStats, setGerminacionStats] = useState<StatusCounts>({
@@ -93,13 +92,13 @@ export default function HomeScreen() {
 
   const getGerminacionStatusColor = useCallback((status: string) => {
     switch (status) {
-      case 'INGRESADO': return themeColors.status.warning;
-      case 'EN_PROCESO': return themeColors.accent.secondary;
-      case 'LISTA': return themeColors.status.success;
-      case 'CANCELADO': return themeColors.status.error;
-      default: return themeColors.text.tertiary;
+      case 'INGRESADO': return '#F59E0B';
+      case 'EN_PROCESO': return '#3B82F6';
+      case 'LISTA': return '#10B981';
+      case 'CANCELADO': return '#EF4444';
+      default: return '#6B7280';
     }
-  }, [themeColors]);
+  }, []);
 
   const getPolinizacionStatusLabel = useCallback((polinizacion: any) => {
     if (polinizacion.fechamad) return 'Completado';
@@ -108,10 +107,10 @@ export default function HomeScreen() {
   }, []);
 
   const getPolinizacionStatusColor = useCallback((polinizacion: any) => {
-    if (polinizacion.fechamad) return themeColors.status.success;
-    if (polinizacion.fechapol) return themeColors.accent.secondary;
-    return themeColors.status.warning;
-  }, [themeColors]);
+    if (polinizacion.fechamad) return '#10B981';
+    if (polinizacion.fechapol) return '#3B82F6';
+    return '#F59E0B';
+  }, []);
 
   const calculatePolinizacionStats = useCallback((polinizaciones: Polinizacion[]): StatusCounts => {
     if (!Array.isArray(polinizaciones)) {
@@ -218,14 +217,14 @@ export default function HomeScreen() {
       setLoading(true);
 
       if (!token) {
-        logger.warn('No hay token de autenticación');
+        console.warn('No hay token de autenticación');
         throw new Error('Necesitas autenticarte para ver los datos');
       }
 
       // Obtener estadísticas reales de germinaciones desde el backend
       const estadisticasResponse = await germinacionService.getFilterOptions();
 
-      logger.info('📊 Home - Estadísticas recibidas:', estadisticasResponse);
+      console.log('📊 Home - Estadísticas recibidas:', estadisticasResponse);
 
       // Las estadísticas vienen en el formato: { total, por_estado: { CERRADA, ABIERTA, SEMIABIERTA } }
       const germinacionCounts = {
@@ -235,7 +234,7 @@ export default function HomeScreen() {
         total: estadisticasResponse?.estadisticas?.total || 0
       };
 
-      logger.info('📊 Home - Contadores de germinación:', germinacionCounts);
+      console.log('📊 Home - Contadores de germinación:', germinacionCounts);
       setGerminacionStats(germinacionCounts);
 
       // Obtener datos de polinizaciones
@@ -255,7 +254,7 @@ export default function HomeScreen() {
         ? totalPolinizaciones.value
         : 0;
 
-      logger.success(` Datos cargados: ${germinacionesRecientes.length} germinaciones recientes, ${polinizaciones.length} polinizaciones (total: ${totalPol})`);
+      console.log(`✅ Datos cargados: ${germinacionesRecientes.length} germinaciones recientes, ${polinizaciones.length} polinizaciones (total: ${totalPol})`);
 
       // Calcular estadísticas de polinizaciones
       const polinizacionCounts = calculatePolinizacionStats(polinizaciones);
@@ -267,7 +266,7 @@ export default function HomeScreen() {
       setItemCards(cards);
 
     } catch (error) {
-      logger.error('❌ Error cargando datos:', error);
+      console.error('❌ Error cargando datos:', error);
       if (error instanceof Error && error.message.includes('autenticarte')) {
         router.replace('/login');
       }
@@ -412,12 +411,12 @@ export default function HomeScreen() {
 
         <View style={styles.cardDetails}>
           <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={14} color={themeColors.text.tertiary} />
+            <Ionicons name="calendar-outline" size={14} color="#6B7280" />
             <Text style={styles.detailText}>{formatDate(item.date)}</Text>
           </View>
           {item.responsable && (
             <View style={styles.detailRow}>
-              <Ionicons name="person-outline" size={14} color={themeColors.text.tertiary} />
+              <Ionicons name="person-outline" size={14} color="#6B7280" />
               <Text style={styles.detailText}>
                 {typeof item.responsable === 'object' && item.responsable
                   ? item.responsable.username || 'Sin asignar'
@@ -428,7 +427,7 @@ export default function HomeScreen() {
           )}
           {item.location && (
             <View style={styles.detailRow}>
-              <Ionicons name="location-outline" size={14} color={themeColors.text.tertiary} />
+              <Ionicons name="location-outline" size={14} color="#6B7280" />
               <Text style={styles.detailText}>{item.location}</Text>
             </View>
           )}
@@ -571,116 +570,87 @@ export default function HomeScreen() {
                 </View>
               </View>
               
-              {/* Gráfico de rendimiento */}
+              {/* Gráfico de barras agrupadas */}
               <View style={styles.chartContainer}>
                 <View style={styles.chartWrapper}>
-                  {/* Área del gráfico */}
-                  <View 
-                    style={styles.chartArea}
-                    onLayout={(event) => {
-                      const { width, height } = event.nativeEvent.layout;
-                      setChartDimensions({ width, height });
-                    }}
-                  >
-                    {/* Líneas de cuadrícula horizontales */}
-                    <View style={[styles.gridLine, { bottom: '20%' }]} />
-                    <View style={[styles.gridLine, { bottom: '40%' }]} />
-                    <View style={[styles.gridLine, { bottom: '60%' }]} />
-                    <View style={[styles.gridLine, { bottom: '80%' }]} />
-                    
-                    {/* Área sombreada verde */}
-                    <View style={styles.areaChartGreen} />
-                    
-                    {/* Área sombreada azul */}
-                    <View style={styles.areaChartBlue} />
-                    
-                    {/* Líneas del gráfico */}
-                    {(() => {
+                  {/* Área del gráfico con barras */}
+                  <View style={styles.barChartArea}>
+                    {chartData.months.map((month, index) => {
                       const maxValue = Math.max(...chartData.germinacionesData, ...chartData.polinizacionesData);
-                      const { width, height } = chartDimensions;
-                      
-                      // Calcular posiciones de los puntos para germinaciones en píxeles
-                      const germinacionesPoints = chartData.germinacionesData.map((value, index) => {
-                        const heightPercent = (value / maxValue) * 80;
-                        const xPercent = 10 + (index * 80 / (chartData.months.length - 1));
-                        const yPercent = 10 + heightPercent;
-                        
-                        return {
-                          x: (xPercent / 100) * width,
-                          y: ((100 - yPercent) / 100) * height, // Invertir porque SVG y=0 está arriba
-                        };
-                      });
-                      
-                      // Calcular posiciones de los puntos para polinizaciones en píxeles
-                      const polinizacionesPoints = chartData.polinizacionesData.map((value, index) => {
-                        const heightPercent = (value / maxValue) * 80;
-                        const xPercent = 10 + (index * 80 / (chartData.months.length - 1));
-                        const yPercent = 10 + heightPercent;
-                        
-                        return {
-                          x: (xPercent / 100) * width,
-                          y: ((100 - yPercent) / 100) * height, // Invertir porque SVG y=0 está arriba
-                        };
-                      });
-                      
+                      const gerHeight = maxValue > 0 ? (chartData.germinacionesData[index] / maxValue) * 100 : 0;
+                      const polHeight = maxValue > 0 ? (chartData.polinizacionesData[index] / maxValue) * 100 : 0;
+
                       return (
-                        <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
-                          {/* Líneas de germinaciones */}
-                          {germinacionesPoints.map((point, index) => {
-                            if (index === 0) return null;
-                            const prevPoint = germinacionesPoints[index - 1];
-                            return (
-                              <Line
-                                key={`green-line-${index}`}
-                                x1={prevPoint.x}
-                                y1={prevPoint.y}
-                                x2={point.x}
-                                y2={point.y}
-                                stroke={themeColors.status.success}
-                                strokeWidth="3"
-                                strokeLinecap="round"
+                        <View key={month} style={styles.barGroup}>
+                          {/* Valores encima de las barras */}
+                          <View style={styles.barValuesRow}>
+                            <Text style={[styles.barValue, { color: themeColors.status.warning }]}>
+                              {chartData.germinacionesData[index]}
+                            </Text>
+                            <Text style={[styles.barValue, { color: themeColors.accent.primary }]}>
+                              {chartData.polinizacionesData[index]}
+                            </Text>
+                          </View>
+
+                          {/* Contenedor de barras */}
+                          <View style={styles.barsContainer}>
+                            {/* Barra de Germinaciones */}
+                            <View style={styles.barWrapper}>
+                              <View
+                                style={[
+                                  styles.bar,
+                                  styles.barGerminacion,
+                                  { height: `${Math.max(gerHeight, 5)}%` }
+                                ]}
                               />
-                            );
-                          })}
-                          {/* Líneas de polinizaciones */}
-                          {polinizacionesPoints.map((point, index) => {
-                            if (index === 0) return null;
-                            const prevPoint = polinizacionesPoints[index - 1];
-                            return (
-                              <Line
-                                key={`blue-line-${index}`}
-                                x1={prevPoint.x}
-                                y1={prevPoint.y}
-                                x2={point.x}
-                                y2={point.y}
-                                stroke={themeColors.accent.secondary}
-                                strokeWidth="3"
-                                strokeLinecap="round"
+                            </View>
+
+                            {/* Barra de Polinizaciones */}
+                            <View style={styles.barWrapper}>
+                              <View
+                                style={[
+                                  styles.bar,
+                                  styles.barPolinizacion,
+                                  { height: `${Math.max(polHeight, 5)}%` }
+                                ]}
                               />
-                            );
-                          })}
-                        </Svg>
+                            </View>
+                          </View>
+
+                          {/* Label del mes */}
+                          <Text style={styles.barLabel}>{month}</Text>
+                        </View>
                       );
-                    })()}
-                  </View>
-                  
-                  {/* Labels de meses */}
-                  <View style={styles.chartLabels}>
-                    {chartData.months.map((month) => (
-                      <Text key={month} style={styles.chartLabel}>{month}</Text>
-                    ))}
+                    })}
                   </View>
                 </View>
-                
-                {/* Leyenda */}
+
+                {/* Leyenda mejorada */}
                 <View style={styles.chartLegend}>
                   <View style={styles.legendItem}>
-                    <View style={[styles.legendDot, { backgroundColor: themeColors.primary.main }]} />
+                    <View style={[styles.legendDot, { backgroundColor: themeColors.status.warning }]} />
                     <Text style={styles.legendText}>Germinaciones</Text>
                   </View>
                   <View style={styles.legendItem}>
                     <View style={[styles.legendDot, { backgroundColor: themeColors.accent.primary }]} />
                     <Text style={styles.legendText}>Polinizaciones</Text>
+                  </View>
+                </View>
+
+                {/* Resumen de totales */}
+                <View style={styles.chartSummary}>
+                  <View style={styles.summaryBox}>
+                    <Text style={styles.summaryLabel}>Total Germinaciones</Text>
+                    <Text style={[styles.summaryValue, { color: themeColors.status.warning }]}>
+                      {chartData.germinacionesData.reduce((a, b) => a + b, 0)}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryDivider} />
+                  <View style={styles.summaryBox}>
+                    <Text style={styles.summaryLabel}>Total Polinizaciones</Text>
+                    <Text style={[styles.summaryValue, { color: themeColors.accent.primary }]}>
+                      {chartData.polinizacionesData.reduce((a, b) => a + b, 0)}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -730,7 +700,7 @@ export default function HomeScreen() {
                 {itemCards.length === 0 && (
                   <View style={styles.activityItem}>
                     <View style={[styles.activityIcon, { backgroundColor: themeColors.border.light }]}>
-                      <Ionicons name="time-outline" size={12} color={themeColors.text.tertiary} />
+                      <Ionicons name="time-outline" size={12} color="#6b7280" />
                     </View>
                     <View style={styles.activityContent}>
                       <Text style={styles.activityItemTitle}>Sin actividad reciente</Text>
@@ -750,7 +720,7 @@ export default function HomeScreen() {
   );
 }
 
-const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>, isMobile: boolean = false) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.secondary,
@@ -767,13 +737,13 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     color: colors.text.tertiary,
   },
   dashboardHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 24,
+    paddingHorizontal: isMobile ? 16 : 20,
+    paddingTop: isMobile ? 16 : 20,
+    paddingBottom: isMobile ? 20 : 24,
     backgroundColor: colors.background.primary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
-    marginBottom: 20,
+    marginBottom: isMobile ? 16 : 20,
   },
   headerContent: {
     flexDirection: 'row',
@@ -785,17 +755,17 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     marginRight: 20,
   },
   pageTitle: {
-    fontSize: 32,
+    fontSize: isMobile ? 24 : 32,
     fontWeight: '800',
     color: colors.text.primary,
     letterSpacing: -0.5,
     marginBottom: 4,
   },
   pageSubtitle: {
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     color: colors.text.tertiary,
     marginBottom: 8,
-    lineHeight: 24,
+    lineHeight: isMobile ? 20 : 24,
   },
   lastUpdateContainer: {
     flexDirection: 'row',
@@ -879,9 +849,9 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   metricCard: {
     backgroundColor: colors.background.primary,
     borderRadius: 16,
-    padding: 16,
+    padding: isMobile ? 14 : 16,
     flex: 1,
-    minWidth: 140,
+    minWidth: isMobile ? 120 : 140,
     maxWidth: '48%',
     shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
@@ -912,7 +882,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.shadow.color,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,
@@ -969,18 +939,20 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     fontWeight: '500',
   },
   performanceSection: {
-    paddingHorizontal: 20,
+    paddingHorizontal: isMobile ? 16 : 20,
     marginBottom: 32,
   },
   performanceContainer: {
-    flexDirection: 'row',
+    flexDirection: isMobile ? 'column' : 'row',
     gap: 20,
+    flexWrap: 'wrap',
   },
   performanceCard: {
-    flex: 2,
+    flex: isMobile ? 0 : 2,
+    minWidth: isMobile ? '100%' : 400,
     backgroundColor: colors.background.primary,
     borderRadius: 16,
-    padding: 24,
+    padding: isMobile ? 16 : 24,
     shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -988,21 +960,23 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border.light,
+    position: 'relative',
+    overflow: 'hidden',
   },
   performanceHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: isMobile ? 16 : 24,
   },
   performanceTitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: '700',
     color: colors.text.primary,
     marginBottom: 4,
   },
   performanceSubtitle: {
-    fontSize: 14,
+    fontSize: isMobile ? 12 : 14,
     color: colors.text.tertiary,
   },
   yieldContainer: {
@@ -1026,12 +1000,12 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     color: colors.status.success,
   },
   chartContainer: {
-    marginBottom: 24,
+    marginBottom: isMobile ? 16 : 24,
   },
   chartWrapper: {
     backgroundColor: colors.background.primary,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: isMobile ? 12 : 16,
+    padding: isMobile ? 12 : 20,
     shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -1040,90 +1014,125 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderWidth: 1,
     borderColor: colors.border.light,
   },
-  chartArea: {
-    height: 120,
-    position: 'relative',
+  barChartArea: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: isMobile ? 140 : 160,
+    paddingHorizontal: isMobile ? 4 : 8,
+    marginBottom: isMobile ? 16 : 20,
     backgroundColor: colors.background.secondary,
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
+    borderRadius: isMobile ? 8 : 12,
+    paddingTop: isMobile ? 24 : 28,
+    paddingBottom: isMobile ? 8 : 12,
   },
-  gridLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
+  barGroup: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    height: '100%',
+  },
+  barValuesRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: isMobile ? 2 : 4,
+    marginBottom: 4,
+  },
+  barValue: {
+    fontSize: isMobile ? 9 : 11,
+    fontWeight: '700',
+    minWidth: isMobile ? 16 : 20,
+    textAlign: 'center',
+  },
+  barsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: isMobile ? 2 : 4,
+    height: isMobile ? 80 : 100,
+    width: '100%',
+  },
+  barWrapper: {
+    flex: 1,
+    maxWidth: isMobile ? 16 : 24,
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  bar: {
+    width: '100%',
+    borderRadius: isMobile ? 3 : 4,
+    minHeight: 4,
+  },
+  barGerminacion: {
+    backgroundColor: colors.status.warning,
+  },
+  barPolinizacion: {
+    backgroundColor: colors.accent.primary,
+  },
+  barLabel: {
+    fontSize: isMobile ? 9 : 11,
+    color: colors.text.tertiary,
+    fontWeight: '600',
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  chartSummary: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: isMobile ? 12 : 16,
+    paddingTop: isMobile ? 12 : 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+  },
+  summaryBox: {
+    alignItems: 'center',
+    paddingHorizontal: isMobile ? 16 : 24,
+  },
+  summaryLabel: {
+    fontSize: isMobile ? 11 : 12,
+    color: colors.text.tertiary,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  summaryValue: {
+    fontSize: isMobile ? 18 : 22,
+    fontWeight: '800',
+  },
+  summaryDivider: {
+    width: 1,
+    height: 40,
     backgroundColor: colors.border.default,
-    opacity: 0.5,
-  },
-  areaChartGreen: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '45%',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-  },
-  areaChartBlue: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '35%',
-    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-  },
-  chartDot: {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: colors.background.primary,
-  },
-  chartDotGreen: {
-    backgroundColor: colors.status.success,
-    shadowColor: colors.status.success,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  chartDotBlue: {
-    backgroundColor: colors.accent.secondary,
-    shadowColor: colors.accent.secondary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
   },
   chartLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: isMobile ? 8 : 16,
+    marginBottom: isMobile ? 8 : 12,
   },
   chartLabel: {
-    fontSize: 11,
+    fontSize: isMobile ? 9 : 11,
     color: colors.text.disabled,
     fontWeight: '500',
   },
   chartLegend: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 20,
+    gap: isMobile ? 12 : 20,
+    flexWrap: 'wrap',
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: isMobile ? 4 : 6,
   },
   legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: isMobile ? 6 : 8,
+    height: isMobile ? 6 : 8,
+    borderRadius: isMobile ? 3 : 4,
   },
   legendText: {
-    fontSize: 12,
+    fontSize: isMobile ? 11 : 12,
     color: colors.text.tertiary,
     fontWeight: '500',
   },
@@ -1174,10 +1183,11 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     lineHeight: 14,
   },
   activityCard: {
-    flex: 1,
+    flex: isMobile ? 0 : 1,
+    minWidth: isMobile ? '100%' : 250,
     backgroundColor: colors.background.primary,
     borderRadius: 16,
-    padding: 20,
+    padding: isMobile ? 16 : 20,
     shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -1185,15 +1195,17 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border.light,
+    position: 'relative',
+    overflow: 'hidden',
   },
   activityHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: isMobile ? 16 : 20,
   },
   activityTitle: {
-    fontSize: 18,
+    fontSize: isMobile ? 16 : 18,
     fontWeight: '700',
     color: colors.text.primary,
   },
@@ -1203,7 +1215,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     fontWeight: '600',
   },
   activityList: {
-    gap: 16,
+    gap: isMobile ? 12 : 16,
   },
   activityItem: {
     flexDirection: 'row',
@@ -1211,9 +1223,9 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     gap: 12,
   },
   activityIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: isMobile ? 28 : 32,
+    height: isMobile ? 28 : 32,
+    borderRadius: isMobile ? 14 : 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -1222,15 +1234,15 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flex: 1,
   },
   activityItemTitle: {
-    fontSize: 14,
+    fontSize: isMobile ? 13 : 14,
     fontWeight: '600',
     color: colors.text.primary,
     marginBottom: 4,
   },
   activityItemSubtitle: {
-    fontSize: 12,
+    fontSize: isMobile ? 11 : 12,
     color: colors.text.tertiary,
-    lineHeight: 16,
+    lineHeight: isMobile ? 15 : 16,
   },
   sectionHeader: {
     flexDirection: 'row',

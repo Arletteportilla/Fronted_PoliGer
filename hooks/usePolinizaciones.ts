@@ -44,7 +44,6 @@ export const usePolinizaciones = () => {
       setLoading(true);
       
       if (!user) {
-        logger.warn(' Usuario no autenticado, saltando carga de polinizaciones');
         setLoading(false);
         return;
       }
@@ -152,14 +151,6 @@ export const usePolinizaciones = () => {
       let tipoML = form.tipo_polinizacion;
       if (tipoML === 'SIBLING') tipoML = 'SIBBLING'; // Corregir ortografía
       if (tipoML === 'HIBRIDA') tipoML = 'HYBRID'; // Traducir
-
-      logger.info('🔮 Solicitando predicción ML con:', {
-        genero: generoParaPrediccion,
-        especie: especieParaPrediccion,
-        tipo: tipoML,
-        fecha_pol: fechaPolinizacion,
-        cantidad: form.cantidad_capsulas || 1
-      });
 
       // Usar el nuevo endpoint de predicción ML
       const resultado = await polinizacionService.predecirMaduracion({
@@ -296,7 +287,6 @@ export const usePolinizaciones = () => {
         }),
       };
 
-      logger.info('📝 Datos a guardar:', polinizacionData);
 
       if (isEdit && form.id) {
         // Actualizar polinización existente

@@ -13,7 +13,7 @@ import { logger } from '@/services/logger';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { germinacionService } from '@/services/germinacion.service';
-import type { GerminacionFilterParams } from '@/components/filters/GerminacionFilters';
+import type { GerminacionFilterParams } from '@/types';
 
 export interface UseGerminacionesWithFiltersResult {
   // Datos
@@ -31,9 +31,6 @@ export interface UseGerminacionesWithFiltersResult {
   filters: GerminacionFilterParams;
   setFilters: (filters: GerminacionFilterParams) => void;
   activeFiltersCount: number;
-
-  // Estadísticas
-  estadisticas: any;
 
   // Acciones
   loadGerminaciones: () => Promise<void>;
@@ -55,7 +52,6 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
   const [hasMore, setHasMore] = useState(false);
 
   const [filters, setFiltersState] = useState<GerminacionFilterParams>({});
-  const [estadisticas, setEstadisticas] = useState<any>(null);
 
   // Ref para evitar llamadas duplicadas
   const loadingRef = useRef(false);
@@ -64,7 +60,6 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
   const loadGerminaciones = useCallback(async (page: number = 1) => {
     // Evitar llamadas duplicadas
     if (loadingRef.current) {
-      logger.info('⏸️ Ya hay una carga en progreso, ignorando...');
       return;
     }
 
@@ -72,19 +67,10 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
       loadingRef.current = true;
       setLoading(true);
 
-      logger.start(' Cargando germinaciones - Página:', page, 'Filtros:', filters);
-
-      const response = await germinacionService.getPaginated({
+      const response = await germinacionService.getMisGerminacionesPaginated({
         page,
         page_size: 20,
         ...filters,
-      });
-
-      logger.success(' Respuesta recibida:', {
-        page,
-        count: response.count,
-        results: response.results.length,
-        totalPages: response.totalPages,
       });
 
       // Reemplazar la lista completa
@@ -92,7 +78,7 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
       setCurrentPage(response.currentPage);
       setTotalPages(response.totalPages);
       setTotalCount(response.count);
-      setHasMore(!!response.next);
+      setHasMore(response.hasNext);
 
     } catch (error) {
       logger.error('❌ Error cargando germinaciones:', error);
@@ -107,7 +93,6 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
   // Ir a una página específica
   const goToPage = useCallback(async (page: number) => {
     if (page < 1 || page > totalPages) {
-      logger.warn(' Página fuera de rango:', page);
       return;
     }
     setCurrentPage(page);
@@ -137,14 +122,14 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
 
   // Actualizar filtros
   const setFilters = useCallback((newFilters: GerminacionFilterParams) => {
-    logger.debug(' Actualizando filtros:', newFilters);
     setFiltersState(newFilters);
-    setCurrentPage(1);
+    setCurrentPage(1); // Resetear a página 1
+    setTotalPages(0); // Resetear total de páginas
+    setTotalCount(0); // Resetear total de registros
   }, []);
 
   // Resetear filtros
   const resetFilters = useCallback(() => {
-    logger.start(' Reseteando filtros');
     setFilters({});
   }, [setFilters]);
 
@@ -153,25 +138,10 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
     (key) => filters[key as keyof GerminacionFilterParams]
   ).length;
 
-  // Cargar estadísticas
-  const loadEstadisticas = useCallback(async () => {
-    try {
-      const options = await germinacionService.getFilterOptions();
-      setEstadisticas(options.estadisticas);
-    } catch (error) {
-      logger.error('❌ Error cargando estadísticas:', error);
-    }
-  }, []);
-
   // Efecto para cargar datos cuando cambian los filtros
   useEffect(() => {
-    loadGerminaciones(currentPage);
-  }, [filters]);
-
-  // Efecto para cargar estadísticas al inicio
-  useEffect(() => {
-    loadEstadisticas();
-  }, [loadEstadisticas]);
+    loadGerminaciones(1); // Siempre cargar página 1 cuando cambian los filtros
+  }, [filters, loadGerminaciones]);
 
   return {
     // Datos
@@ -189,9 +159,6 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
     filters,
     setFilters,
     activeFiltersCount,
-
-    // Estadísticas
-    estadisticas,
 
     // Acciones
     loadGerminaciones: () => loadGerminaciones(currentPage),

@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 interface Record {
   id: string;
+  tipo: 'Polinización' | 'Germinación';
   plantaMadre: string;
   fecha: string;
   estado: 'Exitoso' | 'En Proceso' | 'Pendiente';
@@ -27,10 +28,10 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
   
   // Datos de ejemplo si no hay datos
   const tableData: Record[] = records.length > 0 ? records : [
-    { id: '#LOT-2023-89', plantaMadre: 'Cattleya Rex', fecha: '12 Oct. 2023', estado: 'Exitoso', color: themeColors.primary.main },
-    { id: '#LOT-2023-88', plantaMadre: 'Dracula Simia', fecha: '11 Oct. 2023', estado: 'En Proceso', color: themeColors.accent.primary },
-    { id: '#LOT-2023-87', plantaMadre: 'Masdevallia', fecha: '10 Oct. 2023', estado: 'Pendiente', color: themeColors.status.warning },
-    { id: '#LOT-2023-86', plantaMadre: 'Cattleya Maxima', fecha: '09 Oct. 2023', estado: 'Exitoso', color: themeColors.primary.main },
+    { id: '#LOT-2023-89', tipo: 'Polinización', plantaMadre: 'Cattleya Rex', fecha: '12 Oct. 2023', estado: 'Exitoso', color: themeColors.primary.main },
+    { id: '#LOT-2023-88', tipo: 'Germinación', plantaMadre: 'Dracula Simia', fecha: '11 Oct. 2023', estado: 'En Proceso', color: themeColors.accent.primary },
+    { id: '#LOT-2023-87', tipo: 'Polinización', plantaMadre: 'Masdevallia', fecha: '10 Oct. 2023', estado: 'Pendiente', color: themeColors.status.warning },
+    { id: '#LOT-2023-86', tipo: 'Germinación', plantaMadre: 'Cattleya Maxima', fecha: '09 Oct. 2023', estado: 'Exitoso', color: themeColors.primary.main },
   ];
 
   const getEstadoColor = (estado: string) => {
@@ -59,7 +60,8 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
       </View>
 
       <View style={styles.tableHeader}>
-        <Text style={[styles.tableHeaderText, styles.colId]}>ID LOTE</Text>
+        <Text style={[styles.tableHeaderText, styles.colId]}>CÓDIGO</Text>
+        <Text style={[styles.tableHeaderText, styles.colTipo]}>TIPO</Text>
         <Text style={[styles.tableHeaderText, styles.colPlanta]}>PLANTA MADRE</Text>
         <Text style={[styles.tableHeaderText, styles.colFecha]}>FECHA</Text>
         <Text style={[styles.tableHeaderText, styles.colEstado]}>ESTADO</Text>
@@ -72,16 +74,28 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
             <View style={[styles.tableCell, styles.colId]}>
               <Text style={styles.idText}>{record.id}</Text>
             </View>
-            
+
+            <View style={[styles.tableCell, styles.colTipo]}>
+              <View style={[styles.tipoBadge, {
+                backgroundColor: record.tipo === 'Polinización' ? '#FEF3C7' : '#DBEAFE'
+              }]}>
+                <Text style={[styles.tipoText, {
+                  color: record.tipo === 'Polinización' ? '#92400E' : '#1E40AF'
+                }]}>
+                  {record.tipo}
+                </Text>
+              </View>
+            </View>
+
             <View style={[styles.tableCell, styles.colPlanta, styles.plantaCell]}>
               <View style={[styles.plantaDot, { backgroundColor: record.color }]} />
               <Text style={styles.plantaText}>{record.plantaMadre}</Text>
             </View>
-            
+
             <View style={[styles.tableCell, styles.colFecha]}>
               <Text style={styles.tableCellText}>{record.fecha}</Text>
             </View>
-            
+
             <View style={[styles.tableCell, styles.colEstado]}>
               <View style={[styles.estadoBadge, { backgroundColor: `${getEstadoColor(record.estado)}20` }]}>
                 <Text style={[styles.estadoText, { color: getEstadoColor(record.estado) }]}>
@@ -89,7 +103,7 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
                 </Text>
               </View>
             </View>
-            
+
             <View style={[styles.tableCell, styles.colAccion]}>
               <TouchableOpacity style={styles.actionButton}>
                 <Ionicons name="eye-outline" size={18} color={themeColors.text.tertiary} />
@@ -170,6 +184,9 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   colId: {
     flex: 1.2,
   },
+  colTipo: {
+    flex: 1,
+  },
   colPlanta: {
     flex: 1.5,
   },
@@ -186,6 +203,17 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   idText: {
     fontWeight: '600',
     color: colors.text.primary,
+  },
+  tipoBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  tipoText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   plantaCell: {
     flexDirection: 'row',

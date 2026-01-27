@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface FinalizarModalProps {
   visible: boolean;
@@ -38,6 +39,9 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
   item,
   tipo,
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
+  
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -78,7 +82,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
       await onConfirm(fechaISO);
       onClose();
     } catch (error) {
-      logger.error('Error finalizando:', error);
+      console.error('Error finalizando:', error);
       alert(`Error al finalizar la ${tipo}`);
     } finally {
       setLoading(false);
@@ -112,7 +116,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerIcon}>
-                <Ionicons name="checkmark-circle" size={40} color="#10B981" />
+                <Ionicons name="checkmark-circle" size={40} color={themeColors.status.success} />
               </View>
               <Text style={styles.title}>{titulo}</Text>
               <Text style={styles.subtitle}>{codigo}</Text>
@@ -122,14 +126,14 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
             <View style={styles.infoSection}>
               {especie && (
                 <View style={styles.infoRow}>
-                  <Ionicons name="leaf-outline" size={18} color="#6B7280" />
+                  <Ionicons name="leaf-outline" size={18} color={themeColors.text.tertiary} />
                   <Text style={styles.infoLabel}>Especie:</Text>
                   <Text style={styles.infoValue}>{especie}</Text>
                 </View>
               )}
               {fechaInicio && (
                 <View style={styles.infoRow}>
-                  <Ionicons name="calendar-outline" size={18} color="#6B7280" />
+                  <Ionicons name="calendar-outline" size={18} color={themeColors.text.tertiary} />
                   <Text style={styles.infoLabel}>{labelFechaInicio}:</Text>
                   <Text style={styles.infoValue}>
                     {new Date(fechaInicio).toLocaleDateString('es-ES', {
@@ -158,10 +162,10 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
                       year: 'numeric'
                     })}
                   </Text>
-                  <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
+                  <Ionicons name="calendar-outline" size={18} color={themeColors.text.tertiary} />
                 </TouchableOpacity>
                 <View style={styles.autoTextContainer}>
-                  <Ionicons name="information-circle-outline" size={12} color="#6B7280" />
+                  <Ionicons name="information-circle-outline" size={12} color={themeColors.text.tertiary} />
                   <Text style={styles.autoText}>Automático: Hoy.</Text>
                 </View>
               </View>
@@ -181,7 +185,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
                   </View>
                 ) : (
                   <View style={styles.datePredictedBox}>
-                    <Text style={[styles.datePredictedText, { color: '#9CA3AF' }]}>
+                    <Text style={[styles.datePredictedText, { color: themeColors.text.tertiary }]}>
                       Sin predicción
                     </Text>
                   </View>
@@ -205,10 +209,10 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
                 disabled={loading}
               >
                 {loading ? (
-                  <ActivityIndicator color="#FFFFFF" />
+                  <ActivityIndicator color={themeColors.text.inverse} />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
+                    <Ionicons name="checkmark-circle-outline" size={20} color={themeColors.text.inverse} />
                     <Text style={styles.confirmButtonText}>Finalizar</Text>
                   </>
                 )}
@@ -245,22 +249,22 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.background.modal,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
     borderRadius: 20,
     width: '100%',
     maxWidth: 480,
     maxHeight: '85%',
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -276,16 +280,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text.primary,
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 15,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     fontWeight: '600',
   },
   infoSection: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -298,12 +302,12 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     fontWeight: '500',
   },
   infoValue: {
     fontSize: 14,
-    color: '#1F2937',
+    color: colors.text.primary,
     fontWeight: '600',
     flex: 1,
   },
@@ -318,16 +322,16 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text.secondary,
     marginBottom: 8,
   },
   dateInputButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border.default,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -335,7 +339,7 @@ const styles = StyleSheet.create({
   },
   dateInputText: {
     fontSize: 13,
-    color: '#1F2937',
+    color: colors.text.primary,
     fontWeight: '400',
     flex: 1,
   },
@@ -347,19 +351,21 @@ const styles = StyleSheet.create({
   },
   autoText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.text.tertiary,
   },
   datePredictedBox: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,
     minHeight: 44,
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border.default,
   },
   datePredictedText: {
     fontSize: 13,
-    color: '#1F2937',
+    color: colors.text.primary,
     fontWeight: '400',
   },
   buttonContainer: {
@@ -377,39 +383,39 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cancelButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.secondary,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border.default,
   },
   cancelButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.secondary,
   },
   confirmButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.status.success,
   },
   confirmButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text.inverse,
   },
   iosPickerButtonContainer: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.secondary,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border.default,
     paddingVertical: 12,
     paddingHorizontal: 20,
     alignItems: 'flex-end',
   },
   iosPickerButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.status.success,
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
   iosPickerButtonText: {
-    color: '#FFFFFF',
+    color: colors.text.inverse,
     fontSize: 15,
     fontWeight: '600',
   },

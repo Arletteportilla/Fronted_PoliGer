@@ -27,20 +27,14 @@ export function usePerfilUsuarios() {
 
   const handleCreate = useCallback(async (userData: CreateUserFormData) => {
     try {
-      logger.info('🚀 usePerfilUsuarios.handleCreate - Iniciando creación de usuario');
-      logger.info('📋 Datos del usuario a crear:', userData);
       
       // Verificar token de autenticación
       const token = await import('@/services/secureStore').then(m => m.secureStore.getItem('authToken'));
-      logger.info('🔑 Token disponible:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
       
       // Verificar usuario actual
       const { useAuth } = await import('@/contexts/AuthContext');
-      logger.info('👤 Usuario actual en contexto disponible');
       
-      logger.info('🌐 Llamando a rbacService.createUser...');
       const result = await rbacService.createUser(userData);
-      logger.success(' Usuario creado exitosamente:', result);
       
       await fetchUsuarios();
       setShowCreateModal(false);
@@ -76,9 +70,7 @@ export function usePerfilUsuarios() {
 
   const handleDelete = useCallback(async (user: UserWithProfile, onSuccess?: () => void) => {
     try {
-      logger.info('🗑️ Iniciando eliminación del usuario:', user.id);
       await rbacService.deleteUser(user.id);
-      logger.success(' Usuario eliminado exitosamente');
       await fetchUsuarios();
       onSuccess?.();
     } catch (error: any) {

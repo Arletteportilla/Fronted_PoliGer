@@ -9,7 +9,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/utils/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SimpleCalendarPickerProps {
   value?: string; // Formato YYYY-MM-DD
@@ -42,9 +42,18 @@ const useResponsiveDimensions = () => {
   };
 };
 
-export function SimpleCalendarPicker({ 
-  value, 
-  onDateChange, 
+// Función para parsear fecha YYYY-MM-DD de forma local (evita problemas de timezone)
+const parseLocalDate = (dateString: string): Date => {
+  const parts = dateString.split('-').map(Number);
+  const year = parts[0] || 0;
+  const month = (parts[1] || 1) - 1; // Los meses son 0-indexed
+  const day = parts[2] || 1;
+  return new Date(year, month, day);
+};
+
+export function SimpleCalendarPicker({
+  value,
+  onDateChange,
   placeholder = 'Seleccionar fecha',
   style,
   disabled = false,
@@ -52,9 +61,10 @@ export function SimpleCalendarPicker({
   required = false
 }: SimpleCalendarPickerProps) {
   const responsive = useResponsiveDimensions();
+  const { colors } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(value ? new Date(value) : new Date());
-  const [currentMonth, setCurrentMonth] = useState<Date>(value ? new Date(value) : new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(value ? parseLocalDate(value) : new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date>(value ? parseLocalDate(value) : new Date());
 
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString('es-ES', {
@@ -67,7 +77,7 @@ export function SimpleCalendarPicker({
   const getInitialTextValue = (): string => {
     if (value) {
       try {
-        return formatDate(new Date(value));
+        return formatDate(parseLocalDate(value));
       } catch {
         return '';
       }
@@ -76,11 +86,11 @@ export function SimpleCalendarPicker({
   };
 
   const [textValue, setTextValue] = useState<string>(getInitialTextValue());
-  
+
   // Actualizar el texto cuando cambia el value prop
   useEffect(() => {
     if (value) {
-      const formatted = formatDate(new Date(value));
+      const formatted = formatDate(parseLocalDate(value));
       setTextValue(formatted);
     } else {
       setTextValue('');
@@ -143,7 +153,7 @@ export function SimpleCalendarPicker({
     } else {
       // Si es inválido, restaurar el valor anterior
       if (value) {
-        setTextValue(formatDate(new Date(value)));
+        setTextValue(formatDate(parseLocalDate(value)));
       } else {
         setTextValue('');
       }
@@ -174,7 +184,7 @@ export function SimpleCalendarPicker({
   };
 
   const handleCancel = () => {
-    setSelectedDate(value ? new Date(value) : new Date());
+    setSelectedDate(value ? parseLocalDate(value) : new Date());
     setIsVisible(false);
   };
 
@@ -229,6 +239,8 @@ export function SimpleCalendarPicker({
   const isSelected = (date: Date) => {
     return selectedDate.toDateString() === date.toDateString();
   };
+
+  const styles = createStyles(colors);
 
   const renderCalendar = () => {
     const days = getDaysInMonth(currentMonth);
@@ -377,7 +389,7 @@ export function SimpleCalendarPicker({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   container: {
     marginBottom: 16,
     zIndex: 999999,
@@ -385,12 +397,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.accent.primary,
+    color: colors.text.primary,
     marginBottom: 8,
     marginLeft: 4,
   },
   required: {
-    color: colors.primary.main,
+    color: colors.status.error,
     fontWeight: 'bold',
   },
   inputWrapper: {
@@ -429,21 +441,21 @@ const styles = StyleSheet.create({
   },
   inputText: {
     fontSize: 15,
-    color: '#1f2937',
+    color: colors.text.primary,
     fontWeight: '500',
   },
   inputTextDisabled: {
-    color: '#9ca3af',
+    color: colors.text.disabled,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.background.modal,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     width: '100%',
     maxWidth: 400,
@@ -454,20 +466,20 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 20,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
   },
   dropdownHeader: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.background.secondary,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
   },
   dropdownTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text.primary,
   },
   calendarScrollView: {
     maxHeight: 260,
@@ -484,14 +496,14 @@ const styles = StyleSheet.create({
   navButton: {
     padding: 5,
     borderRadius: 6,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.background.tertiary,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
   },
   monthYear: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text.primary,
     textTransform: 'capitalize',
   },
   weekDaysContainer: {
@@ -504,7 +516,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 9,
     fontWeight: '700',
-    color: '#6b7280',
+    color: colors.text.tertiary,
     paddingVertical: 2,
   },
   daysGrid: {
@@ -532,14 +544,14 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 11,
-    color: '#374151',
+    color: colors.text.secondary,
     fontWeight: '600',
   },
   dayTextInactive: {
-    color: '#9ca3af',
+    color: colors.text.disabled,
   },
   dayTextSelected: {
-    color: '#ffffff',
+    color: colors.text.inverse,
     fontWeight: '700',
   },
   dayTextToday: {
@@ -550,25 +562,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 10,
     gap: 8,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.background.secondary,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: colors.border.default,
   },
   cancelButton: {
     flex: 1,
     paddingVertical: 8,
     borderRadius: 7,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
   },
   cancelButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6b7280',
+    color: colors.text.tertiary,
   },
   confirmButton: {
     flex: 1,
@@ -585,7 +597,7 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.background.primary,
+    color: colors.accent.primary,
   },
 });
 export default SimpleCalendarPicker;

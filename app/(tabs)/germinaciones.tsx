@@ -1,15 +1,13 @@
-import { useEffect, useState, useCallback } from 'react';
-import { View, Modal, StyleSheet, Alert, ScrollView, Text, Pressable, TextInput, TouchableOpacity, Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Modal, StyleSheet, Alert, ScrollView, Text, Pressable, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/navigation';
 import { ResponsiveLayout } from '@/components/layout';
 import { PrediccionMejoradaModal } from '@/components/modals';
 import { germinacionService } from '@/services/germinacion.service';
+import { ExportModal } from '@/components/export';
 import { useTheme } from '@/contexts/ThemeContext';
-import { CONFIG } from '@/services/config';
-import * as SecureStore from '@/services/secureStore';
 
 // Extracted components and hooks
 import { useResponsive } from '@/hooks/useResponsive';
@@ -18,8 +16,6 @@ import { useGerminacionesWithFilters } from '@/hooks/useGerminacionesWithFilters
 import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { GerminacionesHeader, GerminacionesContent } from '@/components/germinaciones';
 import GerminacionFilters from '@/components/filters/GerminacionFilters';
-import { DateFilterModal } from '@/components/filters/DateFilterModal';
-import { logger } from '@/services/logger';
 
 export default function GerminacionesScreen() {
   const { user } = useAuth();
@@ -46,100 +42,13 @@ export default function GerminacionesScreen() {
   // Use old hook only for form management
   const germinacionesHook = useGerminaciones(user);
 
-  // Estado para exportación
-  const [isExporting, setIsExporting] = useState(false);
-
-  // Función de exportación usando el mismo endpoint que perfil
-  const handleExport = useCallback(async () => {
-    if (!user) {
-      Alert.alert('Error', 'Usuario no autenticado');
-      return;
-    }
-
-    setIsExporting(true);
-    try {
-      logger.start(' Iniciando descarga de PDF de germinaciones...');
-
-      // Obtener token de autenticación
-      const token = await SecureStore.secureStore.getItem('authToken');
-      if (!token) {
-        throw new Error('No hay token de autenticación');
-      }
-
-      // Construir URL usando el endpoint para TODAS las germinaciones del sistema
-      const params = new URLSearchParams();
-      if (filters.search) params.append('search', filters.search);
-
-      const url = `${CONFIG.API_BASE_URL}/germinaciones/germinaciones-pdf/?${params.toString()}`;
-      logger.debug(` URL completa: ${url}`);
-
-      // Crear nombre de archivo
-      const timestamp = new Date().toISOString().slice(0, 10);
-      const searchSuffix = filters.search ? `_${filters.search.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
-      const fileName = `germinaciones_todas${searchSuffix}_${timestamp}.pdf`;
-
-      if (Platform.OS === 'web') {
-        // Descarga para web
-        logger.info('🌐 Descargando en web...');
-        const response = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/pdf'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const blob = await response.blob();
-
-        // Crear enlace de descarga
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
-
-        logger.success(' PDF de germinaciones descargado exitosamente en web');
-        Alert.alert('Éxito', 'PDF de germinaciones descargado correctamente');
-      } else {
-        // Descarga para móvil
-        logger.info('📱 Descargando en móvil...');
-        const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-
-        const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/pdf'
-          }
-        });
-
-        if (downloadResult.status === 200) {
-          logger.success(' PDF descargado exitosamente:', downloadResult.uri);
-          Alert.alert('Éxito', `PDF descargado en: ${downloadResult.uri}`);
-        } else {
-          throw new Error('Error al descargar el archivo');
-        }
-      }
-    } catch (error) {
-      logger.error('❌ Error exportando PDF:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido en la exportación';
-      Alert.alert('Error', `Error al exportar: ${errorMessage}`);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [user, filters.search]);
-
   // Local state for UI
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [showDateFilterModal, setShowDateFilterModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [detalle, setDetalle] = useState(null);
+  const [tipoRegistro, setTipoRegistro] = useState<'historicos' | 'nuevos' | 'todos'>('todos');
 
   // Prediction states (solo para mantener compatibilidad con el modal antiguo)
   const [showPrediccionModal, setShowPrediccionModal] = useState(false);
@@ -149,23 +58,23 @@ export default function GerminacionesScreen() {
 
   // Initialize data loading
   useEffect(() => {
-    logger.debug(' DEBUG - germinaciones.tsx useEffect fired, user:', user ? 'EXISTS' : 'NULL');
-    logger.debug(' DEBUG - germinacionesHook:', germinacionesHook);
-    logger.debug(' DEBUG - loadCodigosDisponibles exists:', !!germinacionesHook.loadCodigosDisponibles);
+    console.log('🔍 DEBUG - germinaciones.tsx useEffect fired, user:', user ? 'EXISTS' : 'NULL');
+    console.log('🔍 DEBUG - germinacionesHook:', germinacionesHook);
+    console.log('🔍 DEBUG - loadCodigosDisponibles exists:', !!germinacionesHook.loadCodigosDisponibles);
 
     if (user) {
-      logger.debug(' DEBUG - About to call loadCodigosDisponibles');
+      console.log('🔍 DEBUG - About to call loadCodigosDisponibles');
       germinacionesHook.loadCodigosDisponibles();
 
-      logger.debug(' DEBUG - About to call loadCodigosConEspecies');
+      console.log('🔍 DEBUG - About to call loadCodigosConEspecies');
       germinacionesHook.loadCodigosConEspecies();
 
-      logger.debug(' DEBUG - About to call loadPerchasDisponibles');
+      console.log('🔍 DEBUG - About to call loadPerchasDisponibles');
       germinacionesHook.loadPerchasDisponibles();
 
-      logger.success(' DEBUG - All load functions called');
+      console.log('✅ DEBUG - All load functions called');
     } else {
-      logger.warn(' DEBUG - User is null, skipping data loading');
+      console.log('⚠️ DEBUG - User is null, skipping data loading');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -190,43 +99,65 @@ export default function GerminacionesScreen() {
     }
   };
 
+  // Manejar cambio de tipo de registro
+  const handleTipoRegistroChange = (tipo: 'historicos' | 'nuevos' | 'todos') => {
+    console.log('🔄 Cambiando tipo de registro para germinaciones:', tipo);
+    setTipoRegistro(tipo);
+    
+    const newFilters: any = {
+      ...filters,
+    };
+    
+    if (tipo !== 'todos') {
+      newFilters.tipo_registro = tipo;
+    } else {
+      delete newFilters.tipo_registro;
+    }
+    
+    setFilters(newFilters);
+  };
+
   const styles = createStyles(themeColors);
 
   return (
     <ProtectedRoute requiredModule="germinaciones" requiredAction="ver">
       <ResponsiveLayout currentTab="germinaciones" style={styles.mainContainer}>
         <ScrollView 
-          style={styles.scrollContainer}
-          contentContainerStyle={styles.scrollContent}
+          style={styles.container}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.container}>
-            <GerminacionesHeader
-              totalGerminaciones={totalCount}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              showOnlyMine={germinacionesHook.showOnlyMine}
-              search={filters.search || ''}
-              activeFiltersCount={activeFiltersCount}
-              onToggleShowOnlyMine={() => germinacionesHook.setShowOnlyMine(!germinacionesHook.showOnlyMine)}
-              onSearchChange={(text) => setFilters({ ...filters, search: text })}
-              onShowForm={() => setShowForm(true)}
-              onShowExportModal={() => handleExport()}
-              onShowFilters={() => setShowFilters(true)}
-            />
+          <GerminacionesHeader
+            totalGerminaciones={totalCount}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            showOnlyMine={germinacionesHook.showOnlyMine}
+            search={filters.search || ''}
+            activeFiltersCount={activeFiltersCount}
+            onToggleShowOnlyMine={() => germinacionesHook.setShowOnlyMine(!germinacionesHook.showOnlyMine)}
+            onSearchChange={(text) => setFilters({ ...filters, search: text })}
+            onShowForm={() => setShowForm(true)}
+            onShowExportModal={() => setShowExportModal(true)}
+            onShowFilters={() => setShowFilters(true)}
+          />
 
-            {/* Tarjetas de Métricas */}
-            <View style={styles.metricsContainer}>
+          {/* Tarjetas de Métricas */}
+          <View style={styles.metricsContainer}>
             <View style={styles.metricCard}>
               <View style={styles.metricHeader}>
                 <Text style={styles.metricLabel}>Total en Proceso</Text>
                 <View style={[styles.metricIcon, { backgroundColor: '#d1fae5' }]}>
-                  <Ionicons name="leaf" size={18} color="#10b981" />
+                  <Ionicons name="leaf" size={20} color="#10b981" />
                 </View>
               </View>
               <View style={styles.metricValueContainer}>
                 <Text style={styles.metricValue}>
-                  {germinaciones.filter(g => g.etapa_actual === 'EN_PROCESO').length}
+                  {germinaciones.filter(g =>
+                    g.estado_germinacion === 'EN_PROCESO' ||
+                    g.estado_germinacion === 'EN_PROCESO_TEMPRANO' ||
+                    g.estado_germinacion === 'EN_PROCESO_AVANZADO' ||
+                    g.etapa_actual === 'EN_PROCESO'
+                  ).length}
                 </Text>
               </View>
             </View>
@@ -235,13 +166,16 @@ export default function GerminacionesScreen() {
               <View style={styles.metricHeader}>
                 <Text style={styles.metricLabel}>Éxito Promedio</Text>
                 <View style={[styles.metricIcon, { backgroundColor: '#dbeafe' }]}>
-                  <Ionicons name="checkmark-circle" size={18} color="#3b82f6" />
+                  <Ionicons name="checkmark-circle" size={20} color="#3b82f6" />
                 </View>
               </View>
               <View style={styles.metricValueContainer}>
                 <Text style={styles.metricValue}>
-                  {totalCount > 0 
-                    ? Math.round((germinaciones.filter(g => g.etapa_actual === 'LISTA').length / totalCount) * 100)
+                  {totalCount > 0
+                    ? Math.round((germinaciones.filter(g =>
+                        g.estado_germinacion === 'FINALIZADO' ||
+                        g.etapa_actual === 'LISTA'
+                      ).length / germinaciones.length) * 100)
                     : 0}%
                 </Text>
               </View>
@@ -249,19 +183,17 @@ export default function GerminacionesScreen() {
 
             <View style={styles.metricCard}>
               <View style={styles.metricHeader}>
-                <Text style={styles.metricLabel}>Cosecha Semanal</Text>
+                <Text style={styles.metricLabel}>Finalizados</Text>
                 <View style={[styles.metricIcon, { backgroundColor: '#fef3c7' }]}>
-                  <Ionicons name="calendar" size={18} color="#f59e0b" />
+                  <Ionicons name="checkmark-done" size={20} color="#f59e0b" />
                 </View>
               </View>
               <View style={styles.metricValueContainer}>
                 <Text style={styles.metricValue}>
-                  {germinaciones.filter(g => {
-                    const fecha = new Date(g.fecha_siembra || g.fecha_ingreso);
-                    const hoy = new Date();
-                    const diffDias = Math.floor((hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24));
-                    return diffDias <= 7 && g.etapa_actual === 'LISTA';
-                  }).length}
+                  {germinaciones.filter(g =>
+                    g.estado_germinacion === 'FINALIZADO' ||
+                    g.etapa_actual === 'LISTA'
+                  ).length}
                 </Text>
               </View>
             </View>
@@ -293,7 +225,7 @@ export default function GerminacionesScreen() {
                 style={styles.actionButton}
                 onPress={() => setShowFilters(true)}
               >
-                <Ionicons name="options-outline" size={18} color={themeColors.text.tertiary} />
+                <Ionicons name="options-outline" size={18} color={themeColors.text.secondary} />
                 <Text style={styles.actionButtonText}>Filtros</Text>
                 {activeFiltersCount > 0 && (
                   <View style={styles.actionBadge}>
@@ -302,21 +234,83 @@ export default function GerminacionesScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => setShowDateFilterModal(true)}
-              >
-                <Ionicons name="calendar-outline" size={18} color={themeColors.text.tertiary} />
+              <TouchableOpacity style={styles.actionButton}>
+                <Ionicons name="calendar-outline" size={18} color={themeColors.text.secondary} />
                 <Text style={styles.actionButtonText}>Fecha</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => handleExport()}
-                disabled={isExporting}
+                onPress={() => setShowExportModal(true)}
               >
-                <Ionicons name="download-outline" size={18} color={themeColors.text.tertiary} />
-                <Text style={styles.actionButtonText}>{isExporting ? 'Exportando...' : 'Exportar'}</Text>
+                <Ionicons name="download-outline" size={18} color={themeColors.text.secondary} />
+                <Text style={styles.actionButtonText}>Exportar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Filtros de tipo de registro */}
+          <View style={styles.filterTypeContainer}>
+            <Text style={styles.filterTypeLabel}>Tipo de registro:</Text>
+            <View style={styles.filterTypeButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.filterTypeButton,
+                  tipoRegistro === 'todos' && styles.filterTypeButtonActive
+                ]}
+                onPress={() => handleTipoRegistroChange('todos')}
+              >
+                <Ionicons 
+                  name="list" 
+                  size={16} 
+                  color={tipoRegistro === 'todos' ? themeColors.text.inverse : themeColors.text.tertiary} 
+                />
+                <Text style={[
+                  styles.filterTypeButtonText,
+                  tipoRegistro === 'todos' && styles.filterTypeButtonTextActive
+                ]}>
+                  Todos
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.filterTypeButton,
+                  tipoRegistro === 'nuevos' && styles.filterTypeButtonActive
+                ]}
+                onPress={() => handleTipoRegistroChange('nuevos')}
+              >
+                <Ionicons 
+                  name="add-circle" 
+                  size={16} 
+                  color={tipoRegistro === 'nuevos' ? themeColors.text.inverse : themeColors.text.tertiary} 
+                />
+                <Text style={[
+                  styles.filterTypeButtonText,
+                  tipoRegistro === 'nuevos' && styles.filterTypeButtonTextActive
+                ]}>
+                  Nuevos
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.filterTypeButton,
+                  tipoRegistro === 'historicos' && styles.filterTypeButtonActive
+                ]}
+                onPress={() => handleTipoRegistroChange('historicos')}
+              >
+                <Ionicons 
+                  name="archive" 
+                  size={16} 
+                  color={tipoRegistro === 'historicos' ? themeColors.text.inverse : themeColors.text.tertiary} 
+                />
+                <Text style={[
+                  styles.filterTypeButtonText,
+                  tipoRegistro === 'historicos' && styles.filterTypeButtonTextActive
+                ]}>
+                  Históricos
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -338,39 +332,33 @@ export default function GerminacionesScreen() {
           onGoToPage={goToPage}
           onItemPress={setDetalle}
         />
-          </View>
         </ScrollView>
 
-        {/* Form Modal - Popup desde lateral derecho */}
+        {/* Form Modal - Popup Centrado */}
         <Modal
           visible={showForm}
-          animationType="slide"
+          animationType="fade"
           transparent={true}
           onRequestClose={() => setShowForm(false)}
-          presentationStyle="overFullScreen"
         >
-          <View style={styles.formModalOverlayRight}>
-            <View style={styles.formModalContentRight}>
+          <View style={styles.formModalOverlay}>
+            <View style={styles.formModalContent}>
               {/* Header del Modal */}
-              <View style={styles.formModalHeaderRight}>
-                <View style={styles.closeButtonRight}>
-                  <TouchableOpacity
-                    onPress={() => setShowForm(false)}
-                    style={styles.closeButtonInnerRight}
-                  >
-                    <Ionicons name="close" size={24} color={themeColors.text.primary} />
-                  </TouchableOpacity>
+              <View style={styles.formModalHeader}>
+                <View>
+                  <Text style={styles.formModalTitle}>Nueva Germinación</Text>
+                  <Text style={styles.formModalSubtitle}>Completa los datos del formulario</Text>
                 </View>
-                <Text style={styles.formModalTitleRight}>Nueva Germinación</Text>
-                <View style={styles.placeholderRight} />
+                <TouchableOpacity 
+                  style={styles.formModalCloseButton}
+                  onPress={() => setShowForm(false)}
+                >
+                  <Ionicons name="close" size={24} color={themeColors.text.secondary} />
+                </TouchableOpacity>
               </View>
 
               {/* Formulario */}
-              <ScrollView 
-                style={styles.formModalScrollViewRight} 
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.formModalScrollContentRight}
-              >
+              <ScrollView style={styles.formModalScrollView}>
                 <GerminacionForm
                   visible={true}
                   onClose={() => setShowForm(false)}
@@ -422,21 +410,14 @@ export default function GerminacionesScreen() {
           </View>
         </Modal>
 
-        {/* Modal de Filtro por Fecha */}
-        <DateFilterModal
-          visible={showDateFilterModal}
-          onClose={() => setShowDateFilterModal(false)}
-          onApply={(fechaDesde, fechaHasta) => {
-            setFilters({
-              ...filters,
-              fecha_siembra_desde: fechaDesde,
-              fecha_siembra_hasta: fechaHasta,
-            });
-          }}
-          tipo="germinacion"
-          fechaDesde={filters.fecha_siembra_desde}
-          fechaHasta={filters.fecha_siembra_hasta}
-        />
+          {/* Export Modal */}
+          <ExportModal
+            visible={showExportModal}
+            onClose={() => setShowExportModal(false)}
+            defaultEntity="germinaciones"
+            allowEntitySelection={false}
+            title="Exportar Germinaciones"
+          />
 
         {/* Modal de detalle */}
         <Modal
@@ -511,13 +492,10 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   mainContainer: {
     backgroundColor: colors.background.secondary,
   },
-  scrollContainer: {
+  container: {
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
-  },
-  container: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 20,
@@ -530,8 +508,8 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   metricCard: {
     flex: 1,
     backgroundColor: colors.background.primary,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 16,
+    padding: 20,
     shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -544,17 +522,17 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   metricLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: colors.text.tertiary,
     fontWeight: '600',
   },
   metricIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -564,7 +542,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     gap: 8,
   },
   metricValue: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '800',
     color: colors.text.primary,
     letterSpacing: -1,
@@ -587,11 +565,11 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 20,
+    gap: 12,
+    marginBottom: 24,
     backgroundColor: colors.background.secondary,
-    padding: 10,
-    borderRadius: 12,
+    padding: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border.default,
   },
@@ -600,18 +578,18 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background.primary,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border.default,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     color: colors.text.primary,
   },
   clearSearchButton: {
@@ -624,19 +602,68 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     backgroundColor: colors.background.primary,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.border.default,
     position: 'relative',
   },
   actionButtonText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: colors.text.secondary,
+    color: colors.text.primary,
+  },
+  
+  filterTypeContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.background.secondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+    marginBottom: 16,
+  },
+
+  filterTypeLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 8,
+  },
+
+  filterTypeButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+
+  filterTypeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: colors.background.primary,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+
+  filterTypeButtonActive: {
+    backgroundColor: colors.primary.main,
+    borderColor: colors.primary.main,
+  },
+
+  filterTypeButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.text.tertiary,
+  },
+
+  filterTypeButtonTextActive: {
+    color: colors.text.inverse,
+    fontWeight: '600',
   },
   actionBadge: {
     position: 'absolute',
@@ -653,13 +680,13 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderColor: colors.background.primary,
   },
   actionBadgeText: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontSize: 10,
     fontWeight: '800',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.background.modal,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -678,7 +705,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   detalleTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.text.primary,
+    color: colors.primary.main,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -694,13 +721,13 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   detalleLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text.secondary,
+    color: colors.text.primary,
     width: 140,
     marginRight: 12,
   },
   detalleValue: {
     fontSize: 14,
-    color: colors.text.tertiary,
+    color: colors.text.secondary,
     flex: 1,
   },
   modalButtons: {
@@ -709,19 +736,19 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     marginTop: 20,
   },
   modalButton: {
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary.main,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   modalButtonText: {
-    color: colors.text.inverse,
+    color: colors.background.primary,
     fontSize: 16,
     fontWeight: '600',
   },
   formModalOverlay: {
     flex: 1,
-    backgroundColor: colors.background.modal,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -758,7 +785,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   },
   formModalSubtitle: {
     fontSize: 14,
-    color: colors.text.tertiary,
+    color: colors.text.secondary,
   },
   formModalCloseButton: {
     width: 40,
@@ -775,7 +802,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   },
   filterModalOverlay: {
     flex: 1,
-    backgroundColor: colors.background.modal,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -791,64 +818,5 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     shadowRadius: 20,
     elevation: 10,
     overflow: 'hidden',
-  },
-  formModalOverlayRight: {
-    flex: 1,
-    backgroundColor: colors.background.modal,
-    justifyContent: 'flex-end',
-    flexDirection: 'row',
-  },
-  formModalContentRight: {
-    backgroundColor: colors.background.primary,
-    width: '85%',
-    maxWidth: 600,
-    height: '100%',
-    shadowColor: colors.shadow.color,
-    shadowOffset: { width: -4, height: 0 },
-    shadowOpacity: colors.shadow.opacity,
-    shadowRadius: 10,
-    elevation: 10,
-    zIndex: 1,
-  },
-  formModalHeaderRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.default,
-    backgroundColor: colors.background.secondary,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  closeButtonRight: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.background.tertiary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonInnerRight: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  formModalTitleRight: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    textAlign: 'center',
-  },
-  placeholderRight: {
-    width: 40,
-  },
-  formModalScrollViewRight: {
-    maxHeight: '100%',
-  },
-  formModalScrollContentRight: {
-    paddingBottom: 20,
   },
 });

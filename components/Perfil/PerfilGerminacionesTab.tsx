@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { styles } from '@/utils/Perfil/styles';
-import { Colors } from '@/constants/Colors';
+import { createStyles } from '@/utils/Perfil/styles';
+import { useTheme } from '@/contexts/ThemeContext';
 import Pagination from '@/components/filters/Pagination';
 import type { Germinacion } from '@/types/index';
 import { getEstadoColor } from '@/utils/colorHelpers';
@@ -52,11 +52,13 @@ export function PerfilGerminacionesTab({
   onDescargarPDF
 }: PerfilGerminacionesTabProps) {
   const router = useRouter();
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.light.tint} />
+        <ActivityIndicator size="large" color={themeColors.primary.main} />
         <Text style={styles.loadingText}>Cargando germinaciones...</Text>
       </View>
     );
@@ -82,7 +84,7 @@ export function PerfilGerminacionesTab({
             style={styles.newItemButton}
             onPress={() => router.push('/(tabs)/addGerminacion')}
           >
-            <Ionicons name="add-circle" size={20} color={Colors.light.background} />
+            <Ionicons name="add-circle" size={20} color={themeColors.background.primary} />
             <Text style={styles.newItemButtonText}>Nueva Germinación</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -92,7 +94,7 @@ export function PerfilGerminacionesTab({
               onDescargarPDF();
             }}
           >
-            <Ionicons name="download-outline" size={20} color={Colors.light.tint} />
+            <Ionicons name="download-outline" size={20} color={themeColors.primary.main} />
             <Text style={styles.exportButtonText}>Descargar PDF</Text>
           </TouchableOpacity>
         </View>
@@ -101,7 +103,7 @@ export function PerfilGerminacionesTab({
       {/* Barra de búsqueda */}
       <View style={styles.searchAndFiltersContainer}>
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#6b7280" />
+          <Ionicons name="search" size={20} color={themeColors.text.tertiary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar por código, género, especie..."
@@ -112,14 +114,14 @@ export function PerfilGerminacionesTab({
           {searchGerminaciones.length > 0 && (
             <>
               <TouchableOpacity onPress={handleBuscarGerminaciones} style={{ marginRight: 8 }}>
-                <Ionicons name="search" size={20} color={Colors.light.tint} />
+                <Ionicons name="search" size={20} color={themeColors.primary.main} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => {
                 setSearchGerminaciones('');
                 setGerminacionesPage(1);
                 fetchData();
               }}>
-                <Ionicons name="close-circle" size={20} color="#6b7280" />
+                <Ionicons name="close-circle" size={20} color={themeColors.text.tertiary} />
               </TouchableOpacity>
             </>
           )}
@@ -129,7 +131,7 @@ export function PerfilGerminacionesTab({
       {/* Tabla de germinaciones */}
       {filteredGerminaciones.length === 0 ? (
         <View style={styles.listEmptyContainer}>
-          <Ionicons name="leaf-outline" size={48} color="#6b7280" />
+          <Ionicons name="leaf-outline" size={48} color={themeColors.text.tertiary} />
           <Text style={styles.listEmptyText}>
             {searchGerminaciones ? 'No se encontraron germinaciones' : 'No hay germinaciones registradas'}
           </Text>
@@ -241,7 +243,7 @@ export function PerfilGerminacionesTab({
                           })()}
                         </View>
                       ) : (
-                        <Text style={[styles.fechaText, { fontSize: 10, color: '#9CA3AF' }]}>
+                        <Text style={[styles.fechaText, { fontSize: 10, color: themeColors.text.tertiary }]}>
                           Sin predicción
                         </Text>
                       )}
@@ -287,7 +289,6 @@ export function PerfilGerminacionesTab({
                   {item.estado_germinacion && (
                     <View style={{
                       marginTop: 8,
-                      backgroundColor: '#f9fafb',
                       borderRadius: 12,
                       paddingVertical: 4
                     }}>
@@ -305,14 +306,16 @@ export function PerfilGerminacionesTab({
       )}
 
       {/* Paginación */}
-      {germinacionesTotalPages > 1 && (
+      {germinacionesTotalCount > 0 && germinacionesTotalPages > 1 && (
         <View style={{ paddingVertical: 16, paddingHorizontal: 16 }}>
-          <Text style={{ marginBottom: 8, textAlign: 'center', color: '#6b7280' }}>
+          <Text style={{ marginBottom: 8, textAlign: 'center', color: themeColors.text.tertiary }}>
             Mostrando {germinaciones.length} de {germinacionesTotalCount} germinaciones
           </Text>
           <Pagination
             currentPage={germinacionesPage}
             totalPages={germinacionesTotalPages}
+            totalCount={germinacionesTotalCount}
+            pageSize={20}
             goToPage={handleGerminacionesPageChange}
             nextPage={handleGerminacionesNextPage}
             prevPage={handleGerminacionesPrevPage}

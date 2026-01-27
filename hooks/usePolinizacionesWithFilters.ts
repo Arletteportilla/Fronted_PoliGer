@@ -60,7 +60,6 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
   const loadPolinizaciones = useCallback(async (page: number = 1) => {
     // Evitar llamadas duplicadas
     if (loadingRef.current) {
-      logger.info('⏸️ Ya hay una carga en progreso, ignorando...');
       return;
     }
 
@@ -68,26 +67,17 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
       loadingRef.current = true;
       setLoading(true);
 
-      logger.start(' Cargando polinizaciones - Página:', page, 'Filtros:', filters);
-
       const response = await polinizacionService.getPaginated({
         page,
         page_size: 20,
         ...filters,
       });
 
-      logger.success(' Respuesta recibida:', {
-        page,
-        count: response.totalCount,
-        results: response.results.length,
-        totalPages: response.totalPages,
-      });
-
       // Reemplazar la lista completa
       setPolinizaciones(response.results);
       setCurrentPage(response.currentPage);
       setTotalPages(response.totalPages);
-      setTotalCount(response.totalCount);
+      setTotalCount(response.count);
       setHasMore(response.hasNext);
 
     } catch (error) {
@@ -103,7 +93,6 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
   // Ir a una página específica
   const goToPage = useCallback(async (page: number) => {
     if (page < 1 || page > totalPages) {
-      logger.warn(' Página fuera de rango:', page);
       return;
     }
     setCurrentPage(page);
@@ -133,14 +122,14 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
 
   // Actualizar filtros
   const setFilters = useCallback((newFilters: PolinizacionFilterParams) => {
-    logger.debug(' Actualizando filtros:', newFilters);
     setFiltersState(newFilters);
-    setCurrentPage(1);
+    setCurrentPage(1); // Resetear a página 1
+    setTotalPages(0); // Resetear total de páginas
+    setTotalCount(0); // Resetear total de registros
   }, []);
 
   // Resetear filtros
   const resetFilters = useCallback(() => {
-    logger.start(' Reseteando filtros');
     setFilters({});
   }, [setFilters]);
 
@@ -151,8 +140,8 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
 
   // Efecto para cargar datos cuando cambian los filtros
   useEffect(() => {
-    loadPolinizaciones(currentPage);
-  }, [filters]);
+    loadPolinizaciones(1); // Siempre cargar página 1 cuando cambian los filtros
+  }, [filters, loadPolinizaciones]);
 
   return {
     // Datos

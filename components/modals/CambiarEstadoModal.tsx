@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface CambiarEstadoModalProps {
   visible: boolean;
@@ -34,6 +35,9 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
   item,
   tipo,
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
+
   if (!item) return null;
 
   // Obtener el estado actual según el tipo
@@ -64,7 +68,7 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
           <View style={styles.header}>
             <Text style={styles.title}>{titulo}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={28} color="#64748b" />
+              <Ionicons name="close" size={28} color={themeColors.text.tertiary} />
             </TouchableOpacity>
           </View>
 
@@ -141,7 +145,7 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
               {/* Mensaje si ya está finalizado */}
               {estadoActual === 'FINALIZADO' && (
                 <View style={styles.completedContainer}>
-                  <Ionicons name="checkmark-circle" size={24} color="#059669" />
+                  <Ionicons name="checkmark-circle" size={24} color={themeColors.status.success} />
                   <Text style={styles.completedText}>
                     {tipo === 'germinacion'
                       ? 'Esta germinación ya está finalizada'
@@ -162,21 +166,21 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.background.modal,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 20,
     width: '100%',
     maxWidth: 500,
     padding: 24,
-    shadowColor: '#000000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 20,
@@ -191,7 +195,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1e293b',
+    color: colors.text.primary,
     flex: 1,
   },
   infoSection: {
@@ -199,20 +203,20 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   infoCard: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.background.secondary,
     padding: 12,
     borderRadius: 8,
   },
   infoLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748b',
+    color: colors.text.tertiary,
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#1e293b',
+    color: colors.text.primary,
   },
   estadoBadge: {
     flexDirection: 'row',
@@ -233,7 +237,7 @@ const styles = StyleSheet.create({
   optionsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1e293b',
+    color: colors.text.primary,
     marginBottom: 16,
   },
   buttonsContainer: {
@@ -247,7 +251,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     gap: 10,
-    shadowColor: '#000000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -271,7 +275,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#d1fae5',
+    backgroundColor: colors.status.successLight,
     borderRadius: 8,
     gap: 12,
   },
@@ -279,31 +283,31 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: '#059669',
+    color: colors.status.success,
   },
   cancelButton: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.background.secondary,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border.default,
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#64748b',
+    color: colors.text.secondary,
   },
   progressSection: {
     marginVertical: 16,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     paddingVertical: 8,
   },
   separator: {
     height: 1,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.border.default,
     marginVertical: 16,
   },
 });

@@ -25,8 +25,8 @@ export default function Pagination({
   const maxPageButtons = 3; // Mostrar solo 3 botones de página
 
   // Calcular el rango de resultados mostrados
-  const startResult = (currentPage - 1) * pageSize + 1;
-  const endResult = Math.min(currentPage * pageSize, totalCount);
+  const startResult = totalCount > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endResult = totalCount > 0 ? Math.min(currentPage * pageSize, totalCount) : 0;
 
   let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
   let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
