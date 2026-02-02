@@ -20,7 +20,6 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ currentTab }) => {
     { id: 'inicio', label: 'Dashboard', icon: 'grid-outline', route: '/(tabs)', alwaysVisible: true },
     { id: 'polinizaciones', label: 'Polinizaciones', icon: 'flower-outline', route: '/(tabs)/polinizaciones', requiresPermission: 'polinizaciones' },
     { id: 'germinaciones', label: 'Germinaciones', icon: 'leaf-outline', route: '/(tabs)/germinaciones', requiresPermission: 'germinaciones' },
-    { id: 'notificaciones', label: 'Notificaciones', icon: 'notifications-outline', route: '/(tabs)/notificaciones', alwaysVisible: true },
     { id: 'reportes', label: 'Reportes', icon: 'bar-chart-outline', route: '/(tabs)/reportes', requiresPermission: 'reportes' },
     { id: 'perfil', label: 'Perfil', icon: 'person-outline', route: '/(tabs)/perfil', alwaysVisible: true },
   ];

@@ -52,6 +52,7 @@ export function PerfilNotificacionesTab({
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [includeArchived] = useState(false);
   const [estadoFilter, setEstadoFilter] = useState<'todos' | 'pendientes' | 'finalizado'>('todos');
+  const [tipoFilter, setTipoFilter] = useState<'todas' | 'polinizaciones' | 'germinaciones' | 'sistema'>('todas');
 
   // Estados sincronizados desde el backend para filtrar correctamente
   const [syncedStates, setSyncedStates] = useState<Record<number, string>>({});
@@ -176,6 +177,18 @@ export function PerfilNotificacionesTab({
   const filteredNotifications = notifications.filter(notification => {
     if (showOnlyUnread && notification.leida) return false;
 
+    // Filtrar por tipo de notificación
+    if (tipoFilter !== 'todas') {
+      if (tipoFilter === 'polinizaciones') {
+        if (!notification.polinizacion) return false;
+      } else if (tipoFilter === 'germinaciones') {
+        if (!notification.germinacion) return false;
+      } else if (tipoFilter === 'sistema') {
+        // Sistema = notificaciones que no son de polinizaciones ni germinaciones
+        if (notification.polinizacion || notification.germinacion) return false;
+      }
+    }
+
     // Filtrar por estado usando el estado sincronizado desde el backend
     if (estadoFilter !== 'todos') {
       // Usar primero el estado sincronizado, luego el almacenado como fallback
@@ -230,13 +243,71 @@ export function PerfilNotificacionesTab({
         </View>
       </View>
 
-      {/* Filtros */}
+      {/* Filtros por tipo */}
       <View style={styles.filtersContainer}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersScrollContent}
         >
+          <TouchableOpacity
+            style={[styles.filterChip, tipoFilter === 'todas' && styles.filterChipActive]}
+            onPress={() => setTipoFilter('todas')}
+          >
+            <Ionicons
+              name="apps-outline"
+              size={14}
+              color={tipoFilter === 'todas' ? themeColors.accent.secondary : themeColors.text.secondary}
+            />
+            <Text style={[styles.filterChipText, tipoFilter === 'todas' && styles.filterChipTextActive]}>
+              Todas
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, tipoFilter === 'polinizaciones' && styles.filterChipActivePolinizacion]}
+            onPress={() => setTipoFilter(tipoFilter === 'polinizaciones' ? 'todas' : 'polinizaciones')}
+          >
+            <Ionicons
+              name="flower-outline"
+              size={14}
+              color={tipoFilter === 'polinizaciones' ? "#ec4899" : themeColors.text.secondary}
+            />
+            <Text style={[styles.filterChipText, tipoFilter === 'polinizaciones' && styles.filterChipTextActivePolinizacion]}>
+              Polinizaciones
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, tipoFilter === 'germinaciones' && styles.filterChipActiveGerminacion]}
+            onPress={() => setTipoFilter(tipoFilter === 'germinaciones' ? 'todas' : 'germinaciones')}
+          >
+            <Ionicons
+              name="leaf-outline"
+              size={14}
+              color={tipoFilter === 'germinaciones' ? "#22c55e" : themeColors.text.secondary}
+            />
+            <Text style={[styles.filterChipText, tipoFilter === 'germinaciones' && styles.filterChipTextActiveGerminacion]}>
+              Germinaciones
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, tipoFilter === 'sistema' && styles.filterChipActiveSistema]}
+            onPress={() => setTipoFilter(tipoFilter === 'sistema' ? 'todas' : 'sistema')}
+          >
+            <Ionicons
+              name="settings-outline"
+              size={14}
+              color={tipoFilter === 'sistema' ? "#6366f1" : themeColors.text.secondary}
+            />
+            <Text style={[styles.filterChipText, tipoFilter === 'sistema' && styles.filterChipTextActiveSistema]}>
+              Sistema
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.filterDivider} />
+
           <TouchableOpacity
             style={[styles.filterChip, showOnlyUnread && styles.filterChipActive]}
             onPress={() => {
@@ -731,6 +802,27 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
   },
   filterChipTextActiveFinalizado: {
     color: '#10b981',
+  },
+  filterChipActivePolinizacion: {
+    backgroundColor: '#fce7f3',
+    borderColor: '#ec4899',
+  },
+  filterChipTextActivePolinizacion: {
+    color: '#ec4899',
+  },
+  filterChipActiveGerminacion: {
+    backgroundColor: '#dcfce7',
+    borderColor: '#22c55e',
+  },
+  filterChipTextActiveGerminacion: {
+    color: '#22c55e',
+  },
+  filterChipActiveSistema: {
+    backgroundColor: '#e0e7ff',
+    borderColor: '#6366f1',
+  },
+  filterChipTextActiveSistema: {
+    color: '#6366f1',
   },
   filterDivider: {
     width: 1,
