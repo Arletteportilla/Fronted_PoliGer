@@ -75,21 +75,24 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
     switch (type) {
       case 'success':
         return {
-          backgroundColor: '#059669',
+          backgroundColor: '#92e27a',
           icon: 'checkmark-circle' as const,
-          borderColor: '#047857',
+          borderColor: '#6bc950',
+          textColor: '#1a5d1a',
         };
       case 'error':
         return {
           backgroundColor: '#EF4444',
           icon: 'close-circle' as const,
           borderColor: '#DC2626',
+          textColor: '#FFFFFF',
         };
       case 'warning':
         return {
           backgroundColor: '#F59E0B',
           icon: 'warning' as const,
           borderColor: '#D97706',
+          textColor: '#FFFFFF',
         };
       case 'info':
       default:
@@ -97,6 +100,7 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
           backgroundColor: '#3B82F6',
           icon: 'information-circle' as const,
           borderColor: '#2563EB',
+          textColor: '#FFFFFF',
         };
     }
   };
@@ -127,12 +131,12 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
         <Ionicons
           name={toastStyle.icon}
           size={18}
-          color="#FFFFFF"
+          color={toastStyle.textColor}
           style={styles.toastIcon}
         />
       </View>
       <View style={styles.toastContent}>
-        <Text style={styles.toastText}>{toast.message}</Text>
+        <Text style={[styles.toastText, { color: toastStyle.textColor }]}>{toast.message}</Text>
       </View>
     </Animated.View>
   );
