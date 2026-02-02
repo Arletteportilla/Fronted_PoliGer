@@ -1,24 +1,39 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, Alert, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { Notification } from '@/services/notification.service';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 
+// Eliminado constantes estáticas para usar useWindowDimensions
+
+
 export interface PerfilNotificacionesTabProps {
   polinizaciones?: any[];
   germinaciones?: any[];
   loading?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+  onViewPolinizacion?: (item: any) => void;
+  onEditPolinizacion?: (item: any) => void;
+  onDeletePolinizacion?: (item: any) => void;
   onChangeStatusGerminacion?: (item: any) => void;
+  onViewGerminacion?: (item: any) => void;
+  onEditGerminacion?: (item: any) => void;
+  onDeleteGerminacion?: (item: any) => void;
   onChangeStatusPolinizacion?: (item: any) => void;
 }
 
 export function PerfilNotificacionesTab({
   onChangeStatusGerminacion,
-  onChangeStatusPolinizacion
+  onChangeStatusPolinizacion,
+  // Remaining props can be destructured if needed, or left in props
 }: PerfilNotificacionesTabProps) {
   const { colors: themeColors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 768;
+  const isVerySmallScreen = width < 400;
 
   const {
     notifications,
@@ -35,12 +50,11 @@ export function PerfilNotificacionesTab({
   } = useNotifications();
 
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
-  const [includeArchived, setIncludeArchived] = useState(false);
+  const [includeArchived] = useState(false);
   const [estadoFilter, setEstadoFilter] = useState<'todos' | 'pendientes' | 'finalizado'>('todos');
 
   // Estados sincronizados desde el backend para filtrar correctamente
   const [syncedStates, setSyncedStates] = useState<Record<number, string>>({});
-  const [loadingStates, setLoadingStates] = useState(false);
 
   const reloadNotifications = async () => {
     await fetchNotifications({
@@ -93,7 +107,6 @@ export function PerfilNotificacionesTab({
     const cargarEstadosSincronizados = async () => {
       if (notifications.length === 0) return;
 
-      setLoadingStates(true);
       const estados: Record<number, string> = {};
 
       try {
@@ -127,8 +140,6 @@ export function PerfilNotificacionesTab({
         setSyncedStates(estados);
       } catch (error) {
         console.error('Error cargando estados sincronizados:', error);
-      } finally {
-        setLoadingStates(false);
       }
     };
 
@@ -181,7 +192,7 @@ export function PerfilNotificacionesTab({
     return true;
   });
 
-  const styles = createLocalStyles(themeColors);
+  const styles = useMemo(() => createLocalStyles(themeColors, isSmallScreen, isVerySmallScreen), [themeColors, isSmallScreen, isVerySmallScreen]);
 
   if (loading) {
     return (
@@ -197,19 +208,23 @@ export function PerfilNotificacionesTab({
       {/* Header Principal */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>Mis Notificaciones</Text>
-          <Text style={styles.headerSubtitle}>
-            {stats.total} notificaciones en total · <Text style={styles.unreadCount}>{stats.noLeidas} sin leer</Text>
+          <Text style={styles.headerTitle} numberOfLines={isVerySmallScreen ? 1 : 2}>
+            {isVerySmallScreen ? 'Notificaciones' : 'Mis Notificaciones'}
+          </Text>
+          <Text style={styles.headerSubtitle} numberOfLines={1}>
+            {stats.total} total{isSmallScreen ? '' : ' notificaciones'} · <Text style={styles.unreadCount}>{stats.noLeidas} sin leer</Text>
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.settingsButton}>
-            <Ionicons name="settings-outline" size={22} color={themeColors.text.secondary} />
-          </TouchableOpacity>
+          {!isVerySmallScreen && (
+            <TouchableOpacity style={styles.settingsButton}>
+              <Ionicons name="settings-outline" size={22} color={themeColors.text.secondary} />
+            </TouchableOpacity>
+          )}
           {stats.noLeidas > 0 && (
             <TouchableOpacity style={styles.markAllReadButton} onPress={handleMarkAllAsRead}>
-              <Ionicons name="checkmark-done" size={18} color="#fff" />
-              <Text style={styles.markAllReadText}>Marcar todas leídas</Text>
+              <Ionicons name="checkmark-done" size={16} color="#fff" />
+              {!isSmallScreen && <Text style={styles.markAllReadText}>Marcar todas leídas</Text>}
             </TouchableOpacity>
           )}
         </View>
@@ -217,68 +232,74 @@ export function PerfilNotificacionesTab({
 
       {/* Filtros */}
       <View style={styles.filtersContainer}>
-        <TouchableOpacity
-          style={[styles.filterChip, showOnlyUnread && styles.filterChipActive]}
-          onPress={() => {
-            setShowOnlyUnread(!showOnlyUnread);
-            refreshNotifications({
-              solo_no_leidas: !showOnlyUnread,
-              incluir_archivadas: includeArchived,
-              solo_propias: true
-            });
-          }}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersScrollContent}
         >
-          <Ionicons
-            name="funnel-outline"
-            size={14}
-            color={showOnlyUnread ? themeColors.accent.secondary : themeColors.text.secondary}
-          />
-          <Text style={[styles.filterChipText, showOnlyUnread && styles.filterChipTextActive]}>
-            Solo no leídas
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterChip, showOnlyUnread && styles.filterChipActive]}
+            onPress={() => {
+              setShowOnlyUnread(!showOnlyUnread);
+              refreshNotifications({
+                solo_no_leidas: !showOnlyUnread,
+                incluir_archivadas: includeArchived,
+                solo_propias: true
+              });
+            }}
+          >
+            <Ionicons
+              name="funnel-outline"
+              size={14}
+              color={showOnlyUnread ? themeColors.accent.secondary : themeColors.text.secondary}
+            />
+            <Text style={[styles.filterChipText, showOnlyUnread && styles.filterChipTextActive]}>
+              {isVerySmallScreen ? 'No leídas' : 'Solo no leídas'}
+            </Text>
+          </TouchableOpacity>
 
-        <View style={styles.filterDivider} />
+          <View style={styles.filterDivider} />
 
-        <TouchableOpacity
-          style={[
-            styles.filterChip, 
-            estadoFilter === 'pendientes' && styles.filterChipActivePendiente
-          ]}
-          onPress={() => setEstadoFilter(estadoFilter === 'pendientes' ? 'todos' : 'pendientes')}
-        >
-          <Ionicons
-            name="time-outline"
-            size={14}
-            color={estadoFilter === 'pendientes' ? "#f59e0b" : themeColors.text.secondary}
-          />
-          <Text style={[
-            styles.filterChipText, 
-            estadoFilter === 'pendientes' && styles.filterChipTextActivePendiente
-          ]}>
-            Pendientes
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              estadoFilter === 'pendientes' && styles.filterChipActivePendiente
+            ]}
+            onPress={() => setEstadoFilter(estadoFilter === 'pendientes' ? 'todos' : 'pendientes')}
+          >
+            <Ionicons
+              name="time-outline"
+              size={14}
+              color={estadoFilter === 'pendientes' ? "#f59e0b" : themeColors.text.secondary}
+            />
+            <Text style={[
+              styles.filterChipText,
+              estadoFilter === 'pendientes' && styles.filterChipTextActivePendiente
+            ]}>
+              Pendientes
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.filterChip, 
-            estadoFilter === 'finalizado' && styles.filterChipActiveFinalizado
-          ]}
-          onPress={() => setEstadoFilter(estadoFilter === 'finalizado' ? 'todos' : 'finalizado')}
-        >
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={14}
-            color={estadoFilter === 'finalizado' ? "#10b981" : themeColors.text.secondary}
-          />
-          <Text style={[
-            styles.filterChipText, 
-            estadoFilter === 'finalizado' && styles.filterChipTextActiveFinalizado
-          ]}>
-            Finalizados
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterChip,
+              estadoFilter === 'finalizado' && styles.filterChipActiveFinalizado
+            ]}
+            onPress={() => setEstadoFilter(estadoFilter === 'finalizado' ? 'todos' : 'finalizado')}
+          >
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={14}
+              color={estadoFilter === 'finalizado' ? "#10b981" : themeColors.text.secondary}
+            />
+            <Text style={[
+              styles.filterChipText,
+              estadoFilter === 'finalizado' && styles.filterChipTextActiveFinalizado
+            ]}>
+              Finalizados
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {/* Lista de Notificaciones */}
@@ -343,7 +364,10 @@ function NotificationCard({
   getNotificationColor,
 }: NotificationCardProps) {
   const { colors: themeColors } = useTheme();
-  const styles = createLocalStyles(themeColors);
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 768;
+  const isVerySmallScreen = width < 400;
+  const styles = useMemo(() => createLocalStyles(themeColors, isSmallScreen, isVerySmallScreen), [themeColors, isSmallScreen, isVerySmallScreen]);
 
   // Estado actual sincronizado desde el backend
   const [estadoActual, setEstadoActual] = useState<string | null>(
@@ -390,11 +414,11 @@ function NotificationCard({
 
   // Usar el estado actual sincronizado
   const estado = estadoActual ||
-                 notification.detalles_adicionales?.estado ||
-                 notification.detalles_adicionales?.estado_germinacion ||
-                 notification.detalles_adicionales?.estado_polinizacion ||
-                 (notification.germinacion ? 'INICIAL' : null) ||
-                 (notification.polinizacion ? 'INICIAL' : null);
+    notification.detalles_adicionales?.estado ||
+    notification.detalles_adicionales?.estado_germinacion ||
+    notification.detalles_adicionales?.estado_polinizacion ||
+    (notification.germinacion ? 'INICIAL' : null) ||
+    (notification.polinizacion ? 'INICIAL' : null);
 
   // Verificar si está finalizado
   const estaFinalizado = estado === 'FINALIZADO';
@@ -421,11 +445,11 @@ function NotificationCard({
 
   // Determinar tipo de notificación para mostrar categoría
   const getCategoryInfo = () => {
-    if (notification.tipo === 'ESTADO_GERMINACION_ACTUALIZADO' || notification.tipo === 'ESTADO_POLINIZACION_ACTUALIZADO') {
+    if ((notification.tipo as string) === 'ESTADO_GERMINACION_ACTUALIZADO' || (notification.tipo as string) === 'ESTADO_POLINIZACION_ACTUALIZADO') {
       return { label: 'ESTADO ACTUALIZADO', color: '#10b981', bgColor: '#d1fae5' };
-    } else if (notification.tipo === 'REVISION_GERMINACION' || notification.tipo === 'REVISION_POLINIZACION') {
+    } else if ((notification.tipo as string) === 'REVISION_GERMINACION' || (notification.tipo as string) === 'REVISION_POLINIZACION') {
       return { label: 'ACTUALIZACIÓN GENERAL', color: '#f59e0b', bgColor: '#fef3c7' };
-    } else if (notification.tipo === 'ALERTA_IMPORTADA') {
+    } else if ((notification.tipo as string) === 'ALERTA_IMPORTADA') {
       return { label: 'HISTORIAL', color: '#6366f1', bgColor: '#e0e7ff' };
     }
     return { label: typeLabel.toUpperCase(), color: color, bgColor: `${color}20` };
@@ -578,7 +602,7 @@ function NotificationCard({
   );
 }
 
-const createLocalStyles = (colors: any) => StyleSheet.create({
+const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScreen: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.secondary,
@@ -597,27 +621,31 @@ const createLocalStyles = (colors: any) => StyleSheet.create({
 
   // Header
   header: {
-    flexDirection: 'row',
+    flexDirection: isVerySmallScreen ? 'column' : 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    alignItems: isVerySmallScreen ? 'stretch' : 'flex-start',
+    paddingHorizontal: isSmallScreen ? 12 : 20,
+    paddingVertical: isSmallScreen ? 12 : 20,
     backgroundColor: colors.background.primary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
+    gap: isVerySmallScreen ? 12 : 0,
   },
   headerLeft: {
     flex: 1,
+    minWidth: 0, // Permite que el texto se trunce
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24,
     fontWeight: '700',
     color: colors.text.primary,
     marginBottom: 4,
+    flexShrink: 1,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: isSmallScreen ? 12 : 14,
     color: colors.text.secondary,
+    flexShrink: 1,
   },
   unreadCount: {
     color: '#f59e0b',
@@ -626,11 +654,12 @@ const createLocalStyles = (colors: any) => StyleSheet.create({
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: isSmallScreen ? 8 : 12,
+    flexShrink: 0,
   },
   settingsButton: {
-    width: 40,
-    height: 40,
+    width: isSmallScreen ? 36 : 40,
+    height: isSmallScreen ? 36 : 40,
     borderRadius: 10,
     backgroundColor: colors.background.secondary,
     alignItems: 'center',
@@ -639,35 +668,39 @@ const createLocalStyles = (colors: any) => StyleSheet.create({
   markAllReadButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    gap: isSmallScreen ? 4 : 6,
+    paddingHorizontal: isSmallScreen ? 10 : 16,
+    paddingVertical: isSmallScreen ? 8 : 10,
     backgroundColor: colors.accent.primary,
     borderRadius: 10,
+    minWidth: isVerySmallScreen ? 36 : 'auto',
   },
   markAllReadText: {
     color: colors.background.primary,
-    fontSize: 14,
+    fontSize: isSmallScreen ? 12 : 14,
     fontWeight: '600',
   },
 
   // Filtros
   filtersContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 10,
+    paddingHorizontal: isSmallScreen ? 8 : 20,
+    paddingVertical: isSmallScreen ? 12 : 16,
     backgroundColor: colors.background.primary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
   },
+  filtersScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: isSmallScreen ? 8 : 10,
+    paddingHorizontal: 4,
+  },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    gap: isSmallScreen ? 4 : 6,
+    paddingHorizontal: isSmallScreen ? 10 : 14,
+    paddingVertical: isSmallScreen ? 6 : 8,
     backgroundColor: colors.background.secondary,
     borderRadius: 20,
     borderWidth: 1,
@@ -678,7 +711,7 @@ const createLocalStyles = (colors: any) => StyleSheet.create({
     borderColor: colors.accent.secondary,
   },
   filterChipText: {
-    fontSize: 13,
+    fontSize: isSmallScreen ? 11 : 13,
     color: colors.text.secondary,
     fontWeight: '500',
   },
@@ -701,7 +734,7 @@ const createLocalStyles = (colors: any) => StyleSheet.create({
   },
   filterDivider: {
     width: 1,
-    height: 24,
+    height: isSmallScreen ? 20 : 24,
     backgroundColor: colors.border.default,
     alignSelf: 'center',
   },
@@ -731,15 +764,15 @@ const createLocalStyles = (colors: any) => StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
-    gap: 16,
+    padding: isSmallScreen ? 12 : 20,
+    gap: isSmallScreen ? 12 : 16,
   },
 
   // Card
   card: {
     backgroundColor: colors.background.primary,
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: isSmallScreen ? 12 : 16,
+    padding: isSmallScreen ? 16 : 20,
     shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -761,37 +794,43 @@ const createLocalStyles = (colors: any) => StyleSheet.create({
     borderBottomLeftRadius: 16,
   },
   cardHeader: {
-    flexDirection: 'row',
+    flexDirection: isVerySmallScreen ? 'column' : 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    alignItems: isVerySmallScreen ? 'flex-start' : 'center',
+    marginBottom: isSmallScreen ? 8 : 12,
+    gap: isVerySmallScreen ? 8 : 0,
   },
   cardHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: isSmallScreen ? 8 : 10,
+    flex: 1,
+    minWidth: 0,
   },
   cardIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: isSmallScreen ? 32 : 36,
+    height: isSmallScreen ? 32 : 36,
+    borderRadius: isSmallScreen ? 8 : 10,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   categoryBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: isSmallScreen ? 8 : 10,
+    paddingVertical: isSmallScreen ? 3 : 4,
     borderRadius: 6,
+    flexShrink: 1,
   },
   categoryText: {
-    fontSize: 10,
+    fontSize: isSmallScreen ? 9 : 10,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   cardHeaderRight: {
-    flexDirection: 'row',
+    flexDirection: isVerySmallScreen ? 'column' : 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: isSmallScreen ? 4 : 8,
+    flexShrink: 0,
   },
   newBadge: {
     backgroundColor: colors.accent.secondary,
@@ -806,23 +845,23 @@ const createLocalStyles = (colors: any) => StyleSheet.create({
     letterSpacing: 0.5,
   },
   cardTime: {
-    fontSize: 12,
+    fontSize: isSmallScreen ? 10 : 12,
     color: colors.text.tertiary,
   },
   cardTitle: {
-    fontSize: 17,
+    fontSize: isSmallScreen ? 15 : 17,
     fontWeight: '600',
     color: colors.text.primary,
-    marginBottom: 6,
-    lineHeight: 24,
+    marginBottom: isSmallScreen ? 4 : 6,
+    lineHeight: isSmallScreen ? 20 : 24,
   },
   cardTitleUnread: {
     fontWeight: '700',
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: isSmallScreen ? 13 : 14,
     color: colors.text.secondary,
-    lineHeight: 20,
+    lineHeight: isSmallScreen ? 18 : 20,
     marginBottom: 4,
   },
   progressContainer: {

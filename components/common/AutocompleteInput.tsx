@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { logger } from '@/services/logger';
 import {
   View,
   TextInput,
@@ -52,20 +51,12 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 
   // Filtrar sugerencias basadas en el valor actual
   useEffect(() => {
-    logger.debug(' DEBUG - AutocompleteInput: useEffect triggered');
-    logger.debug(' DEBUG - AutocompleteInput: value:', value);
-    logger.debug(' DEBUG - AutocompleteInput: suggestions.length:', suggestions.length);
-    logger.debug(' DEBUG - AutocompleteInput: Primeros 3 suggestions:', suggestions.slice(0, 3));
-
     if (value && value.length > 0) {
       const filtered = suggestions
         .filter(suggestion =>
           suggestion.toLowerCase().includes(value.toLowerCase())
         )
         .slice(0, 10); // Limitar a 10 sugerencias
-
-      logger.debug(' DEBUG - AutocompleteInput: filtered.length:', filtered.length);
-      logger.debug(' DEBUG - AutocompleteInput: Sugerencias filtradas:', filtered);
 
       setFilteredSuggestions(filtered);
       setIsOpen(filtered.length > 0);
@@ -80,15 +71,12 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   };
 
   const handleSuggestionPress = (suggestion: string) => {
-    logger.debug(' DEBUG - AutocompleteInput: handleSuggestionPress llamado con:', suggestion);
     onChangeText(suggestion);
     setIsOpen(false);
     if (onSelectSuggestion) {
-      logger.debug(' DEBUG - AutocompleteInput: llamando onSelectSuggestion');
       onSelectSuggestion(suggestion);
     }
     if (onSelectionChange) {
-      logger.debug(' DEBUG - AutocompleteInput: llamando onSelectionChange');
       onSelectionChange(suggestion);
     }
   };

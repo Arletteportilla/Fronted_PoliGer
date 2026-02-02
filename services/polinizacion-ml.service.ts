@@ -108,8 +108,6 @@ class PolinizacionMLService {
    */
   async predecir(data: PrediccionMLRequest): Promise<PrediccionMLResponse> {
     try {
-      logger.info('🤖 [ML] Realizando predicción con XGBoost:', data);
-
       // Validar datos antes de enviar
       this.validarDatos(data);
 
@@ -123,8 +121,6 @@ class PolinizacionMLService {
           }
         }
       );
-
-      logger.success(' [ML] Predicción exitosa:', response.data);
 
       return response.data;
 
@@ -149,12 +145,7 @@ class PolinizacionMLService {
    */
   async obtenerInfoModelo(): Promise<ModeloMLInfo> {
     try {
-      logger.info('🤖 [ML] Obteniendo información del modelo');
-
       const response = await api.get<ModeloMLInfo>('ml/model-info/');
-
-      logger.success(' [ML] Información del modelo obtenida:', response.data);
-
       return response.data;
 
     } catch (error: any) {

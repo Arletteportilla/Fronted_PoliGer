@@ -20,6 +20,7 @@ interface AuthContextType {
   permissions: UserPermissions | null;
   hasPermission: (module: string, action: string) => boolean;
   refreshPermissions: () => Promise<void>;
+  refreshUser: () => Promise<boolean>;
   token: string | null;
 }
 
@@ -48,17 +49,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (isLoggingOut) {
       return;
     }
-    
+
     try {
       logger.start(' Iniciando proceso de logout...');
       setIsLoggingOut(true);
-      
+
       // Limpiar estado del usuario INMEDIATAMENTE para evitar llamadas API
       logger.start(' Reseteando estado del usuario...');
       setToken(null);
       setUser(null);
       setPermissions(null);
-      
+
       // Limpiar tokens de almacenamiento seguro
       try {
         const tokenManager = await getTokenManager();
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (tokenError) {
         // Continuar aunque falle la limpieza de tokens
       }
-      
+
       // Marcar en el servicio API que estamos en logout (después de limpiar estado)
       try {
         const setLoggingOut = await getApiService();
@@ -74,8 +75,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (apiError) {
         // Continuar aunque falle
       }
-      
-      
+
+
       // Navegación inmediata sin esperar
       try {
         // Usar push en lugar de replace para asegurar navegación
@@ -101,17 +102,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         }
       }
-      
+
       toast.success('Sesión cerrada exitosamente');
     } catch (error) {
       console.error('❌ Error durante logout:', error);
       toast.error('Error al cerrar sesión');
-      
+
       // Limpiar estado local en caso de error
       setToken(null);
       setUser(null);
       setPermissions(null);
-      
+
       // Fallback de navegación en caso de error
       try {
         router.replace('/login');
@@ -125,7 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Asegurar que siempre se resetee el estado de logout
       logger.start(' Reseteando estado de logout...');
       setIsLoggingOut(false);
-      
+
       // Resetear el flag en el servicio API
       try {
         const setLoggingOut = await getApiService();
@@ -137,13 +138,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Función de logout forzado (sin async, para casos de emergencia)
   const forceLogout = useCallback(() => {
-    
+
     // Limpiar estado inmediatamente
     setToken(null);
     setUser(null);
     setPermissions(null);
     setIsLoggingOut(false);
-    
+
     // Limpiar tokens de forma síncrona si es posible
     try {
       const { tokenManager } = require('@/services/tokenManager');
@@ -152,7 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
     } catch (error) {
     }
-    
+
     // Navegación inmediata con múltiples intentos
     try {
       router.push('/login');
@@ -249,16 +250,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         getTokenManager()
       ]);
       const loginData = await authService.login(username, password);
-      
+
       if (loginData.access && loginData.refresh) {
         await tokenManager.setTokens(loginData.access, loginData.refresh);
         setToken(loginData.access);
-        
+
         const userDataLoaded = await loadUserData();
         if (!userDataLoaded) {
           throw new Error('No se pudieron cargar los datos del usuario');
         }
-        
+
         await loadUserPermissions();
         toast.success('Sesión iniciada exitosamente');
       } else {
@@ -271,13 +272,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setPermissions(null);
 
       const errorMessage = error?.response?.data?.detail ||
-                          error?.message ||
-                          'Error al iniciar sesión';
+        error?.message ||
+        'Error al iniciar sesión';
       toast.error(errorMessage);
       throw error;
     }
   }, [loadUserData, loadUserPermissions, toast]);
-  
+
   const register = useCallback(async (userData: { username: string, email: string, password: string }) => {
     try {
       const authService = await getAuthService();
@@ -285,8 +286,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success('Usuario registrado exitosamente');
     } catch (error: any) {
       const errorMessage = error?.response?.data?.detail ||
-                          error?.message ||
-                          'Error al registrar usuario';
+        error?.message ||
+        'Error al registrar usuario';
       toast.error(errorMessage);
       throw error;
     }
@@ -294,10 +295,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const hasPermission = useCallback((module: string, action: string): boolean => {
     if (!permissions) return false;
-    
+
     const modulePermissions = permissions[module as keyof UserPermissions];
     if (!modulePermissions) return false;
-    
+
     return modulePermissions[action as keyof typeof modulePermissions] === true;
   }, [permissions]);
 

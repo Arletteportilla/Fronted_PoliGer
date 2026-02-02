@@ -42,12 +42,18 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   const [loadingPrediccion, setLoadingPrediccion] = useState(false);
   const prediccionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Estados para autocompletado de códigos
+  // Estados para autocompletado de códigos/especies
   const [codigosDisponibles, setCodigosDisponibles] = useState<Array<{codigo: string, genero: string, especie: string, clima: string}>>([]);
   const [showCodigosMadre, setShowCodigosMadre] = useState(false);
   const [showCodigosPadre, setShowCodigosPadre] = useState(false);
   const [showCodigosNueva, setShowCodigosNueva] = useState(false);
   const [codigosFiltrados, setCodigosFiltrados] = useState<Array<{codigo: string, genero: string, especie: string, clima: string}>>([]);
+
+  // Estados para autocompletado por especie
+  const [showEspeciesMadre, setShowEspeciesMadre] = useState(false);
+  const [showEspeciesPadre, setShowEspeciesPadre] = useState(false);
+  const [showEspeciesNueva, setShowEspeciesNueva] = useState(false);
+  const [especiesFiltradas, setEspeciesFiltradas] = useState<Array<{codigo: string, genero: string, especie: string, clima: string}>>([]);
 
   // Estados para autocompletado de ubicaciones
   const [opcionesViveros, setOpcionesViveros] = useState<string[]>([]);
@@ -222,6 +228,71 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
     }
   };
 
+  // Función para filtrar por especie
+  const filtrarEspecies = (texto: string) => {
+    if (!texto || texto.trim() === '' || !Array.isArray(codigosDisponibles)) {
+      return [];
+    }
+    const textoLower = texto.toLowerCase();
+    return codigosDisponibles.filter(item =>
+      item.especie && item.especie.toLowerCase().includes(textoLower)
+    ).slice(0, 10); // Limitar a 10 resultados
+  };
+
+  // Manejadores para cambiar especie y mostrar sugerencias
+  const handleEspecieMadreChange = (texto: string) => {
+    setForm((f: any) => ({ ...f, madre_especie: texto }));
+    const filtrados = filtrarEspecies(texto);
+    setEspeciesFiltradas(filtrados);
+    setShowEspeciesMadre(filtrados.length > 0 && texto.length >= 2);
+  };
+
+  const handleEspeciePadreChange = (texto: string) => {
+    setForm((f: any) => ({ ...f, padre_especie: texto }));
+    const filtrados = filtrarEspecies(texto);
+    setEspeciesFiltradas(filtrados);
+    setShowEspeciesPadre(filtrados.length > 0 && texto.length >= 2);
+  };
+
+  const handleEspecieNuevaChange = (texto: string) => {
+    setForm((f: any) => ({ ...f, nueva_especie: texto }));
+    const filtrados = filtrarEspecies(texto);
+    setEspeciesFiltradas(filtrados);
+    setShowEspeciesNueva(filtrados.length > 0 && texto.length >= 2);
+  };
+
+  // Función para seleccionar una especie del dropdown (autocompleta género y código)
+  const seleccionarEspecie = (item: {codigo: string, genero: string, especie: string, clima: string}, tipo: 'madre' | 'padre' | 'nueva') => {
+    if (tipo === 'madre') {
+      setForm((f: any) => ({
+        ...f,
+        madre_especie: item.especie,
+        madre_genero: item.genero,
+        madre_codigo: item.codigo,
+        madre_clima: item.clima
+      }));
+      setShowEspeciesMadre(false);
+    } else if (tipo === 'padre') {
+      setForm((f: any) => ({
+        ...f,
+        padre_especie: item.especie,
+        padre_genero: item.genero,
+        padre_codigo: item.codigo,
+        padre_clima: item.clima
+      }));
+      setShowEspeciesPadre(false);
+    } else if (tipo === 'nueva') {
+      setForm((f: any) => ({
+        ...f,
+        nueva_especie: item.especie,
+        nueva_genero: item.genero,
+        nueva_codigo: item.codigo,
+        nueva_clima: item.clima
+      }));
+      setShowEspeciesNueva(false);
+    }
+  };
+
   // Función para buscar información de una planta por código
   const buscarInfoPlanta = async (codigo: string, tipo: 'madre' | 'padre' | 'nueva') => {
     if (!codigo || codigo.trim() === '') return;
@@ -364,8 +435,6 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
           fecha_polinizacion: form.fecha_polinizacion,
         };
 
-        console.log('🌸 PolinizacionForm - Calculando predicción automática con:', formDataPrediccion);
-
         const resultado = await polinizacionPrediccionService.generarPrediccionInicial(formDataPrediccion);
 
         // Adaptar formato de respuesta para el componente PredictionDisplay
@@ -379,7 +448,6 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         };
 
         setPrediccionData(resultadoAdaptado);
-        console.log('✅ Predicción calculada:', resultadoAdaptado);
       } catch (error: any) {
         console.error('❌ Error calculando predicción automática:', error);
         setPrediccionData(null);
@@ -524,7 +592,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
 
               {/* Sección de Plantas - Condicional según tipo de polinización */}
               {form.tipo_polinizacion && (
-                <View style={styles.formSection}>
+                <View style={[styles.formSection, { zIndex: 5000 }]}>
                   <View style={styles.sectionHeader}>
                     <View style={styles.sectionIcon}>
                       <Ionicons name="leaf-outline" size={20} color="#e9ad14" />
@@ -533,90 +601,85 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   </View>
 
                   {/* Planta Madre - Mostrar siempre */}
-                  <View style={styles.sectionContainer}>
+                  <View style={[styles.sectionContainer, { zIndex: 4000, overflow: 'visible' }]}>
                     <Text style={styles.sectionSubtitle}>Planta Madre</Text>
 
-                    <View style={styles.inputRow}>
+                    <View style={[styles.inputRow, { zIndex: 4000 }]}>
                       <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
-                        {renderFormField('Código Madre', (
+                        {renderFormField('Especie Madre', (
                           <View style={styles.autocompleteWrapper}>
                             <View style={styles.inputContainer}>
-                              <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                              <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                               <TextInput
                                 style={styles.modernInput}
-                                value={form.madre_codigo}
-                                onChangeText={handleCodigoMadreChange}
-                                onBlur={() => {
-                                  setTimeout(() => setShowCodigosMadre(false), 200);
-                                  if (form.madre_codigo) {
-                                    buscarInfoPlanta(form.madre_codigo, 'madre');
-                                  }
-                                }}
+                                value={form.madre_especie}
+                                onChangeText={handleEspecieMadreChange}
+                                onBlur={() => setTimeout(() => setShowEspeciesMadre(false), 200)}
                                 onFocus={() => {
-                                  if (form.madre_codigo) {
-                                    const filtrados = filtrarCodigos(form.madre_codigo);
-                                    setCodigosFiltrados(filtrados);
-                                    setShowCodigosMadre(filtrados.length > 0);
+                                  if (form.madre_especie && form.madre_especie.length >= 2) {
+                                    const filtrados = filtrarEspecies(form.madre_especie);
+                                    setEspeciesFiltradas(filtrados);
+                                    setShowEspeciesMadre(filtrados.length > 0);
                                   }
                                 }}
-                                placeholder="Código de la planta madre"
+                                placeholder="Escriba para buscar especie..."
                               />
-                              {buscandoPlanta === 'madre' && (
-                                <Ionicons name="hourglass-outline" size={16} color="#e9ad14" style={styles.loadingIcon} />
-                              )}
                             </View>
-                            {showCodigosMadre && codigosFiltrados.length > 0 && (
+                            {showEspeciesMadre && especiesFiltradas.length > 0 && (
                               <View style={styles.autocompleteDropdown}>
-                                {codigosFiltrados.map((item, index) => (
+                                {especiesFiltradas.map((item, index) => (
                                   <TouchableOpacity
-                                    key={`${item.codigo}-${index}`}
+                                    key={`${item.especie}-${index}`}
                                     style={[
                                       styles.autocompleteOption,
-                                      index === codigosFiltrados.length - 1 && styles.autocompleteOptionLast
+                                      index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
                                     ]}
-                                    onPress={() => {
-                                      seleccionarCodigo(item, 'madre');
-                                      setShowCodigosMadre(false);
-                                    }}
+                                    onPress={() => seleccionarEspecie(item, 'madre')}
                                   >
-                                    <Text style={styles.autocompleteOptionCodigo}>{item.codigo}</Text>
+                                    <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
                                     <Text style={styles.autocompleteOptionDetalle}>
-                                      {item.genero} - {item.especie}
+                                      {item.genero} - {item.codigo}
                                     </Text>
                                   </TouchableOpacity>
                                 ))}
                               </View>
                             )}
                           </View>
-                        ), false)}
+                        ), true)}
                       </View>
 
                       <View style={styles.inputColumn}>
-                        {renderFormField('Género Madre', (
-                          <View style={styles.inputContainer}>
-                            <Ionicons name="flask-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        {renderFormField('Código Madre', (
+                          <View style={[styles.inputContainer, form.madre_codigo ? styles.autoFilledInput : null]}>
+                            <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                             <TextInput
                               style={styles.modernInput}
-                              value={form.madre_genero}
-                              onChangeText={(v: string) => setForm((f: any) => ({ ...f, madre_genero: v }))}
-                              placeholder="Género de la planta madre"
+                              value={form.madre_codigo}
+                              onChangeText={(v: string) => setForm((f: any) => ({ ...f, madre_codigo: v }))}
+                              placeholder="Se autocompleta"
                             />
+                            {form.madre_codigo && (
+                              <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                            )}
                           </View>
                         ), false)}
                       </View>
                     </View>
 
-                    <View style={[styles.inputRow, showCodigosMadre && codigosFiltrados.length > 0 && styles.inputRowWithDropdown]}>
+                    <View style={styles.inputRow}>
                       <View style={styles.inputColumn}>
-                        {renderFormField('Especie Madre', (
-                          <View style={styles.inputContainer}>
-                            <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        {renderFormField('Género Madre', (
+                          <View style={[styles.inputContainer, form.madre_genero ? styles.autoFilledInput : null]}>
+                            <Ionicons name="flask-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                             <TextInput
                               style={styles.modernInput}
-                              value={form.madre_especie}
-                              onChangeText={(v: string) => setForm((f: any) => ({ ...f, madre_especie: v }))}
-                              placeholder="Especie de la planta madre"
+                              value={form.madre_genero}
+                              onChangeText={(v: string) => setForm((f: any) => ({ ...f, madre_genero: v }))}
+                              placeholder="Se autocompleta"
                             />
+                            {form.madre_genero && (
+                              <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                            )}
                           </View>
                         ), false)}
                       </View>
@@ -643,90 +706,85 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
 
                   {/* Planta Padre - Mostrar solo para SIBLING e HIBRIDA */}
                   {(form.tipo_polinizacion === 'SIBLING' || form.tipo_polinizacion === 'HIBRIDA') && (
-                    <View style={styles.sectionContainer}>
+                    <View style={[styles.sectionContainer, { zIndex: 3000, overflow: 'visible' }]}>
                       <Text style={styles.sectionSubtitle}>Planta Padre</Text>
 
-                      <View style={styles.inputRow}>
+                      <View style={[styles.inputRow, { zIndex: 3000 }]}>
                         <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
-                          {renderFormField('Código Padre', (
+                          {renderFormField('Especie Padre', (
                             <View style={styles.autocompleteWrapper}>
                               <View style={styles.inputContainer}>
-                                <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                                <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                                 <TextInput
                                   style={styles.modernInput}
-                                  value={form.padre_codigo}
-                                  onChangeText={handleCodigoPadreChange}
-                                  onBlur={() => {
-                                    setTimeout(() => setShowCodigosPadre(false), 200);
-                                    if (form.padre_codigo) {
-                                      buscarInfoPlanta(form.padre_codigo, 'padre');
-                                    }
-                                  }}
+                                  value={form.padre_especie}
+                                  onChangeText={handleEspeciePadreChange}
+                                  onBlur={() => setTimeout(() => setShowEspeciesPadre(false), 200)}
                                   onFocus={() => {
-                                    if (form.padre_codigo) {
-                                      const filtrados = filtrarCodigos(form.padre_codigo);
-                                      setCodigosFiltrados(filtrados);
-                                      setShowCodigosPadre(filtrados.length > 0);
+                                    if (form.padre_especie && form.padre_especie.length >= 2) {
+                                      const filtrados = filtrarEspecies(form.padre_especie);
+                                      setEspeciesFiltradas(filtrados);
+                                      setShowEspeciesPadre(filtrados.length > 0);
                                     }
                                   }}
-                                  placeholder="Código de la planta padre"
+                                  placeholder="Escriba para buscar especie..."
                                 />
-                                {buscandoPlanta === 'padre' && (
-                                  <Ionicons name="hourglass-outline" size={16} color="#e9ad14" style={styles.loadingIcon} />
-                                )}
                               </View>
-                              {showCodigosPadre && codigosFiltrados.length > 0 && (
+                              {showEspeciesPadre && especiesFiltradas.length > 0 && (
                                 <View style={styles.autocompleteDropdown}>
-                                  {codigosFiltrados.map((item, index) => (
+                                  {especiesFiltradas.map((item, index) => (
                                     <TouchableOpacity
-                                      key={`${item.codigo}-${index}`}
+                                      key={`${item.especie}-${index}`}
                                       style={[
                                         styles.autocompleteOption,
-                                        index === codigosFiltrados.length - 1 && styles.autocompleteOptionLast
+                                        index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
                                       ]}
-                                      onPress={() => {
-                                        seleccionarCodigo(item, 'padre');
-                                        setShowCodigosPadre(false);
-                                      }}
+                                      onPress={() => seleccionarEspecie(item, 'padre')}
                                     >
-                                      <Text style={styles.autocompleteOptionCodigo}>{item.codigo}</Text>
+                                      <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
                                       <Text style={styles.autocompleteOptionDetalle}>
-                                        {item.genero} - {item.especie}
+                                        {item.genero} - {item.codigo}
                                       </Text>
                                     </TouchableOpacity>
                                   ))}
                                 </View>
                               )}
                             </View>
-                          ), false)}
+                          ), true)}
                         </View>
 
                         <View style={styles.inputColumn}>
-                          {renderFormField('Género Padre', (
-                            <View style={styles.inputContainer}>
-                              <Ionicons name="flask-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                          {renderFormField('Código Padre', (
+                            <View style={[styles.inputContainer, form.padre_codigo ? styles.autoFilledInput : null]}>
+                              <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                               <TextInput
                                 style={styles.modernInput}
-                                value={form.padre_genero}
-                                onChangeText={(v: string) => setForm((f: any) => ({ ...f, padre_genero: v }))}
-                                placeholder="Género de la planta padre"
+                                value={form.padre_codigo}
+                                onChangeText={(v: string) => setForm((f: any) => ({ ...f, padre_codigo: v }))}
+                                placeholder="Se autocompleta"
                               />
+                              {form.padre_codigo && (
+                                <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                              )}
                             </View>
                           ), false)}
                         </View>
                       </View>
 
-                      <View style={[styles.inputRow, showCodigosPadre && codigosFiltrados.length > 0 && styles.inputRowWithDropdown]}>
+                      <View style={styles.inputRow}>
                         <View style={styles.inputColumn}>
-                          {renderFormField('Especie Padre', (
-                            <View style={styles.inputContainer}>
-                              <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                          {renderFormField('Género Padre', (
+                            <View style={[styles.inputContainer, form.padre_genero ? styles.autoFilledInput : null]}>
+                              <Ionicons name="flask-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                               <TextInput
                                 style={styles.modernInput}
-                                value={form.padre_especie}
-                                onChangeText={(v: string) => setForm((f: any) => ({ ...f, padre_especie: v }))}
-                                placeholder="Especie de la planta padre"
+                                value={form.padre_genero}
+                                onChangeText={(v: string) => setForm((f: any) => ({ ...f, padre_genero: v }))}
+                                placeholder="Se autocompleta"
                               />
+                              {form.padre_genero && (
+                                <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                              )}
                             </View>
                           ), false)}
                         </View>
@@ -753,61 +811,53 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                   )}
 
                   {/* Nueva Planta - Mostrar siempre */}
-                  <View style={styles.sectionContainer}>
+                  <View style={[styles.sectionContainer, { zIndex: 2000, overflow: 'visible' }]}>
                     <Text style={styles.sectionSubtitle}>
                       Nueva Planta {form.tipo_polinizacion === 'HIBRIDA' ? '(Híbrido)' : '(Autocompletado)'}
                     </Text>
 
-                    <View style={styles.inputRow}>
-                      <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
-                        {renderFormField('Código Nueva Planta', (
+                    <View style={[styles.inputRow, { zIndex: 2000 }]}>
+                      <View style={[styles.inputColumn, form.tipo_polinizacion === 'HIBRIDA' && styles.inputColumnWithAutocomplete]}>
+                        {renderFormField('Especie Nueva Planta', (
                           <View style={styles.autocompleteWrapper}>
-                            <View style={styles.inputContainer}>
-                              <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <View style={[styles.inputContainer, (form.tipo_polinizacion !== 'HIBRIDA' && form.nueva_especie) ? styles.autoFilledInput : null]}>
+                              <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                               <TextInput
                                 style={[
                                   styles.modernInput,
                                   (form.tipo_polinizacion === 'SELF' || form.tipo_polinizacion === 'SIBLING') && styles.inputDisabled
                                 ]}
-                                value={form.nueva_codigo}
-                                onChangeText={form.tipo_polinizacion === 'HIBRIDA' ? handleCodigoNuevaChange : (v: string) => setForm((f: any) => ({ ...f, nueva_codigo: v }))}
-                                onBlur={() => {
-                                  setTimeout(() => setShowCodigosNueva(false), 200);
-                                  if (form.tipo_polinizacion === 'HIBRIDA' && form.nueva_codigo) {
-                                    buscarInfoPlanta(form.nueva_codigo, 'nueva');
-                                  }
-                                }}
+                                value={form.nueva_especie}
+                                onChangeText={form.tipo_polinizacion === 'HIBRIDA' ? handleEspecieNuevaChange : undefined}
+                                onBlur={() => setTimeout(() => setShowEspeciesNueva(false), 200)}
                                 onFocus={() => {
-                                  if (form.tipo_polinizacion === 'HIBRIDA' && form.nueva_codigo) {
-                                    const filtrados = filtrarCodigos(form.nueva_codigo);
-                                    setCodigosFiltrados(filtrados);
-                                    setShowCodigosNueva(filtrados.length > 0);
+                                  if (form.tipo_polinizacion === 'HIBRIDA' && form.nueva_especie && form.nueva_especie.length >= 2) {
+                                    const filtrados = filtrarEspecies(form.nueva_especie);
+                                    setEspeciesFiltradas(filtrados);
+                                    setShowEspeciesNueva(filtrados.length > 0);
                                   }
                                 }}
-                                placeholder="Código de la nueva planta"
+                                placeholder={form.tipo_polinizacion === 'HIBRIDA' ? "Escriba para buscar especie..." : "Autocompletado"}
                                 editable={form.tipo_polinizacion === 'HIBRIDA'}
                               />
-                              {buscandoPlanta === 'nueva' && (
-                                <Ionicons name="hourglass-outline" size={16} color="#e9ad14" style={styles.loadingIcon} />
+                              {form.tipo_polinizacion !== 'HIBRIDA' && form.nueva_especie && (
+                                <Ionicons name="checkmark-circle" size={16} color="#28a745" />
                               )}
                             </View>
-                            {form.tipo_polinizacion === 'HIBRIDA' && showCodigosNueva && codigosFiltrados.length > 0 && (
+                            {form.tipo_polinizacion === 'HIBRIDA' && showEspeciesNueva && especiesFiltradas.length > 0 && (
                               <View style={styles.autocompleteDropdown}>
-                                {codigosFiltrados.map((item, index) => (
+                                {especiesFiltradas.map((item, index) => (
                                   <TouchableOpacity
-                                    key={`${item.codigo}-${index}`}
+                                    key={`${item.especie}-${index}`}
                                     style={[
                                       styles.autocompleteOption,
-                                      index === codigosFiltrados.length - 1 && styles.autocompleteOptionLast
+                                      index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
                                     ]}
-                                    onPress={() => {
-                                      seleccionarCodigo(item, 'nueva');
-                                      setShowCodigosNueva(false);
-                                    }}
+                                    onPress={() => seleccionarEspecie(item, 'nueva')}
                                   >
-                                    <Text style={styles.autocompleteOptionCodigo}>{item.codigo}</Text>
+                                    <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
                                     <Text style={styles.autocompleteOptionDetalle}>
-                                      {item.genero} - {item.especie}
+                                      {item.genero} - {item.codigo}
                                     </Text>
                                   </TouchableOpacity>
                                 ))}
@@ -818,8 +868,31 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       </View>
 
                       <View style={styles.inputColumn}>
+                        {renderFormField('Código Nueva Planta', (
+                          <View style={[styles.inputContainer, form.nueva_codigo ? styles.autoFilledInput : null]}>
+                            <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                            <TextInput
+                              style={[
+                                styles.modernInput,
+                                (form.tipo_polinizacion === 'SELF' || form.tipo_polinizacion === 'SIBLING') && styles.inputDisabled
+                              ]}
+                              value={form.nueva_codigo}
+                              onChangeText={(v: string) => setForm((f: any) => ({ ...f, nueva_codigo: v }))}
+                              placeholder="Se autocompleta"
+                              editable={form.tipo_polinizacion === 'HIBRIDA'}
+                            />
+                            {form.nueva_codigo && (
+                              <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                            )}
+                          </View>
+                        ), false)}
+                      </View>
+                    </View>
+
+                    <View style={styles.inputRow}>
+                      <View style={styles.inputColumn}>
                         {renderFormField('Género Nueva Planta', (
-                          <View style={styles.inputContainer}>
+                          <View style={[styles.inputContainer, form.nueva_genero ? styles.autoFilledInput : null]}>
                             <Ionicons name="flask-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                             <TextInput
                               style={[
@@ -828,29 +901,12 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                               ]}
                               value={form.nueva_genero}
                               onChangeText={(v: string) => setForm((f: any) => ({ ...f, nueva_genero: v }))}
-                              placeholder="Género de la nueva planta"
+                              placeholder="Se autocompleta"
                               editable={form.tipo_polinizacion === 'HIBRIDA'}
                             />
-                          </View>
-                        ), false)}
-                      </View>
-                    </View>
-
-                    <View style={[styles.inputRow, form.tipo_polinizacion === 'HIBRIDA' && showCodigosNueva && codigosFiltrados.length > 0 && styles.inputRowWithDropdown]}>
-                      <View style={styles.inputColumn}>
-                        {renderFormField('Especie Nueva Planta', (
-                          <View style={styles.inputContainer}>
-                            <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
-                            <TextInput
-                              style={[
-                                styles.modernInput,
-                                (form.tipo_polinizacion === 'SELF' || form.tipo_polinizacion === 'SIBLING') && styles.inputDisabled
-                              ]}
-                              value={form.nueva_especie}
-                              onChangeText={(v: string) => setForm((f: any) => ({ ...f, nueva_especie: v }))}
-                              placeholder="Especie de la nueva planta"
-                              editable={form.tipo_polinizacion === 'HIBRIDA'}
-                            />
+                            {form.nueva_genero && (
+                              <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                            )}
                           </View>
                         ), false)}
                       </View>
@@ -882,7 +938,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               )}
 
               {/* Sección de Ubicación y Clima */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 1000 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="location-outline" size={20} color="#e9ad14" />
@@ -1064,7 +1120,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               </View>
 
               {/* Sección de Cantidades */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 500 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="calculator-outline" size={20} color="#e9ad14" />
@@ -1166,7 +1222,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               </View>
 
               {/* Sección de Observaciones */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 400 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="document-text-outline" size={20} color="#e9ad14" />
@@ -1194,7 +1250,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
               </View>
 
               {/* Sección de Predicción ML Automática */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 300 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="analytics-outline" size={20} color="#e9ad14" />

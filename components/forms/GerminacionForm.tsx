@@ -52,18 +52,6 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   const [loadingPrediccion, setLoadingPrediccion] = useState(false);
   const prediccionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // DEBUG: Log códigos y especies disponibles cuando cambian o cuando el modal se abre
-  useEffect(() => {
-    if (visible) {
-      logger.debug(' DEBUG - GerminacionForm: Modal opened');
-      logger.debug(' DEBUG - GerminacionForm: codigosDisponibles recibidos:', codigosDisponibles.length);
-      logger.debug(' DEBUG - GerminacionForm: Primeros 5 códigos:', codigosDisponibles.slice(0, 5));
-      logger.debug(' DEBUG - GerminacionForm: especiesDisponibles recibidas:', especiesDisponibles.length);
-      logger.debug(' DEBUG - GerminacionForm: Primeras 5 especies:', especiesDisponibles.slice(0, 5));
-      logger.debug(' DEBUG - GerminacionForm: handleEspecieSelection definido:', typeof handleEspecieSelection);
-    }
-  }, [visible, codigosDisponibles, especiesDisponibles, handleEspecieSelection]);
-
   // Estado para validación de código único en tiempo real
   const [codigoValidation, setCodigoValidation] = useState<{
     isValidating: boolean;
@@ -161,13 +149,10 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
           clima: form.clima as 'I' | 'IW' | 'IC' | 'W' | 'C',
         };
 
-        logger.info('🔮 GerminacionForm - Calculando predicción automática con:', formDataPrediccion);
-
         const resultado = await germinacionService.calcularPrediccionMejorada(formDataPrediccion);
         setPrediccionData(resultado);
-        logger.success(' Predicción calculada:', resultado);
       } catch (error: any) {
-        logger.error('❌ Error calculando predicción automática:', error);
+        console.error('Error calculando predicción automática:', error);
         setPrediccionData(null);
       } finally {
         setLoadingPrediccion(false);
@@ -218,7 +203,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
       {/* Contenido del formulario */}
             <View style={styles.formContainer}>
               {/* Sección de Fechas y Código */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 1000 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="calendar-outline" size={20} color="#e9ad14" />
@@ -238,16 +223,48 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   </View>
                 </View>
 
+                <View style={[styles.inputRow, { zIndex: 1000 }]}>
+                  <View style={[styles.inputColumn, { zIndex: 1000 }]}>
+                    {renderFormField('Especie/Variedad', (
+                      <AutocompleteInput
+                        value={form.especie_variedad}
+                        onChangeText={(v: string) => setForm((f: any) => ({ ...f, especie_variedad: v }))}
+                        suggestions={especiesDisponibles}
+                        onSelectSuggestion={handleEspecieSelection}
+                        placeholder="Escriba para buscar especie..."
+                      />
+                    ), true)}
+                  </View>
+                </View>
+              </View>
+
+              {/* Sección de Planta */}
+              <View style={[styles.formSection, { zIndex: 900 }]}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionIcon}>
+                    <Ionicons name="leaf-outline" size={20} color="#e9ad14" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Información de la Planta</Text>
+                </View>
+
                 <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
-                    <AutocompleteInput
-                      label="Código"
-                      value={form.codigo}
-                      onChangeText={(text) => setForm((prev: any) => ({ ...prev, codigo: text }))}
-                      suggestions={codigosDisponibles}
-                      onSelectSuggestion={handleCodigoSelection}
-                      placeholder="Ingrese el código"
-                    />
+                    {renderFormField('Código', (
+                      <View style={[styles.inputContainer, form.codigo ? styles.autoFilledInput : null]}>
+                        <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <TextInput
+                          style={styles.modernInput}
+                          value={form.codigo}
+                          onChangeText={(text) => setForm((prev: any) => ({ ...prev, codigo: text }))}
+                          placeholder="Se autocompleta con la especie"
+                        />
+                        {form.codigo && (
+                          <View style={styles.autoFillIndicator}>
+                            <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                          </View>
+                        )}
+                      </View>
+                    ), false)}
 
                     {/* Feedback de validación en tiempo real */}
                     {form.codigo && form.codigo.trim() !== '' && (
@@ -261,10 +278,10 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                           </View>
                         ) : codigoValidation.disponible === true ? (
                           <View style={styles.validationRow}>
-                            <Ionicons 
-                              name={codigoValidation.mensaje.includes('duplicado') ? 'information-circle' : 'checkmark-circle'} 
-                              size={18} 
-                              color={codigoValidation.mensaje.includes('duplicado') ? '#3B82F6' : '#10B981'} 
+                            <Ionicons
+                              name={codigoValidation.mensaje.includes('duplicado') ? 'information-circle' : 'checkmark-circle'}
+                              size={18}
+                              color={codigoValidation.mensaje.includes('duplicado') ? '#3B82F6' : '#10B981'}
                             />
                             <Text style={[
                               styles.validationTextSuccess,
@@ -284,42 +301,23 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                       </View>
                     )}
                   </View>
-                </View>
-              </View>
 
-              {/* Sección de Planta */}
-              <View style={styles.formSection}>
-                <View style={styles.sectionHeader}>
-                  <View style={styles.sectionIcon}>
-                    <Ionicons name="leaf-outline" size={20} color="#e9ad14" />
-                  </View>
-                  <Text style={styles.sectionTitle}>Información de la Planta</Text>
-                </View>
-
-                <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
                     {renderFormField('Género', (
-                      <View style={styles.inputContainer}>
+                      <View style={[styles.inputContainer, form.genero ? styles.autoFilledInput : null]}>
                         <Ionicons name="flower-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.genero}
                           onChangeText={(v: string) => setForm((f: any) => ({ ...f, genero: v }))}
-                          placeholder="Ingrese el género"
+                          placeholder="Se autocompleta con la especie"
                         />
+                        {form.genero && (
+                          <View style={styles.autoFillIndicator}>
+                            <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                          </View>
+                        )}
                       </View>
-                    ), true)}
-                  </View>
-
-                  <View style={styles.inputColumn}>
-                    {renderFormField('Especie/Variedad', (
-                      <AutocompleteInput
-                        value={form.especie_variedad}
-                        onChangeText={(v: string) => setForm((f: any) => ({ ...f, especie_variedad: v }))}
-                        suggestions={especiesDisponibles}
-                        onSelectSuggestion={handleEspecieSelection}
-                        placeholder="Ingrese la especie o variedad"
-                      />
                     ), true)}
                   </View>
                 </View>
@@ -376,7 +374,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
               </View>
 
               {/* Sección de Estados */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 800 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="git-branch-outline" size={20} color="#e9ad14" />
@@ -484,7 +482,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
               </View>
 
               {/* Sección de Cantidades */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 700 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="calculator-outline" size={20} color="#e9ad14" />
@@ -576,7 +574,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
               </View>
 
               {/* Sección de Ubicación */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 600 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="location-outline" size={20} color="#e9ad14" />
@@ -584,8 +582,8 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   <Text style={styles.sectionTitle}>Ubicación</Text>
                 </View>
 
-                <View style={styles.inputRow}>
-                  <View style={styles.inputColumn}>
+                <View style={[styles.inputRow, { zIndex: 600 }]}>
+                  <View style={[styles.inputColumn, { zIndex: 600 }]}>
                     {renderFormField('Percha', (
                       <AutocompleteInput
                         label=""
@@ -654,7 +652,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
               </View>
 
               {/* Sección de Observaciones */}
-              <View style={styles.formSection}>
+              <View style={[styles.formSection, { zIndex: 500 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
                     <Ionicons name="document-text-outline" size={20} color="#e9ad14" />

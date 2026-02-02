@@ -1,7 +1,8 @@
 import React from 'react';
 import { Modal, View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { styles } from '@/utils/Perfil/styles';
+import { createStyles } from '@/utils/Perfil/styles';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { Germinacion } from '@/types/index';
 
 export interface GerminacionDetailsModalProps {
@@ -19,6 +20,9 @@ export function GerminacionDetailsModal({
   onCambiarEtapa,
   onOpenFinalizar
 }: GerminacionDetailsModalProps) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   const handleCambiarEtapa = (id: number, etapa: 'INGRESADO' | 'EN_PROCESO' | 'FINALIZADO') => {
     if (onCambiarEtapa) {
       onCambiarEtapa(id, etapa);
@@ -193,21 +197,21 @@ export function GerminacionDetailsModal({
                       {
                         backgroundColor:
                           germinacion.estado_germinacion === 'FINALIZADO' ? '#D1FAE5' :
-                          germinacion.estado_germinacion === 'EN_PROCESO' ? '#FEF3C7' :
-                          '#E5E7EB'
+                            germinacion.estado_germinacion === 'EN_PROCESO' ? '#FEF3C7' :
+                              '#E5E7EB'
                       }
                     ]}>
                       <Ionicons
                         name={
                           germinacion.estado_germinacion === 'FINALIZADO' ? 'checkmark-circle' :
-                          germinacion.estado_germinacion === 'EN_PROCESO' ? 'time' :
-                          'ellipse'
+                            germinacion.estado_germinacion === 'EN_PROCESO' ? 'time' :
+                              'ellipse'
                         }
                         size={18}
                         color={
                           germinacion.estado_germinacion === 'FINALIZADO' ? '#059669' :
-                          germinacion.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
-                          '#6B7280'
+                            germinacion.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
+                              '#6B7280'
                         }
                       />
                       <Text style={[
@@ -215,13 +219,13 @@ export function GerminacionDetailsModal({
                         {
                           color:
                             germinacion.estado_germinacion === 'FINALIZADO' ? '#059669' :
-                            germinacion.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
-                            '#6B7280'
+                              germinacion.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
+                                '#6B7280'
                         }
                       ]}>
                         {germinacion.estado_germinacion === 'FINALIZADO' ? 'Finalizado' :
-                         germinacion.estado_germinacion === 'EN_PROCESO' ? 'En Proceso' :
-                         'Inicial'}
+                          germinacion.estado_germinacion === 'EN_PROCESO' ? 'En Proceso' :
+                            'Inicial'}
                       </Text>
                     </View>
                   </View>

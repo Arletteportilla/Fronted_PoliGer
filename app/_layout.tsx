@@ -22,8 +22,6 @@ const RootLayoutNav = memo(() => {
   const handleNavigation = useCallback(() => {
     if (isLoading) return;
 
-    logger.debug(' Navigation check:', { token: !!token, currentPath, isLoading });
-
     // Si no hay token, redirigir a login (excepto si ya estamos en login)
     if (!token && currentPath !== 'login' && currentPath !== 'register') {
       logger.info('🚀 Redirecting to login - no token');

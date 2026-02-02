@@ -2,6 +2,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { germinacionService } from '../services/germinacion.service';
+import { polinizacionService } from '../services/polinizacion.service';
 import { validateRequiredFields, getResponsableName } from '../utils/formValidation';
 import { usePagination } from './usePagination';
 import { useToast } from '../contexts/ToastContext';
@@ -135,37 +136,43 @@ export const useGerminaciones = (user: any) => {
   // Handle species selection and auto-complete code and genus
   const handleEspecieSelection = useCallback(async (especieSeleccionada: string) => {
     try {
-
       setForm(prev => ({ ...prev, especie_variedad: especieSeleccionada }));
+
+      // Preparar los campos a autocompletar
+      const updatedFields: any = {
+        especie_variedad: especieSeleccionada,
+      };
 
       // Buscar la germinación por especie para autocompletar código y género
       const germinacion = await germinacionService.getGerminacionByEspecie(especieSeleccionada);
 
       if (germinacion) {
-
-        // Preparar los campos a autocompletar
-        const updatedFields: any = {
-          especie_variedad: especieSeleccionada,
-        };
-
         // Autocompletar código si está disponible
         if (germinacion.codigo) {
           updatedFields.codigo = germinacion.codigo;
         }
 
-        // Autocompletar género si está disponible
+        // Autocompletar género si está disponible en germinaciones
         if (germinacion.genero) {
           updatedFields.genero = germinacion.genero;
         }
-
-        setForm(prev => ({
-          ...prev,
-          ...updatedFields
-        }));
-      } else {
       }
+
+      // Si no se encontró género en germinaciones, buscar en polinizaciones
+      if (!updatedFields.genero) {
+        const resultadoPolinizacion = await polinizacionService.buscarGeneroPorEspecie(especieSeleccionada);
+        if (resultadoPolinizacion.found && resultadoPolinizacion.genero) {
+          updatedFields.genero = resultadoPolinizacion.genero;
+          logger.info(`Genero autocompletado desde polinizaciones: ${resultadoPolinizacion.genero}`);
+        }
+      }
+
+      setForm(prev => ({
+        ...prev,
+        ...updatedFields
+      }));
     } catch (error) {
-      logger.error('❌ Error en handleEspecieSelection:', error);
+      logger.error('Error en handleEspecieSelection:', error);
     }
   }, []);
 

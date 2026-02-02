@@ -110,8 +110,6 @@ export const notificacionesService = {
         ? `notifications/?${params.toString()}`
         : 'notifications/';
 
-      logger.info('🔔 Obteniendo notificaciones con filtros:', filters, '| URL:', url);
-
       const response = await api.get(url);
 
       // El backend puede devolver:
@@ -132,8 +130,6 @@ export const notificacionesService = {
       }
 
       const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
-      logger.success(' Notificaciones obtenidas:', notifications.length);
-
       return notifications;
     } catch (error) {
       logger.error('❌ Error obteniendo notificaciones:', error);
@@ -227,7 +223,6 @@ export const notificacionesService = {
   getEstadisticas: async (): Promise<NotificationStats> => {
     try {
       const response = await api.get('notifications/estadisticas/');
-      logger.success(' Estadísticas obtenidas:', response.data);
       return response.data;
     } catch (error) {
       logger.error('❌ Error obteniendo estadísticas:', error);
@@ -266,7 +261,6 @@ export const notificacionesService = {
       }
 
       const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
-      logger.success('⏰ Recordatorios 5 días obtenidos:', notifications.length);
       return notifications;
     } catch (error) {
       logger.error('❌ Error obteniendo recordatorios 5 días:', error);

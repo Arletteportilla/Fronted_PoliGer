@@ -162,7 +162,7 @@ export const DiagnosticPanel: React.FC = () => {
           <View style={styles.userInfo}>
             <Text style={styles.userInfoText}>Username: {diagnosticInfo.userInfo.username}</Text>
             <Text style={styles.userInfoText}>Email: {diagnosticInfo.userInfo.email}</Text>
-            <Text style={styles.userInfoText}>Name: {diagnosticInfo.userInfo.firstName} {diagnosticInfo.userInfo.lastName}</Text>
+            <Text style={styles.userInfoText}>Name: {(diagnosticInfo.userInfo.firstName || '').trim()} {(diagnosticInfo.userInfo.lastName || '').trim()}</Text>
             <Text style={styles.userInfoText}>Role: {diagnosticInfo.userInfo.role}</Text>
             <Text style={styles.userInfoText}>Active: {diagnosticInfo.userInfo.isActive ? 'Yes' : 'No'}</Text>
             <Text style={styles.userInfoText}>Joined: {new Date(diagnosticInfo.userInfo.dateJoined).toLocaleDateString()}</Text>

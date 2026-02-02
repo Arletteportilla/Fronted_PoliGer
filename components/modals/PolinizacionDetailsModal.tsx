@@ -1,7 +1,8 @@
 import React from 'react';
 import { Modal, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { styles } from '@/utils/Perfil/styles';
+import { createStyles } from '@/utils/Perfil/styles';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { Polinizacion } from '@/types/index';
 
 export interface PolinizacionDetailsModalProps {
@@ -25,6 +26,8 @@ export function PolinizacionDetailsModal({
   polinizacion,
   onClose
 }: PolinizacionDetailsModalProps) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   return (
     <Modal
       visible={visible}
@@ -192,8 +195,8 @@ export function PolinizacionDetailsModal({
                       {polinizacion.fecha_maduracion_predicha
                         ? new Date(polinizacion.fecha_maduracion_predicha).toLocaleDateString('es-ES')
                         : polinizacion.prediccion_fecha_estimada
-                        ? new Date(polinizacion.prediccion_fecha_estimada).toLocaleDateString('es-ES')
-                        : 'N/A'}
+                          ? new Date(polinizacion.prediccion_fecha_estimada).toLocaleDateString('es-ES')
+                          : 'N/A'}
                     </Text>
                   </View>
                   <View style={styles.detailRow}>

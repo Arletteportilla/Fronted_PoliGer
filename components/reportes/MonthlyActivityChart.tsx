@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, LayoutChangeEvent, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, LayoutChangeEvent, TouchableOpacity } from 'react-native';
 import Svg, { Rect, Text as SvgText, Line } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -20,14 +20,41 @@ export const MonthlyActivityChart: React.FC<MonthlyActivityChartProps> = ({
   const chartHeight = 250;
   const padding = { top: 20, right: 20, bottom: 40, left: 40 };
 
-  // Datos de ejemplo si no hay datos
-  const chartData = data.length > 0 ? data.slice(-5) : [
-    { mes: 'AGO', total: 450 },
-    { mes: 'SEP', total: 620 },
-    { mes: 'OCT', total: 850 },
-    { mes: 'NOV', total: 720 },
-    { mes: 'DIC', total: 580 },
-  ];
+  // Función para formatear fecha "YYYY-MM-DD" a nombre de mes abreviado
+  const formatMonthLabel = (dateStr: string | undefined): string => {
+    const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    if (!dateStr) return '';
+    try {
+      // Si ya es un nombre de mes corto, devolverlo
+      if (dateStr.length <= 3) return dateStr;
+
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        return monthNames[date.getMonth()];
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Procesar datos del backend y formatear meses
+  const processedData = data.length > 0
+    ? data.slice(-5).map(item => ({
+        mes: formatMonthLabel(item.mes),
+        total: item.total
+      }))
+    : [
+        { mes: 'AGO', total: 450 },
+        { mes: 'SEP', total: 620 },
+        { mes: 'OCT', total: 850 },
+        { mes: 'NOV', total: 720 },
+        { mes: 'DIC', total: 580 },
+      ];
+
+  const chartData = processedData;
+  const isRealData = data.length > 0;
+  const totalPolinizaciones = chartData.reduce((sum, item) => sum + item.total, 0);
 
   const chartWidth = containerWidth - 40;
   const maxValue = Math.max(...chartData.map(d => d.total), 1000);
@@ -46,7 +73,14 @@ export const MonthlyActivityChart: React.FC<MonthlyActivityChartProps> = ({
   return (
     <View style={styles.container} onLayout={handleLayout} nativeID="activity-chart-container">
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <View>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.subtitle}>
+            {isRealData
+              ? `${totalPolinizaciones.toLocaleString()} polinizaciones (últimos 5 meses)`
+              : 'Datos de ejemplo - Sin datos disponibles'}
+          </Text>
+        </View>
         <TouchableOpacity onPress={handleDownload} style={styles.downloadButton}>
           <Ionicons name="download-outline" size={20} color={themeColors.text.tertiary} />
         </TouchableOpacity>
@@ -143,6 +177,11 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     fontSize: 18,
     fontWeight: '700',
     color: colors.text.primary,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    marginTop: 2,
   },
   chartWrapper: {
     width: '100%',

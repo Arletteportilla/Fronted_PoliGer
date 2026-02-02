@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { createStyles } from '@/utils/Perfil/styles';
@@ -53,6 +52,8 @@ export function PerfilGerminacionesTab({
 }: PerfilGerminacionesTabProps) {
   const router = useRouter();
   const { colors: themeColors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const styles = createStyles(themeColors);
 
   if (loading) {
@@ -141,30 +142,32 @@ export function PerfilGerminacionesTab({
         </View>
       ) : (
         <View style={[styles.tableContainer, { marginHorizontal: 0, marginBottom: 0 }]}>
-          {/* Header de la tabla */}
-          <View style={styles.tableHeader}>
-            <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-              <Text style={styles.headerText}>Código</Text>
+          {/* Header de la tabla - Solo Desktop */}
+          {!isMobile && (
+            <View style={styles.tableHeader}>
+              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                <Text style={styles.headerText}>Código</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 2.5 }]}>
+                <Text style={styles.headerText}>Especie/Variedad</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
+                <Text style={styles.headerText}>Género</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
+                <Text style={styles.headerText}>Fecha Siembra</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                <Text style={styles.headerText}>Fecha Estimada</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
+                <Text style={styles.headerText}>Estado</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                <Text style={styles.headerText}>Acciones</Text>
+              </View>
             </View>
-            <View style={[styles.tableHeaderCell, { flex: 2.5 }]}>
-              <Text style={styles.headerText}>Especie/Variedad</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-              <Text style={styles.headerText}>Género</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-              <Text style={styles.headerText}>Fecha Siembra</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-              <Text style={styles.headerText}>Fecha Estimada</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-              <Text style={styles.headerText}>Estado</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-              <Text style={styles.headerText}>Acciones</Text>
-            </View>
-          </View>
+          )}
 
           {/* Filas de datos */}
           <ScrollView style={{ maxHeight: 500 }}>
@@ -186,6 +189,118 @@ export function PerfilGerminacionesTab({
               const estadoColor = getEstadoColor(estadoActual);
               const isLastRow = index === filteredGerminaciones.length - 1;
 
+              // Renderizado de Carta para Móvil
+              if (isMobile) {
+                return (
+                  <View key={itemKey} style={styles.mobileCard}>
+                    <View style={styles.mobileCardHeader}>
+                      <Text style={styles.mobileCardTitle}>{codigoCompleto}</Text>
+                      <View style={[styles.estadoBadge, { backgroundColor: estadoColor }]}>
+                        <Text style={styles.estadoBadgeText}>{estadoActual}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>Especie:</Text>
+                      <Text style={styles.mobileCardValue}>{especieCompleta}</Text>
+                    </View>
+
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>Género:</Text>
+                      <Text style={styles.mobileCardValue}>{generoCompleto}</Text>
+                    </View>
+
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>F. Siembra:</Text>
+                      <Text style={styles.mobileCardValue}>{fechaSiembra}</Text>
+                    </View>
+
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>Predicción:</Text>
+                      <View style={{ flex: 1.5, alignItems: 'flex-end' }}>
+                        {fechaEstimadaValue ? (
+                          <View>
+                            <Text style={[styles.fechaText, { fontSize: 13, textAlign: 'right' }]}>
+                              {fechaEstimada}
+                            </Text>
+                            {(() => {
+                              const hoy = new Date();
+                              hoy.setHours(0, 0, 0, 0);
+                              const fechaEst = new Date(fechaEstimadaValue);
+                              fechaEst.setHours(0, 0, 0, 0);
+                              const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+
+                              return diasFaltantes > 0 ? (
+                                <Text style={{ fontSize: 11, color: '#F59E0B', fontWeight: '600', textAlign: 'right' }}>
+                                  {diasFaltantes}d restantes
+                                </Text>
+                              ) : diasFaltantes === 0 ? (
+                                <Text style={{ fontSize: 11, color: '#10B981', fontWeight: '600', textAlign: 'right' }}>
+                                  Hoy
+                                </Text>
+                              ) : (
+                                <Text style={{ fontSize: 11, color: '#EF4444', fontWeight: '600', textAlign: 'right' }}>
+                                  Vencido
+                                </Text>
+                              );
+                            })()}
+                          </View>
+                        ) : (
+                          <Text style={[styles.fechaText, { fontSize: 12, color: themeColors.text.tertiary, textAlign: 'right' }]}>
+                            Sin predicción
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+
+                    <View style={styles.mobileCardActions}>
+                      <TouchableOpacity
+                        onPress={() => handleViewGerminacion(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="eye-outline" size={20} color="#3B82F6" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleEditGerminacion(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="create-outline" size={20} color="#F59E0B" />
+                      </TouchableOpacity>
+                      {item.etapa_actual !== 'FINALIZADO' && (
+                        <TouchableOpacity
+                          onPress={() => handleOpenChangeStatus(item)}
+                          style={styles.actionIconButton}
+                        >
+                          <Ionicons name="swap-horizontal-outline" size={20} color="#8B5CF6" />
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity
+                        onPress={() => handleDeleteGerminacion(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Barra de progreso por etapas */}
+                    {item.estado_germinacion && (
+                      <View style={{
+                        marginTop: 8,
+                        borderRadius: 12,
+                        paddingVertical: 4
+                      }}>
+                        <EstadoProgressBar
+                          estadoActual={item.estado_germinacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
+                          tipo="germinacion"
+                        />
+                      </View>
+                    )}
+
+                  </View>
+                );
+              }
+
+              // Renderizado de Tabla para Desktop
               return (
                 <View
                   key={itemKey}

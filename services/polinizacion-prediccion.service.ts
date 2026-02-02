@@ -179,8 +179,6 @@ class PolinizacionPrediccionService {
     fecha_polinizacion?: string;
   }): Promise<PrediccionPolinizacionResponse> {
     try {
-      logger.info('🌸 Generando predicción inicial de polinización:', data);
-
       // Usar el endpoint existente: predicciones/polinizacion/
       const response = await api.post('predicciones/polinizacion/', data, {
         timeout: 30000, // 30 segundos
@@ -188,8 +186,6 @@ class PolinizacionPrediccionService {
           'Content-Type': 'application/json'
         }
       });
-
-      logger.success(' Predicción generada exitosamente:', response.data);
 
       // El endpoint existente devuelve la predicción directamente
       // Adaptamos la respuesta al formato esperado
@@ -253,8 +249,6 @@ class PolinizacionPrediccionService {
    */
   async refinarPrediccion(data: PrediccionPolinizacionRequest): Promise<PrediccionPolinizacionResponse> {
     try {
-      logger.info('🌸 Refinando predicción de polinización:', data);
-      
       // Configurar timeout específico para refinamiento (25 segundos)
       const response = await api.post('predicciones/polinizacion/refinar/', data, {
         timeout: 25000,
@@ -264,7 +258,6 @@ class PolinizacionPrediccionService {
       });
       
       if (response.data.success) {
-        logger.success(' Predicción refinada exitosamente');
         return response.data.prediccion;
       } else {
         throw new Error(response.data.error || 'Error desconocido en refinamiento');
@@ -309,8 +302,6 @@ class PolinizacionPrediccionService {
     fechaMaduracionReal: string
   ): Promise<ValidacionPrediccionResponse> {
     try {
-      logger.info('🌸 Validando predicción de polinización');
-      
       const data = {
         prediccion_original: prediccionOriginal,
         fecha_maduracion_real: fechaMaduracionReal
@@ -319,7 +310,6 @@ class PolinizacionPrediccionService {
       const response = await api.post('predicciones/polinizacion/validar/', data);
       
       if (response.data.success) {
-        logger.success(' Predicción validada exitosamente');
         return response.data.validacion;
       } else {
         throw new Error(response.data.error || 'Error desconocido en validación');
@@ -348,8 +338,6 @@ class PolinizacionPrediccionService {
     limit?: number;
   }): Promise<HistorialPrediccionesResponse> {
     try {
-      logger.info('🌸 Obteniendo historial de predicciones:', filtros);
-      
       const params = new URLSearchParams();
       if (filtros?.especie) params.append('especie', filtros.especie);
       if (filtros?.fecha_desde) params.append('fecha_desde', filtros.fecha_desde);
@@ -359,7 +347,6 @@ class PolinizacionPrediccionService {
       const response = await api.get(`predicciones/polinizacion/historial/?${params.toString()}`);
       
       if (response.data.success) {
-        logger.success(' Historial obtenido exitosamente');
         return response.data.historial;
       } else {
         throw new Error(response.data.error || 'Error desconocido obteniendo historial');
@@ -383,8 +370,6 @@ class PolinizacionPrediccionService {
    */
   async obtenerEstadisticas(): Promise<EstadisticasPredicciones> {
     try {
-      logger.info('🌸 Obteniendo estadísticas de predicciones de polinización');
-      
       // Por ahora retornamos estadísticas simuladas
       // En una implementación completa, esto haría una llamada al backend
       const estadisticasSimuladas: EstadisticasPredicciones = {
@@ -423,9 +408,8 @@ class PolinizacionPrediccionService {
         ultima_actualizacion: new Date().toISOString()
       };
       
-      logger.success(' Estadísticas obtenidas exitosamente');
       return estadisticasSimuladas;
-      
+
     } catch (error: any) {
       logger.error('❌ Error obteniendo estadísticas de predicciones:', error);
       throw new Error('Error inesperado al obtener estadísticas');

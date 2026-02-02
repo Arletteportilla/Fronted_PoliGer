@@ -80,11 +80,7 @@ export function PrediccionMLPolinizacion({
 
       lastRequestRef.current = requestSignature;
 
-      logger.info('🤖 Solicitando predicción ML automática:', requestData);
-
       const resultado = await polinizacionMLService.predecir(requestData);
-
-      logger.success(' Predicción ML recibida:', resultado);
 
       setPrediccion(resultado);
 

@@ -58,23 +58,10 @@ export default function GerminacionesScreen() {
 
   // Initialize data loading
   useEffect(() => {
-    console.log('🔍 DEBUG - germinaciones.tsx useEffect fired, user:', user ? 'EXISTS' : 'NULL');
-    console.log('🔍 DEBUG - germinacionesHook:', germinacionesHook);
-    console.log('🔍 DEBUG - loadCodigosDisponibles exists:', !!germinacionesHook.loadCodigosDisponibles);
-
     if (user) {
-      console.log('🔍 DEBUG - About to call loadCodigosDisponibles');
       germinacionesHook.loadCodigosDisponibles();
-
-      console.log('🔍 DEBUG - About to call loadCodigosConEspecies');
       germinacionesHook.loadCodigosConEspecies();
-
-      console.log('🔍 DEBUG - About to call loadPerchasDisponibles');
       germinacionesHook.loadPerchasDisponibles();
-
-      console.log('✅ DEBUG - All load functions called');
-    } else {
-      console.log('⚠️ DEBUG - User is null, skipping data loading');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -334,50 +321,22 @@ export default function GerminacionesScreen() {
         />
         </ScrollView>
 
-        {/* Form Modal - Popup Centrado */}
-        <Modal
+        {/* Form Modal - Panel Lateral Derecho */}
+        <GerminacionForm
           visible={showForm}
-          animationType="fade"
-          transparent={true}
-          onRequestClose={() => setShowForm(false)}
-        >
-          <View style={styles.formModalOverlay}>
-            <View style={styles.formModalContent}>
-              {/* Header del Modal */}
-              <View style={styles.formModalHeader}>
-                <View>
-                  <Text style={styles.formModalTitle}>Nueva Germinación</Text>
-                  <Text style={styles.formModalSubtitle}>Completa los datos del formulario</Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.formModalCloseButton}
-                  onPress={() => setShowForm(false)}
-                >
-                  <Ionicons name="close" size={24} color={themeColors.text.secondary} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Formulario */}
-              <ScrollView style={styles.formModalScrollView}>
-                <GerminacionForm
-                  visible={true}
-                  onClose={() => setShowForm(false)}
-                  form={germinacionesHook.form}
-                  setForm={germinacionesHook.setForm}
-                  onSubmit={handleSubmit}
-                  saving={saving}
-                  codigosDisponibles={germinacionesHook.codigosDisponibles}
-                  especiesDisponibles={germinacionesHook.especiesDisponibles}
-                  perchasDisponibles={germinacionesHook.perchasDisponibles}
-                  nivelesDisponibles={germinacionesHook.nivelesDisponibles}
-                  handleCodigoSelection={germinacionesHook.handleCodigoSelection}
-                  handleEspecieSelection={germinacionesHook.handleEspecieSelection}
-                  useOwnModal={false}
-                />
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
+          onClose={() => setShowForm(false)}
+          form={germinacionesHook.form}
+          setForm={germinacionesHook.setForm}
+          onSubmit={handleSubmit}
+          saving={saving}
+          codigosDisponibles={germinacionesHook.codigosDisponibles}
+          especiesDisponibles={germinacionesHook.especiesDisponibles}
+          perchasDisponibles={germinacionesHook.perchasDisponibles}
+          nivelesDisponibles={germinacionesHook.nivelesDisponibles}
+          handleCodigoSelection={germinacionesHook.handleCodigoSelection}
+          handleEspecieSelection={germinacionesHook.handleEspecieSelection}
+          useOwnModal={true}
+        />
 
         {/* Prediction Modal */}
         <PrediccionMejoradaModal

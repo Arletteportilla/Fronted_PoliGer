@@ -756,5 +756,29 @@ export const polinizacionService = {
 
       throw new Error('No se pudieron generar las predicciones.');
     }
+  },
+
+  /**
+   * Busca el género correspondiente a una especie en las polinizaciones
+   * Útil para autocompletar el género en formularios de germinación
+   */
+  buscarGeneroPorEspecie: async (especie: string): Promise<{ found: boolean; genero: string | null }> => {
+    try {
+      if (!especie || especie.trim() === '') {
+        return { found: false, genero: null };
+      }
+
+      const response = await api.get('polinizaciones/buscar-genero-por-especie/', {
+        params: { especie: especie.trim() }
+      });
+
+      return {
+        found: response.data.found || false,
+        genero: response.data.genero || null
+      };
+    } catch (error: any) {
+      logger.error('Error buscando genero por especie:', error);
+      return { found: false, genero: null };
+    }
   }
 };

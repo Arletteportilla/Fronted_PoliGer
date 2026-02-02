@@ -192,7 +192,7 @@ export default function HomeScreen() {
           id: `pol-${pol.numero || pol.id}`,
           type: 'polinizacion',
           title: pol.codigo || `Polinización ${pol.numero || pol.id}`,
-          subtitle: `${pol.nueva_planta_genero || pol.planta_madre_genero || ''} ${pol.nueva_planta_especie || pol.planta_madre_especie || ''}`.trim() || 'Sin especie',
+          subtitle: `${pol.genero || pol.nueva_planta_genero || pol.planta_madre_genero || ''} ${pol.especie || pol.nueva_planta_especie || pol.planta_madre_especie || ''}`.trim() || 'Sin especie',
           status: getPolinizacionStatusLabel(pol),
           statusColor: getPolinizacionStatusColor(pol),
           progress,
@@ -224,8 +224,6 @@ export default function HomeScreen() {
       // Obtener estadísticas reales de germinaciones desde el backend
       const estadisticasResponse = await germinacionService.getFilterOptions();
 
-      console.log('📊 Home - Estadísticas recibidas:', estadisticasResponse);
-
       // Las estadísticas vienen en el formato: { total, por_estado: { CERRADA, ABIERTA, SEMIABIERTA } }
       const germinacionCounts = {
         ingresado: estadisticasResponse?.estadisticas?.por_estado?.SEMIABIERTA || 0,
@@ -234,7 +232,6 @@ export default function HomeScreen() {
         total: estadisticasResponse?.estadisticas?.total || 0
       };
 
-      console.log('📊 Home - Contadores de germinación:', germinacionCounts);
       setGerminacionStats(germinacionCounts);
 
       // Obtener datos de polinizaciones
@@ -253,8 +250,6 @@ export default function HomeScreen() {
       const totalPol = totalPolinizaciones.status === 'fulfilled'
         ? totalPolinizaciones.value
         : 0;
-
-      console.log(`✅ Datos cargados: ${germinacionesRecientes.length} germinaciones recientes, ${polinizaciones.length} polinizaciones (total: ${totalPol})`);
 
       // Calcular estadísticas de polinizaciones
       const polinizacionCounts = calculatePolinizacionStats(polinizaciones);
@@ -637,22 +632,6 @@ export default function HomeScreen() {
                   </View>
                 </View>
 
-                {/* Resumen de totales */}
-                <View style={styles.chartSummary}>
-                  <View style={styles.summaryBox}>
-                    <Text style={styles.summaryLabel}>Total Germinaciones</Text>
-                    <Text style={[styles.summaryValue, { color: themeColors.status.warning }]}>
-                      {chartData.germinacionesData.reduce((a, b) => a + b, 0)}
-                    </Text>
-                  </View>
-                  <View style={styles.summaryDivider} />
-                  <View style={styles.summaryBox}>
-                    <Text style={styles.summaryLabel}>Total Polinizaciones</Text>
-                    <Text style={[styles.summaryValue, { color: themeColors.accent.primary }]}>
-                      {chartData.polinizacionesData.reduce((a, b) => a + b, 0)}
-                    </Text>
-                  </View>
-                </View>
               </View>
               
               {/* Estadísticas del sistema */}
@@ -668,7 +647,7 @@ export default function HomeScreen() {
 
               <View style={styles.activityList}>
                 {/* Mostrar las últimas polinizaciones y germinaciones */}
-                {itemCards.slice(0, 4).map((item, index) => {
+                {itemCards.slice(0, 5).map((item, index) => {
                   const isGerminacion = item.type === 'germinacion';
                   const timeAgo = formatTimeAgo(item.date);
                   

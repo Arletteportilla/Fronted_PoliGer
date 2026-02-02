@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { createStyles } from '@/utils/Perfil/styles';
@@ -51,6 +51,8 @@ export function PerfilPolinizacionesTab({
 }: PerfilPolinizacionesTabProps) {
   const router = useRouter();
   const { colors: themeColors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const styles = createStyles(themeColors);
 
   if (loading) {
@@ -139,54 +141,39 @@ export function PerfilPolinizacionesTab({
         </View>
       ) : (
         <View style={[styles.tableContainer, { marginHorizontal: 0, marginBottom: 0 }]}>
-          {/* Header de la tabla */}
-          <View style={styles.tableHeader}>
-            <View style={[styles.tableHeaderCell, { flex: 0.8 }]}>
-              <Text style={styles.headerText}>Tipo</Text>
+          {/* Header de la tabla - Solo mostrar en desktop */}
+          {!isMobile && (
+            <View style={styles.tableHeader}>
+              <View style={[styles.tableHeaderCell, { flex: 0.8 }]}>
+                <Text style={styles.headerText}>Tipo</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                <Text style={styles.headerText}>Código</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 2 }]}>
+                <Text style={styles.headerText}>Especie</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
+                <Text style={styles.headerText}>Género</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
+                <Text style={styles.headerText}>Fecha Pol.</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                <Text style={styles.headerText}>Fecha Est.</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1 }]}>
+                <Text style={styles.headerText}>Estado</Text>
+              </View>
+              <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                <Text style={styles.headerText}>Acciones</Text>
+              </View>
             </View>
-            <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-              <Text style={styles.headerText}>Código</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 2 }]}>
-              <Text style={styles.headerText}>Especie</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-              <Text style={styles.headerText}>Género</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-              <Text style={styles.headerText}>Fecha Pol.</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-              <Text style={styles.headerText}>Fecha Est.</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-              <Text style={styles.headerText}>Estado</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-              <Text style={styles.headerText}>Acciones</Text>
-            </View>
-          </View>
+          )}
 
           {/* Filas de datos */}
           <ScrollView style={{ maxHeight: 500 }}>
             {filteredPolinizaciones.map((item, index) => {
-              // Debug: Log de datos de predicción
-              if (index === 0) {
-                logger.debug(' Datos de predicción en primera polinización:', {
-                  numero: item.numero,
-                  codigo: item.codigo,
-                  fecha_maduracion_predicha: item.fecha_maduracion_predicha,
-                  prediccion_fecha_estimada: item.prediccion_fecha_estimada,
-                  metodo_prediccion: item.metodo_prediccion,
-                  confianza_prediccion: item.confianza_prediccion,
-                  dias_maduracion_predichos: item.dias_maduracion_predichos
-                });
-                
-                // Log adicional para debugging
-                logger.debug(' Todas las propiedades del item:', Object.keys(item));
-                logger.debug(' Item completo:', item);
-              }
-              
               // Construir especie completa
               const especieCompleta = item.nueva_planta_especie || item.especie || item.madre_especie || 'Sin especie';
               const generoCompleto = item.nueva_planta_genero || item.genero || item.madre_genero || 'Sin género';
@@ -195,8 +182,8 @@ export function PerfilPolinizacionesTab({
                 ? new Date(item.fechapol).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
                 : 'Sin fecha';
               const estadoActual = item.fechamad ? 'Completado' :
-                             (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) ? 'En Proceso' :
-                             'Ingresado';
+                (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) ? 'En Proceso' :
+                  'Ingresado';
 
               const tipo = item.tipo_polinizacion || item.tipo || 'SELF';
               const itemKey = item.numero?.toString() || item.id?.toString() || `pol-${index}`;
@@ -204,6 +191,128 @@ export function PerfilPolinizacionesTab({
               const estadoColor = getEstadoColor(estadoActual);
               const isLastRow = index === filteredPolinizaciones.length - 1;
 
+              // Renderizado de Carta para Móvil
+              if (isMobile) {
+                return (
+                  <View key={itemKey} style={styles.mobileCard}>
+                    <View style={styles.mobileCardHeader}>
+                      <View style={[styles.mobileCardBadge, { backgroundColor: tipoColor }]}>
+                        <Text style={styles.mobileCardBadgeText}>{tipo}</Text>
+                      </View>
+                      <View style={[styles.estadoBadge, { backgroundColor: estadoColor, alignSelf: 'flex-start' }]}>
+                        <Text style={styles.estadoBadgeText}>{estadoActual}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>Código:</Text>
+                      <Text style={styles.mobileCardValue}>{codigoCompleto}</Text>
+                    </View>
+
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>Especie:</Text>
+                      <Text style={styles.mobileCardValue}>{especieCompleta}</Text>
+                    </View>
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>Género:</Text>
+                      <Text style={styles.mobileCardValue}>{generoCompleto}</Text>
+                    </View>
+
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>Fecha Pol:</Text>
+                      <Text style={styles.mobileCardValue}>{fechaFormateada}</Text>
+                    </View>
+
+                    <View style={styles.mobileCardRow}>
+                      <Text style={styles.mobileCardLabel}>Predicción:</Text>
+                      <View style={{ flex: 1.5, alignItems: 'flex-end' }}>
+                        {(() => {
+                          // Buscar fecha de predicción (ML o legacy)
+                          const fechaPrediccion = item.fecha_maduracion_predicha || item.prediccion_fecha_estimada;
+
+                          if (fechaPrediccion) {
+                            const fechaFormateada = new Date(fechaPrediccion).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            });
+
+                            // Calcular días restantes
+                            const hoy = new Date();
+                            hoy.setHours(0, 0, 0, 0);
+                            const fechaEst = new Date(fechaPrediccion);
+                            fechaEst.setHours(0, 0, 0, 0);
+                            const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+
+                            return (
+                              <View style={{ alignItems: 'flex-end' }}>
+                                <Text style={[styles.fechaText, { fontSize: 13, textAlign: 'right' }]}>
+                                  {fechaFormateada}
+                                </Text>
+                                {diasFaltantes > 0 ? (
+                                  <Text style={{ fontSize: 11, color: '#F59E0B', fontWeight: '600' }}>
+                                    {diasFaltantes}d restantes
+                                  </Text>
+                                ) : diasFaltantes === 0 ? (
+                                  <Text style={{ fontSize: 11, color: '#10B981', fontWeight: '600' }}>
+                                    Hoy
+                                  </Text>
+                                ) : (
+                                  <Text style={{ fontSize: 11, color: '#EF4444', fontWeight: '600' }}>
+                                    Vencido
+                                  </Text>
+                                )}
+                              </View>
+                            );
+                          } else {
+                            return (
+                              <Text style={[styles.fechaText, { fontSize: 12, color: themeColors.text.tertiary }]}>
+                                Sin predicción
+                              </Text>
+                            );
+                          }
+                        })()}
+                      </View>
+                    </View>
+
+                    <View style={styles.mobileCardActions}>
+                      <TouchableOpacity
+                        onPress={() => handleViewPolinizacion(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="eye-outline" size={20} color="#3B82F6" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleEditPolinizacion(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="create-outline" size={20} color="#F59E0B" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleDeletePolinizacion(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                    {/* Barra de progreso por etapas */}
+                    {item.estado_polinizacion && (
+                      <View style={{
+                        marginTop: 8,
+                        borderRadius: 12,
+                        paddingVertical: 4
+                      }}>
+                        <EstadoProgressBar
+                          estadoActual={item.estado_polinizacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
+                          tipo="polinizacion"
+                        />
+                      </View>
+                    )}
+                  </View>
+                );
+              }
+
+              // Renderizado de Tabla para Desktop (mantiene el código original)
               return (
                 <View
                   key={itemKey}
@@ -241,21 +350,21 @@ export function PerfilPolinizacionesTab({
                       {(() => {
                         // Buscar fecha de predicción (ML o legacy)
                         const fechaPrediccion = item.fecha_maduracion_predicha || item.prediccion_fecha_estimada;
-                        
+
                         if (fechaPrediccion) {
                           const fechaFormateada = new Date(fechaPrediccion).toLocaleDateString('es-ES', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric'
                           });
-                          
+
                           // Calcular días restantes
                           const hoy = new Date();
                           hoy.setHours(0, 0, 0, 0);
                           const fechaEst = new Date(fechaPrediccion);
                           fechaEst.setHours(0, 0, 0, 0);
                           const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-                          
+
                           return (
                             <View>
                               <Text style={[styles.fechaText, { fontSize: 11 }]}>
@@ -276,8 +385,8 @@ export function PerfilPolinizacionesTab({
                               )}
                               {/* Mostrar tipo de predicción */}
                               <Text style={{ fontSize: 8, color: themeColors.text.tertiary, fontStyle: 'italic' }}>
-                                {item.metodo_prediccion === 'ejemplo_automatico' ? 'Ejemplo' : 
-                                 item.fecha_maduracion_predicha ? 'ML' : 'Legacy'}
+                                {(item.metodo_prediccion as any) === 'ejemplo_automatico' ? 'Ejemplo' :
+                                  item.fecha_maduracion_predicha ? 'ML' : 'Legacy'}
                               </Text>
                             </View>
                           );

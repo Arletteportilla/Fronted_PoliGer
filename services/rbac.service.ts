@@ -46,46 +46,31 @@ class RBACService {
   
   async getAllUsers(): Promise<UserWithProfile[]> {
     try {
-      logger.api(' Fetching all users from backend...');
       const response = await api.get('user-management/');
-      logger.info('📊 Response received:', {
-        status: response.status,
-        dataType: typeof response.data,
-        isArray: Array.isArray(response.data),
-        hasResults: response.data?.results ? true : false,
-        totalCount: response.data?.count || 'N/A'
-      });
-      
+
       let users: UserWithProfile[] = [];
-      
+
       // Manejar respuesta paginada
       if (response.data && typeof response.data === 'object') {
         if (Array.isArray(response.data)) {
           // Respuesta directa como array
           users = response.data;
-          logger.success(' Direct array response with', users.length, 'users');
         } else if (response.data.results && Array.isArray(response.data.results)) {
           // Respuesta paginada con results
           users = response.data.results;
-          logger.success(' Paginated response with', users.length, 'users');
-          logger.info('📊 Total users in database:', response.data.count || 'unknown');
-          
+
           // Si hay más páginas, obtener todas
           if (response.data.count && response.data.count > users.length) {
-            logger.info('📄 Multiple pages detected, fetching all users...');
             const allUsers = await this.getAllUsersPaginated();
             return allUsers;
           }
         } else {
-          logger.warn('⚠️ Unexpected response structure:', Object.keys(response.data));
           users = [];
         }
       } else {
-        logger.warn('⚠️ Invalid response data type:', typeof response.data);
         users = [];
       }
-      
-      logger.info('👥 Final users array:', users.length, 'users');
+
       return users;
       
     } catch (error: any) {
@@ -104,36 +89,30 @@ class RBACService {
    */
   private async getAllUsersPaginated(): Promise<UserWithProfile[]> {
     try {
-      logger.info('📄 Fetching all users with pagination...');
       let allUsers: UserWithProfile[] = [];
       let nextUrl = 'user-management/';
       let page = 1;
-      
+
       while (nextUrl) {
-        logger.info(`📄 Fetching page ${page}...`);
         const response = await api.get(nextUrl);
-        
+
         if (response.data?.results && Array.isArray(response.data.results)) {
           allUsers = [...allUsers, ...response.data.results];
-          logger.success(` Page ${page}: ${response.data.results.length} users (total: ${allUsers.length})`);
-          
+
           // Verificar si hay siguiente página
           // Eliminar la URL base del backend para usar solo el path relativo
           nextUrl = response.data.next ? response.data.next.replace(/^https?:\/\/[^\/]+\/api\//, '') : null;
           page++;
         } else {
-          logger.warn('⚠️ Invalid page response structure');
           break;
         }
-        
+
         // Prevenir bucle infinito
         if (page > 20) {
-          logger.warn('⚠️ Too many pages, stopping pagination');
           break;
         }
       }
-      
-      logger.success(' All users fetched:', allUsers.length, 'total users');
+
       return allUsers;
       
     } catch (error) {
@@ -144,20 +123,10 @@ class RBACService {
   
   async createUser(userData: CreateUserRequest): Promise<UserWithProfile> {
     try {
-      logger.info('🚀 rbacService.createUser - Enviando datos:', userData);
-      logger.info('🌐 URL del endpoint:', 'user-management/');
-      
       const response = await api.post('user-management/', userData);
-      
-      logger.success(' rbacService.createUser - Respuesta exitosa:', response.data);
-      logger.info('📊 Status:', response.status);
-      
       return response.data;
     } catch (error: any) {
       logger.error('❌ rbacService.createUser - Error:', error);
-      logger.error('📊 Error status:', error.response?.status);
-      logger.error('📝 Error data:', error.response?.data);
-      logger.error('🔗 Error config:', error.config);
       throw error;
     }
   }
@@ -170,21 +139,9 @@ class RBACService {
   async deleteUser(userId: number): Promise<void> {
     try {
       const endpoint = `user-management/${userId}/`;
-      logger.info('🌐 rbacService.deleteUser - Endpoint:', endpoint);
-      logger.info('🔑 userId:', userId);
-      logger.api(' Sending DELETE request...');
-
-      const response = await api.delete(endpoint);
-
-      logger.success(' rbacService.deleteUser - Success');
-      logger.info('📊 Response status:', response.status);
-      logger.info('📝 Response data:', response.data);
+      await api.delete(endpoint);
     } catch (error: any) {
       logger.error('❌ rbacService.deleteUser - Error:', error);
-      logger.error('📊 Error status:', error.response?.status);
-      logger.error('📝 Error data:', error.response?.data);
-      logger.error('🔗 Error URL:', error.config?.url);
-      logger.error('🔗 Error method:', error.config?.method);
       throw error;
     }
   }

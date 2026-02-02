@@ -69,11 +69,7 @@ export function PrediccionMLGerminacion({
 
       lastRequestRef.current = requestSignature;
 
-      logger.info('🤖 Solicitando predicción ML automática de germinación:', requestData);
-
       const resultado = await germinacionMLService.predecir(requestData);
-
-      logger.success(' Predicción ML de germinación recibida:', resultado);
 
       setPrediccion(resultado);
 

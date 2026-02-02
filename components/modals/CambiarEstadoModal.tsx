@@ -13,7 +13,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 interface CambiarEstadoModalProps {
   visible: boolean;
   onClose: () => void;
-  onCambiarEstado: (estado: 'INICIAL' | 'EN_PROCESO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO') => void;
+  onCambiarEstado: (estado: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO') => void;
   item: {
     codigo?: string | null;
     nombre?: string | null;
@@ -105,7 +105,7 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
                 <TouchableOpacity
                   style={[styles.stateButton, styles.stateButtonProcess]}
                   onPress={() => {
-                    onCambiarEstado('EN_PROCESO');
+                    onCambiarEstado('EN_PROCESO_TEMPRANO');
                     onClose();
                   }}
                 >

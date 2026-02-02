@@ -106,8 +106,6 @@ class GerminacionMLService {
    */
   async predecir(data: PrediccionGerminacionMLRequest): Promise<PrediccionGerminacionMLResponse> {
     try {
-      logger.info('🤖 [ML Germinación] Realizando predicción con Random Forest:', data);
-
       // Validar datos antes de enviar
       this.validarDatos(data);
 
@@ -121,8 +119,6 @@ class GerminacionMLService {
           }
         }
       );
-
-      logger.success(' [ML Germinación] Predicción exitosa:', response.data);
 
       return response.data;
 
@@ -147,12 +143,7 @@ class GerminacionMLService {
    */
   async obtenerInfoModelo(): Promise<ModeloGerminacionMLInfo> {
     try {
-      logger.info('🤖 [ML Germinación] Obteniendo información del modelo');
-
       const response = await api.get<ModeloGerminacionMLInfo>('ml/germinacion/model-info/');
-
-      logger.success(' [ML Germinación] Información del modelo obtenida:', response.data);
-
       return response.data;
 
     } catch (error: any) {

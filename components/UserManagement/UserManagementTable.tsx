@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Platform } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { UserWithProfile } from '@/types/index';
@@ -68,7 +68,9 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
   currentUser
 }) => {
   const { colors: themeColors } = useTheme();
-  const styles = createStyles(themeColors);
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 768;
+  const styles = useMemo(() => createStyles(themeColors, isSmallScreen), [themeColors, isSmallScreen]);
   const [searchText, setSearchText] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -83,17 +85,17 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
 
   // Filtrar usuarios
   const filteredUsers = usuarios.filter(user => {
-    const matchesSearch = !searchText || 
+    const matchesSearch = !searchText ||
       user.username.toLowerCase().includes(searchText.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchText.toLowerCase()) ||
       `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchText.toLowerCase()) ||
       user.profile?.departamento?.toLowerCase().includes(searchText.toLowerCase());
-    
+
     const matchesRole = filterRole === 'all' || user.profile?.rol === filterRole;
-    const matchesStatus = filterStatus === 'all' || 
+    const matchesStatus = filterStatus === 'all' ||
       (filterStatus === 'active' && user.profile?.activo) ||
       (filterStatus === 'inactive' && !user.profile?.activo);
-    
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
@@ -280,7 +282,9 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerTitleContainer}>
-            <Ionicons name="people" size={28} color={themeColors.text.primary} />
+            <View style={styles.iconContainer}>
+              <Ionicons name="people" size={28} color={themeColors.text.primary} />
+            </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.title}>Gestión de Usuarios del Sistema</Text>
               <Text style={styles.subtitle}>Administra usuarios, roles, metas y permisos del laboratorio</Text>
@@ -305,11 +309,11 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
             onChangeText={setSearchText}
           />
         </View>
-        
+
         <View style={styles.filtersRow}>
           {/* Filtro de roles */}
           <View style={styles.filterWrapper}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.filterButton}
               onPress={() => {
                 setShowRoleFilter(!showRoleFilter);
@@ -322,7 +326,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
               </Text>
               <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
             </TouchableOpacity>
-            
+
             {showRoleFilter && (
               <View style={[styles.filterDropdown, styles.filterDropdownLeft]}>
                 <TouchableOpacity
@@ -355,7 +359,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
 
           {/* Filtro de estado */}
           <View style={styles.filterWrapper}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.filterButton}
               onPress={() => {
                 setShowStatusFilter(!showStatusFilter);
@@ -367,7 +371,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
               </Text>
               <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
             </TouchableOpacity>
-            
+
             {showStatusFilter && (
               <View style={[styles.filterDropdown, styles.filterDropdownRight]}>
                 <TouchableOpacity
@@ -457,7 +461,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
           </Text>
         </View>
       ) : (
-        <ScrollView 
+        <ScrollView
           style={styles.cardsContainer}
           contentContainerStyle={styles.cardsContent}
           showsVerticalScrollIndicator={false}
@@ -467,7 +471,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
               const initials = user.first_name && user.last_name
                 ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
                 : user.username.substring(0, 2).toUpperCase();
-              
+
               const avatarColors = [
                 themeColors.accent.tertiary,
                 themeColors.primary.light,
@@ -476,20 +480,20 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                 themeColors.primary.dark
               ];
               const avatarColor = avatarColors[user.id % avatarColors.length];
-              
+
               const roleDisplay = user.profile?.rol_display || getRoleDisplayName(user.profile?.rol || '') || 'Sin rol';
               const isEspecialista = roleDisplay.includes('Especialista');
-              const especialidad = isEspecialista 
+              const especialidad = isEspecialista
                 ? (roleDisplay.includes('Polinización') ? 'Polinización' : 'Germinación')
                 : null;
 
               // Formatear fecha de ingreso
-              const fechaIngreso = user.profile?.fecha_ingreso 
+              const fechaIngreso = user.profile?.fecha_ingreso
                 ? (() => {
-                    const date = new Date(user.profile.fecha_ingreso);
-                    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-                    return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
-                  })()
+                  const date = new Date(user.profile.fecha_ingreso);
+                  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                  return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+                })()
                 : 'N/A';
 
               return (
@@ -516,8 +520,8 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                   {/* Información del usuario */}
                   <View style={styles.cardBody}>
                     <Text style={styles.cardUserName}>
-                      {user.first_name && user.last_name 
-                        ? `${user.first_name} ${user.last_name}` 
+                      {user.first_name && user.last_name
+                        ? `${user.first_name} ${user.last_name}`
                         : user.username}
                     </Text>
                     <Text style={styles.cardUserEmail}>{user.email || 'Sin email'}</Text>
@@ -526,10 +530,10 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                     <View style={styles.cardDetails}>
                       <View style={styles.detailContainer}>
                         <View style={styles.detailRow}>
-                          <Ionicons 
-                            name={isEspecialista ? (especialidad === 'Polinización' ? 'flower-outline' : 'leaf-outline') : 'shield-outline'} 
-                            size={16} 
-                            color={isEspecialista && especialidad === 'Germinación' ? themeColors.module.germinacion.primary : themeColors.text.tertiary} 
+                          <Ionicons
+                            name={isEspecialista ? (especialidad === 'Polinización' ? 'flower-outline' : 'leaf-outline') : 'shield-outline'}
+                            size={16}
+                            color={isEspecialista && especialidad === 'Germinación' ? themeColors.module.germinacion.primary : themeColors.text.tertiary}
                           />
                           <Text style={styles.detailLabel}>
                             {isEspecialista ? 'Especialidad' : 'Rol'}
@@ -580,10 +584,10 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                             style={styles.cardActionButton}
                             onPress={() => onToggleStatus(user)}
                           >
-                            <Ionicons 
-                              name={user.profile?.activo ? "pause-outline" : "play-outline"} 
-                              size={18} 
-                              color={themeColors.text.tertiary} 
+                            <Ionicons
+                              name={user.profile?.activo ? "pause-outline" : "play-outline"}
+                              size={18}
+                              color={themeColors.text.tertiary}
                             />
                           </TouchableOpacity>
                         </TooltipWrapper>
@@ -609,44 +613,44 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                       <TouchableOpacity
                         style={styles.cardActionButton}
                         onPress={() => {
-                        // Mostrar menú con opciones adicionales
-                        const options: any[] = [];
-                        
-                        if (onChangePassword && user.id !== currentUser?.id) {
-                          options.push({
-                            text: 'Cambiar contraseña',
-                            onPress: () => onChangePassword(user),
-                          });
-                        }
-                        
-                        if (onToggleStatus && user.id !== currentUser?.id) {
-                          options.push({
-                            text: user.profile?.activo ? 'Desactivar usuario' : 'Activar usuario',
-                            onPress: () => onToggleStatus(user),
-                          });
-                        }
-                        
-                        if (user.id !== currentUser?.id) {
-                          options.push({
-                            text: 'Eliminar usuario',
-                            style: 'destructive',
-                            onPress: () => handleDeleteUser(user),
-                          });
-                        }
-                        
-                        if (options.length > 0) {
-                          Alert.alert(
-                            user.first_name && user.last_name
-                              ? `${user.first_name} ${user.last_name}`
-                              : user.username,
-                            'Selecciona una opción',
-                            options.concat([{ text: 'Cancelar', style: 'cancel' }])
-                          );
-                        }
-                      }}
-                    >
-                      <Ionicons name="ellipsis-horizontal-outline" size={18} color={themeColors.text.tertiary} />
-                    </TouchableOpacity>
+                          // Mostrar menú con opciones adicionales
+                          const options: any[] = [];
+
+                          if (onChangePassword && user.id !== currentUser?.id) {
+                            options.push({
+                              text: 'Cambiar contraseña',
+                              onPress: () => onChangePassword(user),
+                            });
+                          }
+
+                          if (onToggleStatus && user.id !== currentUser?.id) {
+                            options.push({
+                              text: user.profile?.activo ? 'Desactivar usuario' : 'Activar usuario',
+                              onPress: () => onToggleStatus(user),
+                            });
+                          }
+
+                          if (user.id !== currentUser?.id) {
+                            options.push({
+                              text: 'Eliminar usuario',
+                              style: 'destructive',
+                              onPress: () => handleDeleteUser(user),
+                            });
+                          }
+
+                          if (options.length > 0) {
+                            Alert.alert(
+                              user.first_name && user.last_name
+                                ? `${user.first_name} ${user.last_name}`
+                                : user.username,
+                              'Selecciona una opción',
+                              options.concat([{ text: 'Cancelar', style: 'cancel' }])
+                            );
+                          }
+                        }}
+                      >
+                        <Ionicons name="ellipsis-horizontal-outline" size={18} color={themeColors.text.tertiary} />
+                      </TouchableOpacity>
                     </TooltipWrapper>
                   </View>
                 </View>
@@ -666,7 +670,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
   );
 };
 
-const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>, isSmallScreen: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.secondary,
@@ -690,20 +694,31 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderBottomColor: colors.border.default,
   },
   headerContent: {
-    flexDirection: 'row',
+    flexDirection: isSmallScreen ? 'column' : 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: isSmallScreen ? 'flex-start' : 'center',
+    gap: isSmallScreen ? 8 : 0,
   },
   headerTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    flex: isSmallScreen ? 0 : 1,
+    width: isSmallScreen ? '100%' : 'auto',
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: colors.background.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTextContainer: {
     marginLeft: 12,
+    flex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: isSmallScreen ? 20 : 24,
     fontWeight: '700',
     color: colors.text.primary,
     marginBottom: 4,
@@ -715,11 +730,13 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.primary.main,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
+    width: isSmallScreen ? '100%' : 'auto',
   },
   createButtonText: {
     color: colors.text.inverse,
