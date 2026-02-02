@@ -184,8 +184,17 @@ export function PerfilNotificacionesTab({
       } else if (tipoFilter === 'germinaciones') {
         if (!notification.germinacion) return false;
       } else if (tipoFilter === 'sistema') {
-        // Sistema = notificaciones que no son de polinizaciones ni germinaciones
-        if (notification.polinizacion || notification.germinacion) return false;
+        // Sistema = notificaciones del sistema (reportes, mensajes, errores, actualizaciones, etc.)
+        // Incluye: notificaciones sin polinización/germinación asociada O tipos específicos del sistema
+        const tiposDelSistema = ['MENSAJE', 'ERROR', 'ACTUALIZACION', 'REPORTE', 'DESCARGA', 'SISTEMA'];
+        const esTipoSistema = tiposDelSistema.some(t =>
+          notification.tipo?.toUpperCase().includes(t) ||
+          notification.titulo?.toUpperCase().includes(t) ||
+          notification.titulo?.toUpperCase().includes('REPORTE') ||
+          notification.titulo?.toUpperCase().includes('DESCARGA')
+        );
+        const noTieneAsociacion = !notification.polinizacion && !notification.germinacion;
+        if (!esTipoSistema && !noTieneAsociacion) return false;
       }
     }
 
