@@ -77,8 +77,8 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
         return {
           backgroundColor: '#92e27a',
           icon: 'checkmark-circle' as const,
-          borderColor: '#6bc950',
-          textColor: '#1a5d1a',
+          borderColor: '#166534',
+          textColor: '#14532d',
         };
       case 'error':
         return {
