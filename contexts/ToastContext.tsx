@@ -75,9 +75,9 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
     switch (type) {
       case 'success':
         return {
-          backgroundColor: '#10B981',
+          backgroundColor: '#059669',
           icon: 'checkmark-circle' as const,
-          borderColor: '#059669',
+          borderColor: '#047857',
         };
       case 'error':
         return {
