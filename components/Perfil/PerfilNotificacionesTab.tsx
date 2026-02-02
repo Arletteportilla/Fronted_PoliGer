@@ -52,7 +52,7 @@ export function PerfilNotificacionesTab({
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [includeArchived] = useState(false);
   const [estadoFilter, setEstadoFilter] = useState<'todos' | 'pendientes' | 'finalizado'>('todos');
-  const [tipoFilter, setTipoFilter] = useState<'todas' | 'polinizaciones' | 'germinaciones' | 'sistema'>('todas');
+  const [tipoFilter, setTipoFilter] = useState<'todas' | 'polinizaciones' | 'germinaciones' | 'recordatorios' | 'sistema'>('todas');
 
   // Estados sincronizados desde el backend para filtrar correctamente
   const [syncedStates, setSyncedStates] = useState<Record<number, string>>({});
@@ -183,6 +183,16 @@ export function PerfilNotificacionesTab({
         if (!notification.polinizacion) return false;
       } else if (tipoFilter === 'germinaciones') {
         if (!notification.germinacion) return false;
+      } else if (tipoFilter === 'recordatorios') {
+        // Recordatorios = notificaciones de tipo recordatorio (revisión, 5 días, predicción, etc.)
+        const tiposRecordatorio = ['RECORDATORIO', 'REVISION', 'ALERTA', 'PREDICCION'];
+        const esRecordatorio = tiposRecordatorio.some(t =>
+          notification.tipo?.toUpperCase().includes(t) ||
+          notification.titulo?.toUpperCase().includes('RECORDATORIO') ||
+          notification.titulo?.toUpperCase().includes('REVISIÓN') ||
+          notification.titulo?.toUpperCase().includes('ALERTA')
+        );
+        if (!esRecordatorio) return false;
       } else if (tipoFilter === 'sistema') {
         // Sistema = notificaciones del sistema (reportes, mensajes, errores, actualizaciones, etc.)
         // Incluye: notificaciones sin polinización/germinación asociada O tipos específicos del sistema
@@ -298,6 +308,20 @@ export function PerfilNotificacionesTab({
             />
             <Text style={[styles.filterChipText, tipoFilter === 'germinaciones' && styles.filterChipTextActiveGerminacion]}>
               Germinaciones
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, tipoFilter === 'recordatorios' && styles.filterChipActiveRecordatorios]}
+            onPress={() => setTipoFilter(tipoFilter === 'recordatorios' ? 'todas' : 'recordatorios')}
+          >
+            <Ionicons
+              name="alarm-outline"
+              size={14}
+              color={tipoFilter === 'recordatorios' ? "#f59e0b" : themeColors.text.secondary}
+            />
+            <Text style={[styles.filterChipText, tipoFilter === 'recordatorios' && styles.filterChipTextActiveRecordatorios]}>
+              Recordatorios
             </Text>
           </TouchableOpacity>
 
@@ -825,6 +849,13 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
   },
   filterChipTextActiveGerminacion: {
     color: '#22c55e',
+  },
+  filterChipActiveRecordatorios: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#f59e0b',
+  },
+  filterChipTextActiveRecordatorios: {
+    color: '#f59e0b',
   },
   filterChipActiveSistema: {
     backgroundColor: '#e0e7ff',
