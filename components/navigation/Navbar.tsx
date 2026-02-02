@@ -24,7 +24,8 @@ export function Navbar() {
   const unreadCount = notifications?.length || 0;
 
   const handleNotificationsPress = () => {
-    router.push('/(tabs)/notificaciones');
+    // Redirigir al perfil donde están las notificaciones
+    router.push('/(tabs)/perfil');
   };
 
   const handleProfilePress = () => {
