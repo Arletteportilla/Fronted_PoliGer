@@ -16,12 +16,14 @@ interface PolinizacionFiltersProps {
   filters: PolinizacionFilterParams;
   onFiltersChange: (filters: PolinizacionFilterParams) => void;
   onClose?: () => void;
+  inline?: boolean;
 }
 
 export default function PolinizacionFilters({
   filters,
   onFiltersChange,
   onClose,
+  inline = false,
 }: PolinizacionFiltersProps) {
   const [localFilters, setLocalFilters] = useState<PolinizacionFilterParams>(filters);
   const [filterOptions, setFilterOptions] = useState<any>(null);
@@ -54,6 +56,13 @@ export default function PolinizacionFilters({
     onFiltersChange(emptyFilters);
   };
 
+  const updateFilters = (newFilters: PolinizacionFilterParams) => {
+    setLocalFilters(newFilters);
+    if (inline) {
+      onFiltersChange(newFilters);
+    }
+  };
+
   const countActiveFilters = () => {
     return Object.keys(localFilters).filter(
       (key) => localFilters[key as keyof PolinizacionFilterParams]
@@ -61,18 +70,20 @@ export default function PolinizacionFilters({
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={true}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Filtros</Text>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Ionicons name="close" size={24} color="#64748b" />
-        </TouchableOpacity>
-      </View>
+      {/* Header - Solo en modo modal */}
+      {!inline && (
+        <View style={styles.header}>
+          <Text style={styles.title}>Filtros</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Ionicons name="close" size={24} color="#64748b" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Búsqueda general */}
       <View style={styles.section}>
@@ -83,49 +94,17 @@ export default function PolinizacionFilters({
             style={styles.searchInput}
             placeholder="Buscar por código, especie, género..."
             value={localFilters.search || ''}
-            onChangeText={(text) => setLocalFilters({ ...localFilters, search: text })}
+            onChangeText={(text) => updateFilters({ ...localFilters, search: text })}
             placeholderTextColor="#94a3b8"
           />
           {localFilters.search && (
             <TouchableOpacity
-              onPress={() => setLocalFilters({ ...localFilters, search: '' })}
+              onPress={() => updateFilters({ ...localFilters, search: '' })}
               style={styles.clearButton}
             >
               <Ionicons name="close-circle" size={20} color="#94a3b8" />
             </TouchableOpacity>
           )}
-        </View>
-      </View>
-
-      {/* Estado de la Polinización */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Estado</Text>
-        <View style={styles.chipContainer}>
-          {filterOptions?.opciones?.estados?.map((estado: string) => (
-            <TouchableOpacity
-              key={estado}
-              style={[
-                styles.chip,
-                localFilters.estado === estado && styles.chipActive,
-              ]}
-              onPress={() =>
-                setLocalFilters({
-                  ...localFilters,
-                  estado:
-                    localFilters.estado === estado ? undefined : estado,
-                })
-              }
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  localFilters.estado === estado && styles.chipTextActive,
-                ]}
-              >
-                {estado}
-              </Text>
-            </TouchableOpacity>
-          ))}
         </View>
       </View>
 
@@ -141,7 +120,7 @@ export default function PolinizacionFilters({
                 localFilters.tipo_polinizacion === tipo && styles.chipActive,
               ]}
               onPress={() =>
-                setLocalFilters({
+                updateFilters({
                   ...localFilters,
                   tipo_polinizacion:
                     localFilters.tipo_polinizacion === tipo ? undefined : tipo,
@@ -175,7 +154,7 @@ export default function PolinizacionFilters({
                     localFilters.responsable === resp && styles.chipActive,
                   ]}
                   onPress={() =>
-                    setLocalFilters({
+                    updateFilters({
                       ...localFilters,
                       responsable:
                         localFilters.responsable === resp ? undefined : resp,
@@ -198,43 +177,6 @@ export default function PolinizacionFilters({
         </View>
       )}
 
-      {/* Ubicación */}
-      {filterOptions?.opciones?.ubicacion_nombres?.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ubicación</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.chipContainer}>
-              {filterOptions.opciones.ubicacion_nombres.slice(0, 10).map((ubicacion: string) => (
-                <TouchableOpacity
-                  key={ubicacion}
-                  style={[
-                    styles.chip,
-                    localFilters.ubicacion_nombre === ubicacion && styles.chipActive,
-                  ]}
-                  onPress={() =>
-                    setLocalFilters({
-                      ...localFilters,
-                      ubicacion_nombre:
-                        localFilters.ubicacion_nombre === ubicacion ? undefined : ubicacion,
-                    })
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      localFilters.ubicacion_nombre === ubicacion && styles.chipTextActive,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {ubicacion}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-      )}
-
       {/* Botones de acción */}
       <View style={styles.actionButtons}>
         <TouchableOpacity
@@ -245,10 +187,12 @@ export default function PolinizacionFilters({
           <Text style={styles.clearAllButtonText}>Limpiar ({countActiveFilters()})</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.applyButton} onPress={handleApplyFilters}>
-          <Ionicons name="checkmark" size={20} color="#fff" />
-          <Text style={styles.applyButtonText}>Aplicar Filtros</Text>
-        </TouchableOpacity>
+        {!inline && (
+          <TouchableOpacity style={styles.applyButton} onPress={handleApplyFilters}>
+            <Ionicons name="checkmark" size={20} color="#fff" />
+            <Text style={styles.applyButtonText}>Aplicar Filtros</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );

@@ -886,6 +886,8 @@ export default function PerfilScreen() {
         onViewAllGerminaciones={() => setTab('germinaciones')}
         notifications={notifications}
         onViewAllNotifications={() => setTab('notificaciones')}
+        canViewPolinizaciones={canViewPolinizaciones()}
+        canViewGerminaciones={canViewGerminaciones()}
       />
     );
   };
@@ -957,7 +959,7 @@ export default function PerfilScreen() {
               onDescargarPDF={() => handleDescargarPDF('germinaciones')}
             />
           )}
-          {tab === 'notificaciones' && canViewGerminaciones() && (
+          {tab === 'notificaciones' && (
             <PerfilNotificacionesTab
               polinizaciones={polinizaciones}
               germinaciones={germinaciones}
@@ -972,6 +974,8 @@ export default function PerfilScreen() {
               onEditGerminacion={handleEditGerminacion}
               onDeleteGerminacion={handleDeleteGerminacion}
               onChangeStatusGerminacion={handleOpenChangeStatus}
+              canViewPolinizaciones={canViewPolinizaciones()}
+              canViewGerminaciones={canViewGerminaciones()}
             />
           )}
           {tab === 'usuarios' && (

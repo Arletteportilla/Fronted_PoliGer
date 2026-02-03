@@ -310,6 +310,7 @@ export default function GerminacionesScreen() {
           currentPage={currentPage}
           totalPages={totalPages}
           activeFiltersCount={activeFiltersCount}
+          tipoRegistro={tipoRegistro}
           responsive={responsive}
           onRefresh={refresh}
           onShowFilters={() => setShowFilters(true)}
@@ -318,6 +319,7 @@ export default function GerminacionesScreen() {
           onNextPage={nextPage}
           onGoToPage={goToPage}
           onItemPress={setDetalle}
+          onTipoRegistroChange={handleTipoRegistroChange}
         />
         </ScrollView>
 

@@ -67,7 +67,8 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
       loadingRef.current = true;
       setLoading(true);
 
-      const response = await germinacionService.getMisGerminacionesPaginated({
+      // Usar getPaginated para obtener TODOS los registros del sistema
+      const response = await germinacionService.getPaginated({
         page,
         page_size: 20,
         ...filters,
@@ -78,7 +79,7 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
       setCurrentPage(response.currentPage);
       setTotalPages(response.totalPages);
       setTotalCount(response.count);
-      setHasMore(response.hasNext);
+      setHasMore(!!response.next);
 
     } catch (error) {
       logger.error('❌ Error cargando germinaciones:', error);

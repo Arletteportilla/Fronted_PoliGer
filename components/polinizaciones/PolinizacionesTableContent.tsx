@@ -20,6 +20,7 @@ interface PolinizacionesTableContentProps {
   currentPage: number;
   totalPages: number;
   activeFiltersCount: number;
+  tipoRegistro?: 'historicos' | 'nuevos' | 'todos';
   onRefresh: () => void;
   onPrevPage: () => void;
   onNextPage: () => void;
@@ -36,6 +37,7 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
   currentPage,
   totalPages,
   activeFiltersCount,
+  tipoRegistro = 'todos',
   onRefresh,
   onPrevPage,
   onNextPage,
@@ -122,12 +124,17 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
             <View style={[styles.tableHeaderCell, { flex: 1 }]}>
               <Text style={styles.headerText}>Fecha Pol.</Text>
             </View>
-            <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
-              <Text style={styles.headerText}>Fecha Est.</Text>
-            </View>
-            <View style={[styles.tableHeaderCell, { flex: 1 }]}>
-              <Text style={styles.headerText}>Estado</Text>
-            </View>
+            {/* Fecha Est. y Estado solo para registros nuevos */}
+            {tipoRegistro !== 'historicos' && (
+              <>
+                <View style={[styles.tableHeaderCell, { flex: 1.2 }]}>
+                  <Text style={styles.headerText}>Fecha Est.</Text>
+                </View>
+                <View style={[styles.tableHeaderCell, { flex: 1 }]}>
+                  <Text style={styles.headerText}>Estado</Text>
+                </View>
+              </>
+            )}
             <View style={[styles.tableHeaderCell, { flex: 1 }]}>
               <Text style={styles.headerText}>Acciones</Text>
             </View>
@@ -187,45 +194,50 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
                   <View style={[styles.tableCell, { flex: 1 }]}>
                     <Text style={styles.fechaTextTable}>{fechaPolinizacion}</Text>
                   </View>
-                  <View style={[styles.tableCell, { flex: 1.2 }]}>
-                    {fechaEstimadaValue ? (
-                      <View>
-                        <Text style={[styles.fechaTextTable, { fontSize: 11 }]}>
-                          {fechaEstimada}
-                        </Text>
-                        {(() => {
-                          const hoy = new Date();
-                          hoy.setHours(0, 0, 0, 0);
-                          const fechaEst = new Date(fechaEstimadaValue);
-                          fechaEst.setHours(0, 0, 0, 0);
-                          const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+                  {/* Fecha Est. y Estado solo para registros nuevos */}
+                  {tipoRegistro !== 'historicos' && (
+                    <>
+                      <View style={[styles.tableCell, { flex: 1.2 }]}>
+                        {fechaEstimadaValue ? (
+                          <View>
+                            <Text style={[styles.fechaTextTable, { fontSize: 11 }]}>
+                              {fechaEstimada}
+                            </Text>
+                            {(() => {
+                              const hoy = new Date();
+                              hoy.setHours(0, 0, 0, 0);
+                              const fechaEst = new Date(fechaEstimadaValue);
+                              fechaEst.setHours(0, 0, 0, 0);
+                              const diasFaltantes = Math.ceil((fechaEst.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
 
-                          return diasFaltantes > 0 ? (
-                            <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '600' }}>
-                              {diasFaltantes}d restantes
-                            </Text>
-                          ) : diasFaltantes === 0 ? (
-                            <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
-                              Hoy
-                            </Text>
-                          ) : (
-                            <Text style={{ fontSize: 9, color: '#EF4444', fontWeight: '600' }}>
-                              Vencido
-                            </Text>
-                          );
-                        })()}
+                              return diasFaltantes > 0 ? (
+                                <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '600' }}>
+                                  {diasFaltantes}d restantes
+                                </Text>
+                              ) : diasFaltantes === 0 ? (
+                                <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
+                                  Hoy
+                                </Text>
+                              ) : (
+                                <Text style={{ fontSize: 9, color: '#EF4444', fontWeight: '600' }}>
+                                  Vencido
+                                </Text>
+                              );
+                            })()}
+                          </View>
+                        ) : (
+                          <Text style={[styles.fechaTextTable, { fontSize: 10, color: '#9CA3AF' }]}>
+                            Sin predicción
+                          </Text>
+                        )}
                       </View>
-                    ) : (
-                      <Text style={[styles.fechaTextTable, { fontSize: 10, color: '#9CA3AF' }]}>
-                        Sin predicción
-                      </Text>
-                    )}
-                  </View>
-                  <View style={[styles.tableCell, { flex: 1, alignItems: 'center' }]}>
-                    <View style={[styles.estadoBadgeTable, { backgroundColor: estadoBgColor }]}>
-                      <Text style={[styles.estadoBadgeTableText, { color: estadoTextColor }]}>{estadoActual}</Text>
-                    </View>
-                  </View>
+                      <View style={[styles.tableCell, { flex: 1, alignItems: 'center' }]}>
+                        <View style={[styles.estadoBadgeTable, { backgroundColor: estadoBgColor }]}>
+                          <Text style={[styles.estadoBadgeTableText, { color: estadoTextColor }]}>{estadoActual}</Text>
+                        </View>
+                      </View>
+                    </>
+                  )}
                   <View style={[styles.tableCell, { flex: 1 }]}>
                     <View style={styles.actionsCell}>
                       <TouchableOpacity
@@ -244,8 +256,8 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
                   </View>
                 </View>
 
-                {/* Barra de progreso por etapas */}
-                {item.estado_polinizacion && (
+                {/* Barra de progreso por etapas - Solo para registros nuevos */}
+                {tipoRegistro !== 'historicos' && item.estado_polinizacion && (
                   <View style={{
                     marginTop: 8,
                     marginHorizontal: 8,

@@ -23,11 +23,15 @@ export interface PerfilNotificacionesTabProps {
   onEditGerminacion?: (item: any) => void;
   onDeleteGerminacion?: (item: any) => void;
   onChangeStatusPolinizacion?: (item: any) => void;
+  canViewPolinizaciones?: boolean;
+  canViewGerminaciones?: boolean;
 }
 
 export function PerfilNotificacionesTab({
   onChangeStatusGerminacion,
   onChangeStatusPolinizacion,
+  canViewPolinizaciones = true,
+  canViewGerminaciones = true,
   // Remaining props can be destructured if needed, or left in props
 }: PerfilNotificacionesTabProps) {
   const { colors: themeColors } = useTheme();
@@ -283,33 +287,37 @@ export function PerfilNotificacionesTab({
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.filterChip, tipoFilter === 'polinizaciones' && styles.filterChipActivePolinizacion]}
-            onPress={() => setTipoFilter(tipoFilter === 'polinizaciones' ? 'todas' : 'polinizaciones')}
-          >
-            <Ionicons
-              name="flower-outline"
-              size={14}
-              color={tipoFilter === 'polinizaciones' ? "#ec4899" : themeColors.text.secondary}
-            />
-            <Text style={[styles.filterChipText, tipoFilter === 'polinizaciones' && styles.filterChipTextActivePolinizacion]}>
-              Polinizaciones
-            </Text>
-          </TouchableOpacity>
+          {canViewPolinizaciones && (
+            <TouchableOpacity
+              style={[styles.filterChip, tipoFilter === 'polinizaciones' && styles.filterChipActivePolinizacion]}
+              onPress={() => setTipoFilter(tipoFilter === 'polinizaciones' ? 'todas' : 'polinizaciones')}
+            >
+              <Ionicons
+                name="flower-outline"
+                size={14}
+                color={tipoFilter === 'polinizaciones' ? "#ec4899" : themeColors.text.secondary}
+              />
+              <Text style={[styles.filterChipText, tipoFilter === 'polinizaciones' && styles.filterChipTextActivePolinizacion]}>
+                Polinizaciones
+              </Text>
+            </TouchableOpacity>
+          )}
 
-          <TouchableOpacity
-            style={[styles.filterChip, tipoFilter === 'germinaciones' && styles.filterChipActiveGerminacion]}
-            onPress={() => setTipoFilter(tipoFilter === 'germinaciones' ? 'todas' : 'germinaciones')}
-          >
-            <Ionicons
-              name="leaf-outline"
-              size={14}
-              color={tipoFilter === 'germinaciones' ? "#22c55e" : themeColors.text.secondary}
-            />
-            <Text style={[styles.filterChipText, tipoFilter === 'germinaciones' && styles.filterChipTextActiveGerminacion]}>
-              Germinaciones
-            </Text>
-          </TouchableOpacity>
+          {canViewGerminaciones && (
+            <TouchableOpacity
+              style={[styles.filterChip, tipoFilter === 'germinaciones' && styles.filterChipActiveGerminacion]}
+              onPress={() => setTipoFilter(tipoFilter === 'germinaciones' ? 'todas' : 'germinaciones')}
+            >
+              <Ionicons
+                name="leaf-outline"
+                size={14}
+                color={tipoFilter === 'germinaciones' ? "#22c55e" : themeColors.text.secondary}
+              />
+              <Text style={[styles.filterChipText, tipoFilter === 'germinaciones' && styles.filterChipTextActiveGerminacion]}>
+                Germinaciones
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.filterChip, tipoFilter === 'recordatorios' && styles.filterChipActiveRecordatorios]}

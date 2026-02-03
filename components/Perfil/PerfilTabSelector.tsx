@@ -32,7 +32,7 @@ export function PerfilTabSelector({
     { key: 'resumen', label: isVerySmallScreen ? 'Inicio' : 'Resumen', show: true },
     { key: 'polinizaciones', label: isVerySmallScreen ? 'Polin.' : 'Polinizaciones', show: canViewPolinizaciones },
     { key: 'germinaciones', label: isVerySmallScreen ? 'Germ.' : 'Germinaciones', show: canViewGerminaciones },
-    { key: 'notificaciones', label: isVerySmallScreen ? 'Notif.' : 'Notificaciones', show: canViewGerminaciones },
+    { key: 'notificaciones', label: isVerySmallScreen ? 'Notif.' : 'Notificaciones', show: true },
     { key: 'usuarios', label: 'Usuarios', show: isAdmin }
   ].filter(tab => tab.show);
 

@@ -46,7 +46,7 @@ export default function PolinizacionesScreen() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(() => getInitialFormState(getUserFullName));
   const [detalle, setDetalle] = useState(null);
-  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [showFiltersSection, setShowFiltersSection] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [tipoRegistro, setTipoRegistro] = useState<'historicos' | 'nuevos' | 'todos'>('todos');
@@ -128,7 +128,6 @@ export default function PolinizacionesScreen() {
 
   const handleApplyFilters = (newFilters: PolinizacionFilterParams) => {
     setFilters(newFilters);
-    setShowFiltersModal(false);
   };
 
   const styles = createStyles(themeColors);
@@ -167,10 +166,17 @@ export default function PolinizacionesScreen() {
           tipoRegistro={tipoRegistro}
           onSearchChange={handleSearchChange}
           onClearSearch={() => setFilters({ ...filters, search: '' })}
-          onShowFilters={() => setShowFiltersModal(true)}
+          onShowFilters={() => setShowFiltersSection(!showFiltersSection)}
           onShowExportModal={() => setShowExportModal(true)}
           onTipoRegistroChange={handleTipoRegistroChange}
-        />
+          showFiltersSection={showFiltersSection}
+        >
+          <PolinizacionFilters
+            filters={filters}
+            onFiltersChange={handleApplyFilters}
+            inline={true}
+          />
+        </PolinizacionesContent>
 
         {/* Tabla de polinizaciones */}
         <PolinizacionesTableContent
@@ -181,6 +187,7 @@ export default function PolinizacionesScreen() {
           currentPage={currentPage}
           totalPages={totalPages}
           activeFiltersCount={activeFiltersCount}
+          tipoRegistro={tipoRegistro}
           onRefresh={refresh}
           onPrevPage={prevPage}
           onNextPage={nextPage}
@@ -253,23 +260,7 @@ export default function PolinizacionesScreen() {
         </View>
       </Modal>
 
-      {/* Modal de Filtros */}
-      <Modal
-        visible={showFiltersModal}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowFiltersModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.filtersModalContent}>
-            <PolinizacionFilters
-              filters={filters}
-              onFiltersChange={handleApplyFilters}
-              onClose={() => setShowFiltersModal(false)}
-            />
-          </View>
-        </View>
-      </Modal>
+      {/* Modal de Filtros - Ahora se muestra inline en PolinizacionesContent */}
 
       {/* Formulario de polinización */}
       <PolinizacionForm

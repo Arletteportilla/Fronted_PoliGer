@@ -18,6 +18,8 @@ interface PerfilResumenProps {
   onViewAllGerminaciones?: () => void;
   notifications?: Notification[];
   onViewAllNotifications?: () => void;
+  canViewPolinizaciones?: boolean;
+  canViewGerminaciones?: boolean;
 }
 
 export function PerfilResumen({
@@ -30,7 +32,9 @@ export function PerfilResumen({
   onViewAllPolinizaciones,
   onViewAllGerminaciones,
   notifications = [],
-  onViewAllNotifications
+  onViewAllNotifications,
+  canViewPolinizaciones = true,
+  canViewGerminaciones = true
 }: PerfilResumenProps) {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
@@ -87,161 +91,171 @@ export function PerfilResumen({
     <ScrollView style={styles.resumenContainer} showsVerticalScrollIndicator={false}>
       {/* Tarjetas de Estadísticas */}
       <View style={styles.statsGrid}>
-        {/* Tarjeta de Polinizaciones */}
-        <View style={[styles.statCard, { backgroundColor: themeColors.background.secondary }]}>
-          <View style={[styles.statIconContainer, { backgroundColor: '#FFF3E0' }]}>
-            <Ionicons name="flower" size={24} color="#F57C00" />
+        {/* Tarjeta de Polinizaciones - Solo si tiene permiso */}
+        {canViewPolinizaciones && (
+          <View style={[styles.statCard, { backgroundColor: themeColors.background.secondary }]}>
+            <View style={[styles.statIconContainer, { backgroundColor: '#FFF3E0' }]}>
+              <Ionicons name="flower" size={24} color="#F57C00" />
+            </View>
+            <Text style={styles.statLabel}>Polinizaciones</Text>
+            <Text style={styles.statValue}>{estadisticas.total_polinizaciones}</Text>
+            <Text style={styles.statSubtext}>
+              {estadisticas.polinizaciones_actuales} en proceso
+            </Text>
           </View>
-          <Text style={styles.statLabel}>Polinizaciones</Text>
-          <Text style={styles.statValue}>{estadisticas.total_polinizaciones}</Text>
-          <Text style={styles.statSubtext}>
-            {estadisticas.polinizaciones_actuales} en proceso
-          </Text>
-        </View>
+        )}
 
-        {/* Tarjeta de Germinaciones */}
-        <View style={[styles.statCard, { backgroundColor: themeColors.background.secondary }]}>
-          <View style={[styles.statIconContainer, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name="leaf" size={24} color="#4CAF50" />
+        {/* Tarjeta de Germinaciones - Solo si tiene permiso */}
+        {canViewGerminaciones && (
+          <View style={[styles.statCard, { backgroundColor: themeColors.background.secondary }]}>
+            <View style={[styles.statIconContainer, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="leaf" size={24} color="#4CAF50" />
+            </View>
+            <Text style={styles.statLabel}>Germinaciones</Text>
+            <Text style={styles.statValue}>{estadisticas.total_germinaciones}</Text>
+            <Text style={styles.statSubtext}>
+              {estadisticas.germinaciones_actuales} en proceso
+            </Text>
           </View>
-          <Text style={styles.statLabel}>Germinaciones</Text>
-          <Text style={styles.statValue}>{estadisticas.total_germinaciones}</Text>
-          <Text style={styles.statSubtext}>
-            {estadisticas.germinaciones_actuales} en proceso
-          </Text>
-        </View>
+        )}
 
-        {/* Tarjeta de Éxito Promedio */}
-        <View style={[styles.statCard, { backgroundColor: themeColors.background.secondary }]}>
-          <View style={[styles.statIconContainer, { backgroundColor: '#E3F2FD' }]}>
-            <Ionicons name="trending-up" size={24} color="#2196F3" />
+        {/* Tarjeta de Éxito Promedio - Solo si tiene permiso de polinizaciones */}
+        {canViewPolinizaciones && (
+          <View style={[styles.statCard, { backgroundColor: themeColors.background.secondary }]}>
+            <View style={[styles.statIconContainer, { backgroundColor: '#E3F2FD' }]}>
+              <Ionicons name="trending-up" size={24} color="#2196F3" />
+            </View>
+            <Text style={styles.statLabel}>Éxito Promedio</Text>
+            <Text style={styles.statValue}>{exitoPromedio}%</Text>
+            <Text style={styles.statSubtext}>
+              {polinizacionesCompletadas} completadas
+            </Text>
           </View>
-          <Text style={styles.statLabel}>Éxito Promedio</Text>
-          <Text style={styles.statValue}>{exitoPromedio}%</Text>
-          <Text style={styles.statSubtext}>
-            {polinizacionesCompletadas} completadas
-          </Text>
-        </View>
+        )}
       </View>
 
       {/* Nueva Sección: Listas Activas (Side-by-Side) */}
-      <View style={styles.activeListSection}>
-        <View style={[styles.activeListContainer, { flexDirection: isLargeScreen ? 'row' : 'column' }]}>
-          {/* Polinizaciones Activas */}
-          <View style={styles.activeListCard}>
-            <View style={styles.activeListHeader}>
-              <View style={styles.activeListTitleContainer}>
-                <View style={[styles.activeListIcon, { backgroundColor: 'rgba(245, 124, 0, 0.1)' }]}>
-                  <Ionicons name="flower" size={20} color="#F57C00" />
-                </View>
-                <Text style={styles.activeListTitle}>Polinizaciones Activas</Text>
-              </View>
-              <View style={styles.activeListEfficiency}>
-                <View style={styles.efficiencyBar}>
-                  <View style={[styles.efficiencyFill, { width: `${exitoPromedio}%`, backgroundColor: '#F57C00' }]} />
-                </View>
-                <Text style={styles.efficiencyText}>{exitoPromedio}% Eficiencia</Text>
-              </View>
-            </View>
-
-            {polinizacionesRecientes.length > 0 ? (
-              polinizacionesRecientes.map((pol, index) => (
-                <TouchableOpacity
-                  key={pol.id || index}
-                  style={styles.activeListItem}
-                  onPress={() => onViewPolinizacion?.(pol)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.activeListItemIcon, { backgroundColor: 'rgba(245, 124, 0, 0.1)' }]}>
-                    <Ionicons name="flower-outline" size={18} color="#F57C00" />
-                  </View>
-
-                  <View style={styles.activeListItemContent}>
-                    <Text style={styles.activeListItemCode}>{pol.codigo || `POL-${pol.numero}`}</Text>
-
-                    <View style={styles.activeListItemMeta}>
-                      <View style={styles.activeListItemDays}>
-                        <Ionicons name="pulse" size={14} color="#6B7280" />
-                        <Text style={styles.activeListItemDaysText}>DÍA {getDaysActive(pol.fecha_creacion as string)}</Text>
-                      </View>
-
-                      <View style={[styles.activeListBadge, { backgroundColor: 'rgba(30, 58, 138, 0.3)', borderWidth: 1, borderColor: 'rgba(59, 130, 246, 0.3)' }]}>
-                        {/* Using a custom style for "INGRESADO" etc based on the image, defaulting to blue-ish for now or using getEstadoColor */}
-                        <Text style={[styles.activeListBadgeText, { color: getEstadoColor(pol.estado) }]}>
-                          {pol.estado || 'N/A'}
-                        </Text>
-                      </View>
+      {(canViewPolinizaciones || canViewGerminaciones) && (
+        <View style={styles.activeListSection}>
+          <View style={[styles.activeListContainer, { flexDirection: isLargeScreen ? 'row' : 'column' }]}>
+            {/* Polinizaciones Activas - Solo si tiene permiso */}
+            {canViewPolinizaciones && (
+              <View style={styles.activeListCard}>
+                <View style={styles.activeListHeader}>
+                  <View style={styles.activeListTitleContainer}>
+                    <View style={[styles.activeListIcon, { backgroundColor: 'rgba(245, 124, 0, 0.1)' }]}>
+                      <Ionicons name="flower" size={20} color="#F57C00" />
                     </View>
+                    <Text style={styles.activeListTitle}>Polinizaciones Activas</Text>
                   </View>
+                  <View style={styles.activeListEfficiency}>
+                    <View style={styles.efficiencyBar}>
+                      <View style={[styles.efficiencyFill, { width: `${exitoPromedio}%`, backgroundColor: '#F57C00' }]} />
+                    </View>
+                    <Text style={styles.efficiencyText}>{exitoPromedio}% Eficiencia</Text>
+                  </View>
+                </View>
+
+                {polinizacionesRecientes.length > 0 ? (
+                  polinizacionesRecientes.map((pol, index) => (
+                    <TouchableOpacity
+                      key={pol.id || index}
+                      style={styles.activeListItem}
+                      onPress={() => onViewPolinizacion?.(pol)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.activeListItemIcon, { backgroundColor: 'rgba(245, 124, 0, 0.1)' }]}>
+                        <Ionicons name="flower-outline" size={18} color="#F57C00" />
+                      </View>
+
+                      <View style={styles.activeListItemContent}>
+                        <Text style={styles.activeListItemCode}>{pol.codigo || `POL-${pol.numero}`}</Text>
+
+                        <View style={styles.activeListItemMeta}>
+                          <View style={styles.activeListItemDays}>
+                            <Ionicons name="pulse" size={14} color="#6B7280" />
+                            <Text style={styles.activeListItemDaysText}>DÍA {getDaysActive(pol.fecha_creacion as string)}</Text>
+                          </View>
+
+                          <View style={[styles.activeListBadge, { backgroundColor: 'rgba(30, 58, 138, 0.3)', borderWidth: 1, borderColor: 'rgba(59, 130, 246, 0.3)' }]}>
+                            <Text style={[styles.activeListBadgeText, { color: getEstadoColor(pol.estado) }]}>
+                              {pol.estado || 'N/A'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={{ color: '#6B7280', textAlign: 'center', padding: 20 }}>No hay polinizaciones recientes</Text>
+                )}
+
+                <TouchableOpacity
+                  style={styles.viewHistoryButton}
+                  onPress={onViewAllPolinizaciones}
+                >
+                  <Text style={styles.viewHistoryText}>Ver Historial Completo</Text>
                 </TouchableOpacity>
-              ))
-            ) : (
-              <Text style={{ color: '#6B7280', textAlign: 'center', padding: 20 }}>No hay polinizaciones recientes</Text>
+              </View>
             )}
 
-            <TouchableOpacity
-              style={styles.viewHistoryButton}
-              onPress={onViewAllPolinizaciones}
-            >
-              <Text style={styles.viewHistoryText}>Ver Historial Completo</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Germinaciones Activas */}
-          <View style={styles.activeListCard}>
-            <View style={styles.activeListHeader}>
-              <View style={styles.activeListTitleContainer}>
-                <View style={[styles.activeListIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-                  <Ionicons name="leaf" size={20} color="#10B981" />
-                </View>
-                <Text style={styles.activeListTitle}>Germinaciones Activas</Text>
-              </View>
-              {/* Germinaciones doesn't have an efficiency metric in the props yet, potentially add logic or hide */}
-            </View>
-
-            {germinacionesRecientes.length > 0 ? (
-              germinacionesRecientes.map((germ, index) => (
-                <TouchableOpacity
-                  key={germ.id || index}
-                  style={styles.activeListItem}
-                  onPress={() => onViewGerminacion?.(germ)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.activeListItemIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-                    <Ionicons name="leaf-outline" size={18} color="#10B981" />
-                  </View>
-
-                  <View style={styles.activeListItemContent}>
-                    <Text style={styles.activeListItemCode}>{germ.codigo || `GER-${germ.id}`}</Text>
-
-                    <View style={styles.activeListItemMeta}>
-                      <View style={styles.activeListItemDays}>
-                        <Ionicons name="pulse" size={14} color="#6B7280" />
-                        <Text style={styles.activeListItemDaysText}>DÍA {getDaysActive(germ.fecha_creacion as string)}</Text>
-                      </View>
-
-                      <View style={[styles.activeListBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
-                        <Text style={[styles.activeListBadgeText, { color: getEstadoColor(germ.estado_germinacion) }]}>
-                          {germ.estado_germinacion || 'N/A'}
-                        </Text>
-                      </View>
+            {/* Germinaciones Activas - Solo si tiene permiso */}
+            {canViewGerminaciones && (
+              <View style={styles.activeListCard}>
+                <View style={styles.activeListHeader}>
+                  <View style={styles.activeListTitleContainer}>
+                    <View style={[styles.activeListIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                      <Ionicons name="leaf" size={20} color="#10B981" />
                     </View>
+                    <Text style={styles.activeListTitle}>Germinaciones Activas</Text>
                   </View>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <Text style={{ color: '#6B7280', textAlign: 'center', padding: 20 }}>No hay germinaciones recientes</Text>
-            )}
+                </View>
 
-            <TouchableOpacity
-              style={styles.viewHistoryButton}
-              onPress={onViewAllGerminaciones}
-            >
-              <Text style={styles.viewHistoryText}>Ver Historial Completo</Text>
-            </TouchableOpacity>
+                {germinacionesRecientes.length > 0 ? (
+                  germinacionesRecientes.map((germ, index) => (
+                    <TouchableOpacity
+                      key={germ.id || index}
+                      style={styles.activeListItem}
+                      onPress={() => onViewGerminacion?.(germ)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.activeListItemIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                        <Ionicons name="leaf-outline" size={18} color="#10B981" />
+                      </View>
+
+                      <View style={styles.activeListItemContent}>
+                        <Text style={styles.activeListItemCode}>{germ.codigo || `GER-${germ.id}`}</Text>
+
+                        <View style={styles.activeListItemMeta}>
+                          <View style={styles.activeListItemDays}>
+                            <Ionicons name="pulse" size={14} color="#6B7280" />
+                            <Text style={styles.activeListItemDaysText}>DÍA {getDaysActive(germ.fecha_creacion as string)}</Text>
+                          </View>
+
+                          <View style={[styles.activeListBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
+                            <Text style={[styles.activeListBadgeText, { color: getEstadoColor(germ.estado_germinacion) }]}>
+                              {germ.estado_germinacion || 'N/A'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={{ color: '#6B7280', textAlign: 'center', padding: 20 }}>No hay germinaciones recientes</Text>
+                )}
+
+                <TouchableOpacity
+                  style={styles.viewHistoryButton}
+                  onPress={onViewAllGerminaciones}
+                >
+                  <Text style={styles.viewHistoryText}>Ver Historial Completo</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
-      </View>
+      )}
 
 
       {/* Sección: Últimas Alertas */}
@@ -308,12 +322,18 @@ export function PerfilResumen({
 
       {/* Mensaje si no hay datos */}
       {
-        polinizacionesRecientes.length === 0 && germinacionesRecientes.length === 0 && (
+        (canViewPolinizaciones ? polinizacionesRecientes.length === 0 : true) &&
+        (canViewGerminaciones ? germinacionesRecientes.length === 0 : true) &&
+        (canViewPolinizaciones || canViewGerminaciones) && (
           <View style={styles.emptyState}>
             <Ionicons name="document-text-outline" size={48} color={themeColors.text.disabled} />
             <Text style={styles.emptyStateText}>No hay registros recientes</Text>
             <Text style={styles.emptyStateSubtext}>
-              Las polinizaciones y germinaciones que agregues aparecerán aquí
+              {canViewPolinizaciones && canViewGerminaciones
+                ? 'Las polinizaciones y germinaciones que agregues aparecerán aquí'
+                : canViewGerminaciones
+                  ? 'Las germinaciones que agregues aparecerán aquí'
+                  : 'Las polinizaciones que agregues aparecerán aquí'}
             </Text>
           </View>
         )

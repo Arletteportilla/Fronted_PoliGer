@@ -60,6 +60,8 @@ interface PolinizacionesContentProps {
   onShowFilters: () => void;
   onShowExportModal: () => void;
   onTipoRegistroChange?: (tipo: 'historicos' | 'nuevos' | 'todos') => void;
+  showFiltersSection?: boolean;
+  children?: React.ReactNode;
 }
 
 export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
@@ -73,7 +75,9 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
   onClearSearch,
   onShowFilters,
   onShowExportModal,
-  onTipoRegistroChange
+  onTipoRegistroChange,
+  showFiltersSection = false,
+  children
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
@@ -122,7 +126,7 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
             onChangeText={onSearchChange}
           />
           {search && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.clearSearchButton}
               onPress={onClearSearch}
             >
@@ -136,7 +140,11 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
             style={styles.actionButton}
             onPress={onShowFilters}
           >
-            <Ionicons name="options-outline" size={18} color={themeColors.text.tertiary} />
+            <Ionicons
+              name={showFiltersSection ? "chevron-up-outline" : "options-outline"}
+              size={18}
+              color={themeColors.text.tertiary}
+            />
             <Text style={styles.actionButtonText}>Filtros</Text>
             {activeFiltersCount > 0 && (
               <View style={styles.actionBadge}>
@@ -159,6 +167,13 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Sección de Filtros Expandible */}
+      {showFiltersSection && (
+        <View style={styles.filtersSection}>
+          {children}
+        </View>
+      )}
 
       {/* Filtros de tipo de registro */}
       <View style={styles.filterTypeContainer}>
@@ -433,5 +448,14 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   filterTypeButtonTextActive: {
     color: colors.text.inverse,
     fontWeight: '600',
+  },
+
+  filtersSection: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    overflow: 'hidden',
   },
 });
