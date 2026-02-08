@@ -7,7 +7,7 @@ export const CONFIG = {
   // Desarrollo local: usar localhost:8000
   API_BASE_URL: process.env['EXPO_PUBLIC_API_URL'] || (typeof window !== 'undefined' && window.location.hostname === 'localhost'
     ? 'http://localhost:8000/api'
-    : 'http://207.180.230.88/api'),
+    : (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://207.180.230.88/api')),
 
   // Timeouts optimizados para mejor experiencia de usuario
   API_TIMEOUT: 30000, // 30 segundos para operaciones normales
