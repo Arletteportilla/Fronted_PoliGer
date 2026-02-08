@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useConfirmation } from './useConfirmation';
 import { useToast } from '@/contexts/ToastContext';
+import { logger } from '@/services/logger';
 
 /**
  * Servicio genérico para operaciones CRUD

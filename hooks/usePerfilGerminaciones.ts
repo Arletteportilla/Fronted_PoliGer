@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { germinacionService } from '@/services/germinacion.service';
 import type { Germinacion } from '@/types/index';
+import { logger } from '@/services/logger';
 
 export function usePerfilGerminaciones() {
   const [germinaciones, setGerminaciones] = useState<Germinacion[]>([]);

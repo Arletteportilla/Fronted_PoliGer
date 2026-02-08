@@ -1,4 +1,6 @@
 // Web implementation of SecureStore using localStorage as fallback
+import { logger } from '@/services/logger';
+
 export const secureStore = {
   async getItem(key: string): Promise<string | null> {
     try {

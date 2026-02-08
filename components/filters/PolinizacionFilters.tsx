@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { polinizacionService } from '@/services/polinizacion.service';
 import type { PolinizacionFilterParams } from '@/types';
+import { logger } from '@/services/logger';
 
 interface PolinizacionFiltersProps {
   filters: PolinizacionFilterParams;

@@ -4,6 +4,7 @@ import { SimpleCalendarPicker } from '@/components/common';
 import { ExportSelector } from './ExportSelector';
 import { useExport } from '@/hooks/useExport';
 import type { ExportEntity } from '@/types/export.types';
+import { logger } from '@/services/logger';
 
 const COLORS = {
   navy: '#182d49',

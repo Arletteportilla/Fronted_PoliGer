@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { germinacionService } from '@/services/germinacion.service';
+import { logger } from '@/services/logger';
 
 export interface GerminacionFilterParams {
   search?: string;

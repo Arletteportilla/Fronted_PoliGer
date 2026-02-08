@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SimpleCalendarPicker } from '../common';
 import { germinacionService } from '../../services/germinacion.service';
 import { useToast } from '../../contexts/ToastContext';
+import { logger } from '@/services/logger';
 
 interface Germinacion {
   id: number;

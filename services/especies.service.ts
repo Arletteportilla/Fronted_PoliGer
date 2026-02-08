@@ -1,4 +1,5 @@
 import api from './api';
+import { logger } from '@/services/logger';
 
 export interface EspeciesResponse {
   especies: string[];

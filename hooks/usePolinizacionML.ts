@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { polinizacionMLService } from '@/services/polinizacion-ml.service';
 import type { PrediccionMLRequest, PrediccionMLResponse } from '@/services/polinizacion-ml.service';
+import { logger } from '@/services/logger';
 
 /**
  * Hook para manejar predicciones ML de polinización usando XGBoost

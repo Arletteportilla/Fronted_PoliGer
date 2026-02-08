@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { especiesService } from '@/services/especies.service';
+import { logger } from '@/services/logger';
 
 interface UseEspeciesGenerosResult {
   especies: string[];

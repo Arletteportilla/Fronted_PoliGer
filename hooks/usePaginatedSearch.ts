@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { logger } from '@/services/logger';
 
 /**
  * Estado de paginación

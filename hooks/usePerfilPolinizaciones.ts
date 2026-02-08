@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { polinizacionService } from '@/services/polinizacion.service';
 import type { Polinizacion } from '@/types/index';
+import { logger } from '@/services/logger';
 
 export function usePerfilPolinizaciones() {
   const [polinizaciones, setPolinizaciones] = useState<Polinizacion[]>([]);

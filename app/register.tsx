@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useToast } from '@/contexts/ToastContext';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { logger } from '@/services/logger';
 
 const RegisterScreen = () => {
   const [username, setUsername] = useState('');

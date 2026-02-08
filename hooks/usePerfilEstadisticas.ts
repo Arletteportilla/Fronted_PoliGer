@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { estadisticasService } from '@/services/estadisticas.service';
 import type { EstadisticasUsuario } from '@/types/index';
+import { logger } from '@/services/logger';
 
 export function usePerfilEstadisticas(username: string = 'Usuario') {
   const [estadisticas, setEstadisticas] = useState<EstadisticasUsuario>({

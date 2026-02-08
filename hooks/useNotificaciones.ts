@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { notificacionesService, NotificationFilters, NotificationStats } from '@/services/notificaciones.service';
 import { Notification } from '@/types';
+import { logger } from '@/services/logger';
 
 export function useNotificaciones(filters?: NotificationFilters) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
