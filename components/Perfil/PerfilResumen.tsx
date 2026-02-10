@@ -79,12 +79,14 @@ export function PerfilResumen({
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
 
-  // Calcular éxito promedio (polinizaciones completadas vs total)
-  const polinizacionesCompletadas = polinizaciones.filter(p =>
-    ['COMPLETADA', 'FINALIZADA', 'MADURO', 'LISTO'].includes(p.estado as string)
-  ).length;
-  const exitoPromedio = polinizaciones.length > 0
-    ? Math.round((polinizacionesCompletadas / polinizaciones.length) * 100)
+  // Calcular éxito promedio usando estadísticas del backend (evita cargar todos los registros)
+  const polinizacionesCompletadas = (estadisticas as any).polinizaciones_completadas ??
+    polinizaciones.filter(p =>
+      ['COMPLETADA', 'FINALIZADA', 'MADURO', 'LISTO'].includes(p.estado as string)
+    ).length;
+  const totalParaExito = estadisticas.total_polinizaciones || polinizaciones.length;
+  const exitoPromedio = totalParaExito > 0
+    ? Math.round((polinizacionesCompletadas / totalParaExito) * 100)
     : 0;
 
   return (

@@ -66,7 +66,14 @@ class NotificationService {
         params: queryParams
       });
 
-      return response.data;
+      const data = response.data;
+
+      // Manejar respuesta paginada del backend (tiene 'results')
+      if (data && data.results && Array.isArray(data.results)) {
+        return data.results;
+      }
+
+      return data;
     } catch (error: any) {
       logger.error('❌ Error obteniendo notificaciones:', error);
       throw error;

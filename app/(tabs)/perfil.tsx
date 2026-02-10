@@ -223,9 +223,13 @@ export default function PerfilScreen() {
             setPolinizacionesTotalPages(result.totalPages);
             setPolinizacionesTotalCount(result.count);
           } else {
-            // Para resumen y notificaciones, obtener todas sin paginación
-            const pols = await polinizacionService.getMisPolinizaciones(0); // 0 = todas
-            misPolinizaciones = Array.isArray(pols) ? pols : [];
+            // Para resumen y notificaciones, obtener solo las más recientes (paginado)
+            const result = await polinizacionService.getMisPolinizacionesPaginated({
+              page: 1,
+              page_size: 5,
+              dias_recientes: 0
+            });
+            misPolinizaciones = Array.isArray(result.results) ? result.results : [];
           }
         } catch (error) {
           console.error('Error obteniendo polinizaciones:', error);
@@ -248,9 +252,14 @@ export default function PerfilScreen() {
             setGerminacionesTotalPages(result.totalPages);
             setGerminacionesTotalCount(result.count);
           } else {
-            // Para resumen y notificaciones, obtener todas sin paginación
-            const germs = await germinacionService.getMisGerminaciones(0); // 0 = todas
-            misGerminaciones = Array.isArray(germs) ? germs : [];
+            // Para resumen y notificaciones, obtener solo las más recientes (paginado)
+            const result = await germinacionService.getMisGerminacionesPaginated({
+              page: 1,
+              page_size: 5,
+              dias_recientes: 0,
+              excluir_importadas: true
+            });
+            misGerminaciones = Array.isArray(result.results) ? result.results : [];
           }
         } catch (error) {
           console.error('Error obteniendo germinaciones:', error);
