@@ -65,7 +65,6 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
         <Text style={[styles.tableHeaderText, styles.colPlanta]}>PLANTA MADRE</Text>
         <Text style={[styles.tableHeaderText, styles.colFecha]}>FECHA</Text>
         <Text style={[styles.tableHeaderText, styles.colEstado]}>ESTADO</Text>
-        <Text style={[styles.tableHeaderText, styles.colAccion]}>ACCIÓN</Text>
       </View>
 
       <ScrollView style={styles.tableBody} showsVerticalScrollIndicator={false}>
@@ -102,12 +101,6 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
                   {record.estado}
                 </Text>
               </View>
-            </View>
-
-            <View style={[styles.tableCell, styles.colAccion]}>
-              <TouchableOpacity style={styles.actionButton}>
-                <Ionicons name="eye-outline" size={18} color={themeColors.text.tertiary} />
-              </TouchableOpacity>
             </View>
           </View>
         ))}
@@ -196,10 +189,6 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   colEstado: {
     flex: 1.2,
   },
-  colAccion: {
-    flex: 0.8,
-    alignItems: 'center',
-  },
   idText: {
     fontWeight: '600',
     color: colors.text.primary,
@@ -239,10 +228,5 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   estadoText: {
     fontSize: 12,
     fontWeight: '700',
-  },
-  actionButton: {
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: colors.background.secondary,
   },
 });

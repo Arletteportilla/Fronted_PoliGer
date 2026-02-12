@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { Germinacion, Polinizacion } from '@/types';
 import { ResponsiveLayout } from '@/components/layout';
 import { useTheme } from '@/contexts/ThemeContext';
+import { usePermissions } from '@/hooks/usePermissions';
 
 // IMPORTS DIRECTOS - NO LAZY
 import { germinacionService } from '@/services/germinacion.service';
@@ -36,6 +37,7 @@ export default function HomeScreen() {
   const { token } = useAuth();
   const router = useRouter();
   const { colors: themeColors } = useTheme();
+  const { canViewGerminaciones, canViewPolinizaciones } = usePermissions();
   const { width: windowWidth } = useWindowDimensions();
   const isMobile = windowWidth < 768;
   const styles = createStyles(themeColors, isMobile);
@@ -221,40 +223,61 @@ export default function HomeScreen() {
         throw new Error('Necesitas autenticarte para ver los datos');
       }
 
-      // Obtener estadísticas reales de germinaciones desde el backend
-      const estadisticasResponse = await germinacionService.getFilterOptions();
+      // Preparar promesas según permisos del usuario
+      const promises: Promise<any>[] = [];
+      const promiseKeys: string[] = [];
 
-      // Las estadísticas vienen en el formato: { total, por_estado: { CERRADA, ABIERTA, SEMIABIERTA } }
-      const germinacionCounts = {
-        ingresado: estadisticasResponse?.estadisticas?.por_estado?.SEMIABIERTA || 0,
-        en_proceso: estadisticasResponse?.estadisticas?.por_estado?.ABIERTA || 0,
-        completado: estadisticasResponse?.estadisticas?.por_estado?.CERRADA || 0,
-        total: estadisticasResponse?.estadisticas?.total || 0
-      };
+      // Solo obtener datos de germinaciones si el usuario tiene permiso
+      if (canViewGerminaciones()) {
+        promises.push(germinacionService.getFilterOptions());
+        promiseKeys.push('germinacionStats');
+        promises.push(germinacionService.getPaginated({ page: 1, page_size: 20 }));
+        promiseKeys.push('germinacionesRecientes');
+      }
 
-      setGerminacionStats(germinacionCounts);
+      // Solo obtener datos de polinizaciones si el usuario tiene permiso
+      if (canViewPolinizaciones()) {
+        promises.push(polinizacionService.getPaginated({ page: 1, page_size: 1000 }));
+        promiseKeys.push('polinizaciones');
+        promises.push(polinizacionService.getTotalCount());
+        promiseKeys.push('totalPolinizaciones');
+      }
 
-      // Obtener datos de polinizaciones
-      const [germinacionesRecientesRaw, polinizacionesRaw, totalPolinizaciones] = await Promise.allSettled([
-        germinacionService.getPaginated({ page: 1, page_size: 20 }),
-        polinizacionService.getPaginated({ page: 1, page_size: 1000 }),
-        polinizacionService.getTotalCount()
-      ]);
+      const results = await Promise.allSettled(promises);
 
-      const germinacionesRecientes = germinacionesRecientesRaw.status === 'fulfilled'
-        ? (germinacionesRecientesRaw.value?.results || [])
-        : [];
-      const polinizaciones = polinizacionesRaw.status === 'fulfilled'
-        ? (polinizacionesRaw.value?.results || [])
-        : [];
-      const totalPol = totalPolinizaciones.status === 'fulfilled'
-        ? totalPolinizaciones.value
-        : 0;
+      // Mapear resultados por clave
+      const resultMap: Record<string, any> = {};
+      results.forEach((result, index) => {
+        const key = promiseKeys[index];
+        if (key) {
+          resultMap[key] = result.status === 'fulfilled' ? result.value : null;
+        }
+      });
 
-      // Calcular estadísticas de polinizaciones
-      const polinizacionCounts = calculatePolinizacionStats(polinizaciones);
-      polinizacionCounts.total = totalPol; // Usar el total real
-      setPolinizacionStats(polinizacionCounts);
+      // Procesar estadísticas de germinaciones
+      if (canViewGerminaciones() && resultMap['germinacionStats']) {
+        const estadisticasResponse = resultMap['germinacionStats'];
+        const germinacionCounts = {
+          ingresado: estadisticasResponse?.estadisticas?.por_estado?.SEMIABIERTA || 0,
+          en_proceso: estadisticasResponse?.estadisticas?.por_estado?.ABIERTA || 0,
+          completado: estadisticasResponse?.estadisticas?.por_estado?.CERRADA || 0,
+          total: estadisticasResponse?.estadisticas?.total || 0
+        };
+        setGerminacionStats(germinacionCounts);
+      }
+
+      // Procesar datos de germinaciones recientes
+      const germinacionesRecientes = resultMap['germinacionesRecientes']?.results || [];
+
+      // Procesar datos de polinizaciones
+      const polinizaciones = resultMap['polinizaciones']?.results || [];
+      const totalPol = resultMap['totalPolinizaciones'] || 0;
+
+      if (canViewPolinizaciones()) {
+        const polinizacionCounts = calculatePolinizacionStats(polinizaciones);
+        polinizacionCounts.total = totalPol;
+        setPolinizacionStats(polinizacionCounts);
+      }
 
       // Generar tarjetas de actividades recientes
       const cards = generateItemCards(germinacionesRecientes, polinizaciones);
@@ -269,7 +292,7 @@ export default function HomeScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, router, calculatePolinizacionStats, generateItemCards]);
+  }, [token, router, calculatePolinizacionStats, generateItemCards, canViewGerminaciones, canViewPolinizaciones]);
 
   useEffect(() => {
     fetchData();
@@ -497,35 +520,39 @@ export default function HomeScreen() {
             <Ionicons name="analytics" size={20} color={themeColors.text.primary} /> Métricas del Sistema
           </Text>
           <View style={styles.metricsGrid}>
-            {/* Total Polinizaciones */}
-            <TouchableOpacity 
-              style={[styles.metricCard, styles.metricCardPolinizaciones]}
-              onPress={() => router.push('/(tabs)/polinizaciones')}
-            >
-              <View style={styles.metricCardHeader}>
-                <View style={[styles.metricIcon, { backgroundColor: themeColors.accent.tertiary }]}>
-                  <Ionicons name="flower" size={20} color={themeColors.accent.primary} />
+            {/* Total Polinizaciones - solo si tiene permiso */}
+            {canViewPolinizaciones() && (
+              <TouchableOpacity
+                style={[styles.metricCard, styles.metricCardPolinizaciones]}
+                onPress={() => router.push('/(tabs)/polinizaciones')}
+              >
+                <View style={styles.metricCardHeader}>
+                  <View style={[styles.metricIcon, { backgroundColor: themeColors.accent.tertiary }]}>
+                    <Ionicons name="flower" size={20} color={themeColors.accent.primary} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.metricLabel}>Total Polinizaciones</Text>
-              <Text style={styles.metricValue}>{polinizacionStats.total.toLocaleString()}</Text>
-            </TouchableOpacity>
+                <Text style={styles.metricLabel}>Total Polinizaciones</Text>
+                <Text style={styles.metricValue}>{polinizacionStats.total.toLocaleString()}</Text>
+              </TouchableOpacity>
+            )}
 
-            {/* Total Germinaciones */}
-            <TouchableOpacity 
-              style={[styles.metricCard, styles.metricCardGerminaciones]}
-              onPress={() => router.push('/(tabs)/germinaciones')}
-            >
-              <View style={styles.metricCardHeader}>
-                <View style={[styles.metricIcon, { backgroundColor: themeColors.primary.light }]}>
-                  <Ionicons name="leaf" size={20} color={themeColors.primary.main} />
+            {/* Total Germinaciones - solo si tiene permiso */}
+            {canViewGerminaciones() && (
+              <TouchableOpacity
+                style={[styles.metricCard, styles.metricCardGerminaciones]}
+                onPress={() => router.push('/(tabs)/germinaciones')}
+              >
+                <View style={styles.metricCardHeader}>
+                  <View style={[styles.metricIcon, { backgroundColor: themeColors.primary.light }]}>
+                    <Ionicons name="leaf" size={20} color={themeColors.primary.main} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.metricLabel}>Total Germinaciones</Text>
-              <Text style={styles.metricValue}>{germinacionStats.total.toLocaleString()}</Text>
-            </TouchableOpacity>
+                <Text style={styles.metricLabel}>Total Germinaciones</Text>
+                <Text style={styles.metricValue}>{germinacionStats.total.toLocaleString()}</Text>
+              </TouchableOpacity>
+            )}
 
-            {/* Tasa de Éxito */}
+            {/* Tasa de Éxito - basada en datos disponibles según permisos */}
             <TouchableOpacity style={[styles.metricCard, styles.metricCardSuccess]}>
               <View style={styles.metricCardHeader}>
                 <View style={[styles.metricIcon, { backgroundColor: themeColors.primary.light }]}>
@@ -534,13 +561,15 @@ export default function HomeScreen() {
               </View>
               <Text style={styles.metricLabel}>Tasa de Éxito</Text>
               <Text style={styles.metricValue}>
-                {germinacionStats.total > 0 
-                  ? Math.round((germinacionStats.completado / germinacionStats.total) * 100)
-                  : 0}%
+                {(() => {
+                  const totalCompletados = (canViewGerminaciones() ? germinacionStats.completado : 0) + (canViewPolinizaciones() ? polinizacionStats.completado : 0);
+                  const totalRegistros = (canViewGerminaciones() ? germinacionStats.total : 0) + (canViewPolinizaciones() ? polinizacionStats.total : 0);
+                  return totalRegistros > 0 ? Math.round((totalCompletados / totalRegistros) * 100) : 0;
+                })()}%
               </Text>
             </TouchableOpacity>
 
-            {/* Acciones Pendientes */}
+            {/* Acciones Pendientes - ingresado + en_proceso según permisos */}
             <TouchableOpacity style={[styles.metricCard, styles.metricCardPending]}>
               <View style={styles.metricCardHeader}>
                 <View style={[styles.metricIcon, { backgroundColor: themeColors.status.warningLight }]}>
@@ -548,7 +577,9 @@ export default function HomeScreen() {
                 </View>
               </View>
               <Text style={styles.metricLabel}>Acciones Pendientes</Text>
-              <Text style={styles.metricValue}>{germinacionStats.ingresado + polinizacionStats.ingresado}</Text>
+              <Text style={styles.metricValue}>
+                {(canViewGerminaciones() ? germinacionStats.ingresado + germinacionStats.en_proceso : 0) + (canViewPolinizaciones() ? polinizacionStats.ingresado + polinizacionStats.en_proceso : 0)}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

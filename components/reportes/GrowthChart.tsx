@@ -7,14 +7,16 @@ import { downloadChartAsPNG } from '@/utils/chartExport';
 
 interface GrowthChartProps {
   data?: Array<{ mes: string; total: number }>;
+  dataPolinizaciones?: Array<{ mes: string; total: number }>;
   title?: string;
   subtitle?: string;
 }
 
 export const GrowthChart: React.FC<GrowthChartProps> = ({
   data = [],
+  dataPolinizaciones = [],
   title = 'Curva de Crecimiento',
-  subtitle = 'Comparativa de germinaciones exitosas por semana',
+  subtitle = 'Comparativa de polinizaciones y germinaciones por semana',
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
@@ -24,7 +26,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
   const chartWidth = containerWidth - 40; // Restar padding del contenedor (20px cada lado)
 
   // Datos de ejemplo si no hay datos
-  const chartData = data.length > 0 ? data : [
+  const chartDataGerminaciones = data.length > 0 ? data : [
     { mes: 'Sem 1', total: 20 },
     { mes: 'Sem 2', total: 35 },
     { mes: 'Sem 3', total: 45 },
@@ -33,35 +35,56 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
     { mes: 'Sem 6', total: 70 },
   ];
 
-  // Calcular puntos para la curva
-  const maxValue = Math.max(...chartData.map(d => d.total));
-  const points = chartData.map((item, index) => {
-    const x = padding + (index * (chartWidth - padding * 2)) / (chartData.length - 1);
+  const chartDataPolinizaciones = dataPolinizaciones.length > 0 ? dataPolinizaciones : [
+    { mes: 'Sem 1', total: 45 },
+    { mes: 'Sem 2', total: 50 },
+    { mes: 'Sem 3', total: 38 },
+    { mes: 'Sem 4', total: 60 },
+    { mes: 'Sem 5', total: 48 },
+    { mes: 'Sem 6', total: 55 },
+  ];
+
+  // Calcular valor máximo considerando ambas series
+  const maxValue = Math.max(
+    ...chartDataGerminaciones.map(d => d.total),
+    ...chartDataPolinizaciones.map(d => d.total)
+  );
+
+  // Calcular puntos para germinaciones
+  const pointsGerminaciones = chartDataGerminaciones.map((item, index) => {
+    const x = padding + (index * (chartWidth - padding * 2)) / (chartDataGerminaciones.length - 1);
+    const y = chartHeight - padding - ((item.total / maxValue) * (chartHeight - padding * 2));
+    return { x, y, value: item.total, label: item.mes };
+  });
+
+  // Calcular puntos para polinizaciones
+  const pointsPolinizaciones = chartDataPolinizaciones.map((item, index) => {
+    const x = padding + (index * (chartWidth - padding * 2)) / (chartDataPolinizaciones.length - 1);
     const y = chartHeight - padding - ((item.total / maxValue) * (chartHeight - padding * 2));
     return { x, y, value: item.total, label: item.mes };
   });
 
   // Crear path para la curva suave
-  const createSmoothPath = () => {
+  const createSmoothPath = (points: Array<{ x: number; y: number; value: number; label: string }>) => {
     if (points.length === 0) return '';
-    
+
     const firstPoint = points[0];
     if (!firstPoint) return '';
-    
+
     let path = `M ${firstPoint.x} ${firstPoint.y}`;
-    
+
     for (let i = 0; i < points.length - 1; i++) {
       const current = points[i];
       const next = points[i + 1];
-      
+
       if (!current || !next) continue;
-      
+
       const controlX = (current.x + next.x) / 2;
-      
+
       path += ` Q ${controlX} ${current.y}, ${controlX} ${(current.y + next.y) / 2}`;
       path += ` Q ${controlX} ${next.y}, ${next.x} ${next.y}`;
     }
-    
+
     return path;
   };
 
@@ -86,6 +109,18 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* Leyenda */}
+      <View style={styles.legend}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
+          <Text style={styles.legendText}>Polinizaciones</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: themeColors.primary.main }]} />
+          <Text style={styles.legendText}>Germinaciones</Text>
+        </View>
+      </View>
+
       <View style={styles.chartWrapper}>
         <Svg width={chartWidth} height={chartHeight} style={styles.chart}>
         {/* Grid lines */}
@@ -104,19 +139,39 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
           );
         })}
 
-        {/* Curva principal */}
+        {/* Curva de Polinizaciones (amarilla) */}
         <Path
-          d={createSmoothPath()}
+          d={createSmoothPath(pointsPolinizaciones)}
+          stroke="#F59E0B"
+          strokeWidth="3"
+          fill="none"
+          strokeLinecap="round"
+        />
+
+        {/* Curva de Germinaciones (azul) */}
+        <Path
+          d={createSmoothPath(pointsGerminaciones)}
           stroke={themeColors.primary.main}
           strokeWidth="3"
           fill="none"
           strokeLinecap="round"
         />
 
-        {/* Puntos en la curva */}
-        {points.map((point, index) => (
+        {/* Puntos en la curva de Polinizaciones */}
+        {pointsPolinizaciones.map((point, index) => (
           <Circle
-            key={index}
+            key={`pol-${index}`}
+            cx={point.x}
+            cy={point.y}
+            r="4"
+            fill="#F59E0B"
+          />
+        ))}
+
+        {/* Puntos en la curva de Germinaciones */}
+        {pointsGerminaciones.map((point, index) => (
+          <Circle
+            key={`ger-${index}`}
             cx={point.x}
             cy={point.y}
             r="4"
@@ -125,7 +180,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         ))}
 
         {/* Labels del eje X */}
-        {points.map((point, index) => (
+        {pointsGerminaciones.map((point, index) => (
           <SvgText
             key={`label-${index}`}
             x={point.x}

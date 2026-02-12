@@ -37,10 +37,12 @@ export default function ReportesScreen() {
       ]);
 
       if (germinacionesResult.status === 'fulfilled') {
+        logger.info('Estadísticas de germinaciones:', germinacionesResult.value);
         setGStats(germinacionesResult.value);
       }
 
       if (polinizacionesResult.status === 'fulfilled') {
+        logger.info('Estadísticas de polinizaciones:', polinizacionesResult.value);
         setPStats(polinizacionesResult.value);
       }
 
@@ -112,6 +114,20 @@ export default function ReportesScreen() {
     fetchStats();
   };
 
+  // Calcular pérdidas (germinaciones que no germinaron exitosamente)
+  const totalGerminaciones = gStats?.total || 0;
+  const germinacionesExitosas = gStats?.tasa_exito
+    ? Math.round((totalGerminaciones * gStats.tasa_exito) / 100)
+    : 0;
+  const perdidas = totalGerminaciones - germinacionesExitosas;
+
+  // Calcular cambios porcentuales (simulados por ahora, se pueden calcular con datos históricos)
+  const cambioPolinizaciones = '+12%';
+  const cambioEficienciaPol = pStats?.tasa_exito && pStats.tasa_exito > 60 ? '+5%' : '0%';
+  const cambioEficienciaGer = gStats?.tasa_exito && gStats.tasa_exito > 60 ? '+5%' : '0%';
+  const cambioLotes = '0%';
+  const cambioPerdidas = perdidas > 0 ? '-2%' : '0%';
+
   const reportesStyles = createStyles(themeColors);
 
   if (loading && !refreshing) {
@@ -156,38 +172,48 @@ export default function ReportesScreen() {
         <View style={reportesStyles.metricsGrid}>
           <MetricCard
             title="POLINIZACIONES"
-            value={pStats?.total?.toLocaleString() || '1,240'}
+            value={pStats?.total?.toLocaleString() || '0'}
             icon="flower-outline"
-            change="+12%"
+            change={cambioPolinizaciones}
             changeType="positive"
+          />
+          <MetricCard
+            title="EFICIENCIA POLINIZACIONES"
+            value={pStats?.tasa_exito ? `${pStats.tasa_exito}%` : '0%'}
+            icon="flower-outline"
+            change={cambioEficienciaPol}
+            changeType={pStats?.tasa_exito && pStats.tasa_exito > 60 ? "positive" : "neutral"}
           />
           <MetricCard
             title="EFICIENCIA GERMINACIÓN"
-            value={`${gStats?.tasa_exito || '85.4'}%`}
+            value={gStats?.tasa_exito ? `${gStats.tasa_exito}%` : '0%'}
             icon="leaf-outline"
-            change="+5%"
-            changeType="positive"
+            change={cambioEficienciaGer}
+            changeType={gStats?.tasa_exito && gStats.tasa_exito > 60 ? "positive" : "neutral"}
           />
           <MetricCard
             title="LOTES ACTIVOS"
-            value={gStats?.total?.toLocaleString() || '42'}
+            value={totalGerminaciones?.toLocaleString() || '0'}
             icon="grid-outline"
-            change="0%"
+            change={cambioLotes}
             changeType="neutral"
           />
           <MetricCard
             title="PÉRDIDAS"
-            value="12"
+            value={perdidas?.toLocaleString() || '0'}
             icon="alert-circle-outline"
-            change="-2%"
-            changeType="negative"
+            change={cambioPerdidas}
+            changeType={perdidas > 0 ? "negative" : "neutral"}
           />
         </View>
 
         {/* Gráficos superiores */}
         <View style={reportesStyles.chartsRow}>
           <View style={reportesStyles.chartLarge}>
-            <GrowthChart data={gStats?.por_mes} />
+            <GrowthChart
+              data={gStats?.por_mes}
+              dataPolinizaciones={pStats?.por_mes}
+            />
           </View>
           <View style={reportesStyles.chartSmall}>
             <SpeciesDonutChart />
