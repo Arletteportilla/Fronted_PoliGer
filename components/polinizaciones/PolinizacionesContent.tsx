@@ -5,9 +5,11 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
+import SimpleCalendarPicker from '@/components/common/SimpleCalendarPicker';
 
 interface MetricCardProps {
   title: string;
@@ -55,11 +57,16 @@ interface PolinizacionesContentProps {
   search: string;
   activeFiltersCount: number;
   tipoRegistro?: 'historicos' | 'nuevos' | 'todos';
+  fechaDesde?: string;
+  fechaHasta?: string;
+  downloading?: boolean;
   onSearchChange: (text: string) => void;
   onClearSearch: () => void;
   onShowFilters: () => void;
-  onShowExportModal: () => void;
+  onFechaDesdeChange?: (date: string) => void;
+  onFechaHastaChange?: (date: string) => void;
   onTipoRegistroChange?: (tipo: 'historicos' | 'nuevos' | 'todos') => void;
+  onDownloadPDF?: () => void;
   showFiltersSection?: boolean;
   children?: React.ReactNode;
 }
@@ -71,11 +78,16 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
   search,
   activeFiltersCount,
   tipoRegistro = 'todos',
+  fechaDesde = '',
+  fechaHasta = '',
+  downloading = false,
   onSearchChange,
   onClearSearch,
   onShowFilters,
-  onShowExportModal,
+  onFechaDesdeChange,
+  onFechaHastaChange,
   onTipoRegistroChange,
+  onDownloadPDF,
   showFiltersSection = false,
   children
 }) => {
@@ -94,7 +106,7 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           iconBg={themeColors.primary.light}
           styles={styles}
         />
-        
+
         <MetricCard
           title="TASA DE ÉXITO (MES)"
           value={`${tasaExito}%`}
@@ -103,7 +115,7 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           iconBg={themeColors.accent.tertiary}
           styles={styles}
         />
-        
+
         <MetricCard
           title="COSECHAS REALIZADAS"
           value={cosechasRealizadas}
@@ -114,13 +126,13 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
         />
       </View>
 
-      {/* Barra de búsqueda moderna */}
+      {/* Barra de búsqueda moderna con filtros y fechas */}
       <View style={styles.searchBarContainer}>
         <View style={styles.searchInputWrapper}>
           <Ionicons name="search" size={20} color={themeColors.text.disabled} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar por código, especie..."
+            placeholder="Buscar..."
             placeholderTextColor={themeColors.text.disabled}
             value={search}
             onChangeText={onSearchChange}
@@ -135,37 +147,61 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           )}
         </View>
 
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={onShowFilters}
-          >
-            <Ionicons
-              name={showFiltersSection ? "chevron-up-outline" : "options-outline"}
-              size={18}
-              color={themeColors.text.tertiary}
-            />
-            <Text style={styles.actionButtonText}>Filtros</Text>
-            {activeFiltersCount > 0 && (
-              <View style={styles.actionBadge}>
-                <Text style={styles.actionBadgeText}>{activeFiltersCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={onShowFilters}
+        >
+          <Ionicons
+            name={showFiltersSection ? "chevron-up-outline" : "options-outline"}
+            size={18}
+            color={themeColors.text.tertiary}
+          />
+          <Text style={styles.actionButtonText}>Filtros</Text>
+          {activeFiltersCount > 0 && (
+            <View style={styles.actionBadge}>
+              <Text style={styles.actionBadgeText}>{activeFiltersCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="calendar-outline" size={18} color={themeColors.text.tertiary} />
-            <Text style={styles.actionButtonText}>Fecha</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={onShowExportModal}
-          >
-            <Ionicons name="download-outline" size={18} color={themeColors.text.tertiary} />
-            <Text style={styles.actionButtonText}>Exportar</Text>
-          </TouchableOpacity>
+        {/* Fecha Desde */}
+        <View style={styles.datePickerWrapper}>
+          <SimpleCalendarPicker
+            value={fechaDesde}
+            onDateChange={(date) => onFechaDesdeChange?.(date)}
+            placeholder="dd/mm/aaaa"
+            label="Desde"
+          />
         </View>
+
+        {/* Fecha Hasta */}
+        <View style={styles.datePickerWrapper}>
+          <SimpleCalendarPicker
+            value={fechaHasta}
+            onDateChange={(date) => onFechaHastaChange?.(date)}
+            placeholder="dd/mm/aaaa"
+            label="Hasta"
+          />
+        </View>
+
+        {/* Botón Descargar PDF */}
+        <TouchableOpacity
+          style={[styles.downloadButton, downloading && styles.downloadButtonDisabled]}
+          onPress={onDownloadPDF}
+          disabled={downloading}
+        >
+          {downloading ? (
+            <>
+              <ActivityIndicator size="small" color="#ffffff" />
+              <Text style={styles.downloadButtonText}>Descargando...</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="document-text" size={18} color="#ffffff" />
+              <Text style={styles.downloadButtonText}>Descargar PDF</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
 
       {/* Sección de Filtros Expandible */}
@@ -247,11 +283,13 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
 const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   metricsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 16,
     marginBottom: 24,
   },
   metricCard: {
     flex: 1,
+    minWidth: 200,
     backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 20,
@@ -329,25 +367,33 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   },
   searchBarContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 24,
-    backgroundColor: colors.background.secondary,
-    padding: 12,
+    alignItems: 'flex-end',
+    flexWrap: 'wrap',
+    backgroundColor: colors.background.primary,
+    padding: 20,
     borderRadius: 16,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: colors.border.default,
+    gap: 16,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   searchInputWrapper: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border.default,
+    flex: 1,
+    minWidth: 180,
+    maxWidth: 250,
   },
   searchIcon: {
     marginRight: 10,
@@ -360,21 +406,18 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   clearSearchButton: {
     padding: 4,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    backgroundColor: colors.background.primary,
-    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border.default,
     position: 'relative',
+    minHeight: 48,
   },
   actionButtonText: {
     fontSize: 14,
@@ -419,6 +462,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
 
   filterTypeButtons: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
 
@@ -432,6 +476,8 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     backgroundColor: colors.background.primary,
     borderWidth: 1,
     borderColor: colors.border.default,
+    flexGrow: 0,
+    flexShrink: 0,
   },
 
   filterTypeButtonActive: {
@@ -457,5 +503,41 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderWidth: 1,
     borderColor: colors.border.default,
     overflow: 'hidden',
+  },
+
+  datePickerWrapper: {
+    flex: 1,
+    minWidth: 140,
+    maxWidth: 200,
+  },
+
+  downloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: colors.primary.main,
+    borderRadius: 12,
+    shadowColor: colors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+    minHeight: 48,
+    flexShrink: 0,
+  },
+
+  downloadButtonDisabled: {
+    opacity: 0.6,
+    backgroundColor: colors.text.disabled,
+    shadowOpacity: 0.1,
+  },
+
+  downloadButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginLeft: 8,
   },
 });

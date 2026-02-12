@@ -110,7 +110,7 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
                   }}
                 >
                   <Ionicons name="play-circle" size={20} color="#ffffff" />
-                  <Text style={styles.stateButtonText}>Iniciar Proceso</Text>
+                  <Text style={styles.stateButtonText}>Proceso Temprano</Text>
                 </TouchableOpacity>
               )}
 

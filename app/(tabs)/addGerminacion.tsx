@@ -136,10 +136,18 @@ export default function AddGerminacionScreen() {
       return;
     }
 
+    // Advertencia si no hay predicción (opcional, no bloquea el guardado)
+    if (!prediccionML && !isEditMode) {
+      toast.warning('⚠️ La predicción aún se está calculando. Espera unos segundos para mejores resultados.', 6000);
+    }
+
     setIsLoading(true);
 
+    // Log para debugging
+    logger.info('📊 Guardando germinación con predicción:', prediccionML);
+
     try {
-      const formData = {
+      const formData: any = {
         fecha_polinizacion: fechaPolinizacion,
         fecha_siembra: fechaSiembra,
         codigo: codigo.trim(),
@@ -155,6 +163,21 @@ export default function AddGerminacionScreen() {
         responsable_polinizacion: responsablePolinizacion.trim(),
         responsable_germinacion: user?.username || '', // Usuario logueado
       };
+
+      // Incluir datos de predicción ML si existen
+      if (prediccionML) {
+        formData.prediccion_dias_estimados = prediccionML.dias_estimados;
+        formData.prediccion_fecha_estimada = prediccionML.fecha_estimada_germinacion;
+        formData.prediccion_confianza = prediccionML.confianza;
+        formData.prediccion_tipo = prediccionML.modelo || 'ML';
+        logger.info('✅ Incluyendo predicción en formData:', {
+          dias: prediccionML.dias_estimados,
+          fecha: prediccionML.fecha_estimada_germinacion,
+          confianza: prediccionML.confianza
+        });
+      } else {
+        logger.warn('⚠️ No hay predicción ML disponible al guardar');
+      }
 
 
       if (isEditMode && editItemId) {

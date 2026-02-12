@@ -271,13 +271,13 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       borderRadius: 16,
       padding: 20,
       marginBottom: 16,
-      shadowColor: '#000',
+      shadowColor: colors.shadow.color,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.08,
       shadowRadius: 12,
       elevation: 4,
       borderWidth: 1,
-      borderColor: '#e5f3f0',
+      borderColor: colors.border.light,
     },
     alertaCardHeader: {
       flexDirection: 'row',
@@ -303,17 +303,17 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
     alertaTitulo: {
       fontSize: 16,
       fontWeight: '700',
-      color: '#1f2937',
+      color: colors.text.primary,
       marginBottom: 4,
     },
     alertaDescripcion: {
       fontSize: 14,
-      color: '#6b7280',
+      color: colors.text.secondary,
       marginBottom: 6,
     },
     alertaTiempo: {
       fontSize: 12,
-      color: '#9ca3af',
+      color: colors.text.tertiary,
       fontWeight: '500',
     },
     alertaPrioridadBadge: {
@@ -337,17 +337,17 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       backgroundColor: colors.background.primary,
       borderRadius: 12,
       marginBottom: 12,
-      shadowColor: '#000',
+      shadowColor: colors.shadow.color,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3,
       borderWidth: 1,
-      borderColor: '#f3f4f6',
+      borderColor: colors.border.light,
       overflow: 'hidden',
     },
     notificacionNoLeida: {
-      backgroundColor: '#f8fafc',
+      backgroundColor: colors.background.secondary,
     },
     notificacionCardHeader: {
       flexDirection: 'row',
@@ -379,25 +379,25 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
     notificacionTitulo: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#1f2937',
+      color: colors.text.primary,
       flex: 1,
     },
     notificacionDotNoLeida: {
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: '#3b82f6',
+      backgroundColor: colors.status.info,
       marginLeft: 8,
     },
     notificacionDescripcion: {
       fontSize: 14,
-      color: '#6b7280',
+      color: colors.text.secondary,
       marginBottom: 8,
       lineHeight: 20,
     },
     notificacionTiempo: {
       fontSize: 12,
-      color: '#9ca3af',
+      color: colors.text.tertiary,
     },
     // Estilos adicionales para NotificationCard (en inglés para compatibilidad)
     notificationCard: {

@@ -429,6 +429,27 @@ export const germinacionService = {
     }
   },
 
+  // Obtener métricas de germinaciones nuevas (creadas en el sistema)
+  getMetricasNuevos: async (): Promise<{ en_proceso: number; finalizados: number; exito_promedio: number; total: number }> => {
+    try {
+      const token = await SecureStore.secureStore.getItem('authToken');
+      if (!token) {
+        throw new Error('No hay token de autenticación.');
+      }
+      const response = await api.get('germinaciones/metricas-nuevos/', {
+        timeout: 15000,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      logger.error('❌ Error obteniendo métricas de germinaciones:', error);
+      return { en_proceso: 0, finalizados: 0, exito_promedio: 0, total: 0 };
+    }
+  },
+
   // Nuevo método para paginación con filtros
   getPaginated: async (params: {
     page?: number;
@@ -444,6 +465,7 @@ export const germinacionService = {
     fecha_siembra_desde?: string;
     fecha_siembra_hasta?: string;
     ordering?: string;
+    tipo_registro?: 'historicos' | 'nuevos';
   } = {}) => {
     const page = params.page || 1;
     const page_size = params.page_size || 20;
@@ -474,6 +496,7 @@ export const germinacionService = {
       if (params.fecha_siembra_desde) queryParams.fecha_siembra_desde = params.fecha_siembra_desde;
       if (params.fecha_siembra_hasta) queryParams.fecha_siembra_hasta = params.fecha_siembra_hasta;
       if (params.ordering) queryParams.ordering = params.ordering;
+      if (params.tipo_registro) queryParams.tipo_registro = params.tipo_registro;
 
       const response = await api.get('germinaciones/', {
         params: queryParams,

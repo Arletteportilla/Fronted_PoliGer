@@ -105,12 +105,12 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
 
   // Navegar a notificaciones con filtro de alertas pendientes
   const handleAlertPress = useCallback(() => {
-    router.push('/(tabs)/notificaciones' as any);
+    router.push({ pathname: '/(tabs)/perfil', params: { tab: 'notificaciones' } } as any);
     setIsExpanded(false);
   }, [router]);
 
   const goToNotifications = useCallback(() => {
-    router.push('/(tabs)/notificaciones' as any);
+    router.push({ pathname: '/(tabs)/perfil', params: { tab: 'notificaciones' } } as any);
     setIsExpanded(false);
   }, [router]);
 
@@ -330,6 +330,6 @@ const styles = StyleSheet.create({
   dismissAllMiniText: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#EF4444',
+    color: '#FFFFFF',
   },
 });

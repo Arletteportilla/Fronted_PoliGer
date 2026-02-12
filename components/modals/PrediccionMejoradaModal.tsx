@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface PrediccionMejoradaData {
   prediccion: {
@@ -52,6 +53,8 @@ export const PrediccionMejoradaModal: React.FC<PrediccionMejoradaModalProps> = (
   loading,
   error
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
   const getConfianzaColor = (nivel: string) => {
     switch (nivel) {
       case 'alta': return '#28a745';
@@ -81,7 +84,7 @@ export const PrediccionMejoradaModal: React.FC<PrediccionMejoradaModalProps> = (
   };
 
   const getModeloIcon = (modelo: string) => {
-    return modelo === 'ML' ? 'brain' : 'calculator';
+    return modelo === 'ML' ? 'bulb' : 'calculator';
   };
 
   const getModeloColor = (modelo: string) => {
@@ -295,15 +298,15 @@ const getClimaDescripcion = (clima: string): string => {
   };
   return descripciones[clima as keyof typeof descripciones] || 'Desconocido';
 };
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.background.modal,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     width: '95%',
     maxWidth: 600,
@@ -316,7 +319,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.border.default,
   },
   headerContent: {
     flexDirection: 'row',
@@ -326,7 +329,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#182d49',
+    color: colors.text.primary,
     marginLeft: 12,
     flex: 1,
   },
@@ -339,7 +342,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   modeloText: {
-    color: '#fff',
+    color: colors.text.inverse,
     fontSize: 10,
     fontWeight: '600',
     marginLeft: 4,
@@ -359,13 +362,13 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#182d49',
+    color: colors.text.primary,
     marginTop: 16,
     textAlign: 'center',
   },
   loadingSubtext: {
     fontSize: 14,
-    color: '#666',
+    color: colors.text.secondary,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -376,13 +379,13 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#dc3545',
+    color: colors.status.error,
     marginTop: 16,
     textAlign: 'center',
   },
   errorMessage: {
     fontSize: 14,
-    color: '#666',
+    color: colors.text.secondary,
     marginTop: 8,
     textAlign: 'center',
     paddingHorizontal: 20,
@@ -408,12 +411,13 @@ const styles = StyleSheet.create({
   fechaEstimada: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text.inverse,
     marginBottom: 4,
   },
   diasEstimados: {
     fontSize: 16,
-    color: '#ccc',
+    color: colors.text.inverse,
+    opacity: 0.8,
   },
   rangoFechas: {
     backgroundColor: 'rgba(255,255,255,0.1)',
@@ -439,12 +443,13 @@ const styles = StyleSheet.create({
   },
   fechaRangoLabel: {
     fontSize: 12,
-    color: '#ccc',
+    color: colors.text.inverse,
+    opacity: 0.7,
     marginBottom: 4,
   },
   fechaRangoValue: {
     fontSize: 16,
-    color: '#fff',
+    color: colors.text.inverse,
     fontWeight: '600',
   },
   fechaRangoSeparator: {
@@ -456,7 +461,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   confianzaCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -473,12 +478,12 @@ const styles = StyleSheet.create({
   confianzaTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#182d49',
+    color: colors.text.primary,
     marginBottom: 4,
   },
   confianzaDescripcion: {
     fontSize: 14,
-    color: '#666',
+    color: colors.text.secondary,
   },
   confianzaBarContainer: {
     flexDirection: 'row',
@@ -488,7 +493,7 @@ const styles = StyleSheet.create({
   confianzaBar: {
     flex: 1,
     height: 8,
-    backgroundColor: '#e9ecef',
+    backgroundColor: colors.border.light,
     borderRadius: 4,
     marginRight: 12,
   },
@@ -499,17 +504,17 @@ const styles = StyleSheet.create({
   confianzaPercentage: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#182d49',
+    color: colors.text.primary,
     minWidth: 40,
   },
   precisionEsperada: {
     fontSize: 12,
-    color: '#666',
+    color: colors.text.secondary,
     textAlign: 'center',
     fontStyle: 'italic',
   },
   parametrosCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -517,7 +522,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#182d49',
+    color: colors.text.primary,
     marginBottom: 12,
   },
   parametrosList: {
@@ -531,23 +536,23 @@ const styles = StyleSheet.create({
   },
   parametroLabel: {
     fontSize: 14,
-    color: '#666',
+    color: colors.text.secondary,
     flex: 1,
   },
   parametroValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#182d49',
+    color: colors.text.primary,
     flex: 2,
     textAlign: 'right',
   },
   climaDescripcion: {
     fontSize: 12,
-    color: '#666',
+    color: colors.text.secondary,
     fontWeight: 'normal',
   },
   recomendacionesCard: {
-    backgroundColor: '#e8f5e8',
+    backgroundColor: colors.status.successLight,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -557,11 +562,11 @@ const styles = StyleSheet.create({
   },
   recomendacionText: {
     fontSize: 14,
-    color: '#155724',
+    color: colors.status.success,
     lineHeight: 20,
   },
   alertasCard: {
-    backgroundColor: '#e1f5fe',
+    backgroundColor: colors.status.infoLight,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -574,12 +579,12 @@ const styles = StyleSheet.create({
   alertasTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#0277bd',
+    color: colors.status.info,
     marginLeft: 8,
   },
   alertasText: {
     fontSize: 14,
-    color: '#0277bd',
+    color: colors.status.info,
     lineHeight: 18,
   },
   modeloInfo: {
@@ -588,11 +593,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: colors.border.default,
   },
   modeloInfoText: {
     fontSize: 12,
-    color: '#666',
+    color: colors.text.secondary,
     marginLeft: 8,
     fontStyle: 'italic',
     textAlign: 'center',
@@ -600,7 +605,7 @@ const styles = StyleSheet.create({
   footer: {
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: colors.border.default,
   },
   acceptButton: {
     backgroundColor: '#e9ad14',
@@ -611,6 +616,6 @@ const styles = StyleSheet.create({
   acceptButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text.inverse,
   },
 });

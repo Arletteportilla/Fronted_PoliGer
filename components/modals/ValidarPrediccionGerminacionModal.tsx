@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SimpleCalendarPicker } from '../common';
 import { germinacionService } from '../../services/germinacion.service';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { logger } from '@/services/logger';
 
 interface Germinacion {
@@ -42,6 +43,8 @@ export const ValidarPrediccionGerminacionModal: React.FC<Props> = ({
   onClose,
   onValidacionExitosa
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
   const [fechaReal, setFechaReal] = useState<string | null>(null);
   const [validando, setValidando] = useState(false);
   const toast = useToast();
@@ -237,10 +240,10 @@ export const ValidarPrediccionGerminacionModal: React.FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.background.modal,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -249,7 +252,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 500,
     maxHeight: '90%',
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     padding: 20,
   },
@@ -262,7 +265,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.status.successLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -271,18 +274,18 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   infoContainer: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.secondary,
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -293,13 +296,13 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     marginRight: 8,
     fontWeight: '600',
   },
   infoValue: {
     fontSize: 14,
-    color: '#1F2937',
+    color: colors.text.primary,
     fontWeight: '400',
     flex: 1,
   },
@@ -313,13 +316,13 @@ const styles = StyleSheet.create({
   },
   sublabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     marginBottom: 4,
   },
   value: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   section: {
     marginBottom: 16,
@@ -327,11 +330,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
     marginBottom: 8,
   },
   previewContainer: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.status.successLight,
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -339,34 +342,34 @@ const styles = StyleSheet.create({
   previewTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: colors.status.success,
     marginBottom: 12,
   },
   previewValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   successText: {
-    color: '#4caf50',
+    color: colors.status.success,
   },
   errorText: {
-    color: '#f44336',
+    color: colors.status.error,
   },
   warningBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF3E0',
+    backgroundColor: colors.status.warningLight,
     padding: 12,
     borderRadius: 6,
     marginTop: 12,
     borderLeftWidth: 3,
-    borderLeftColor: '#FF9800',
+    borderLeftColor: colors.status.warning,
   },
   warningText: {
     flex: 1,
     fontSize: 13,
-    color: '#E65100',
+    color: colors.status.warning,
     marginLeft: 8,
   },
   buttonContainer: {
@@ -384,22 +387,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cancelButton: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border.default,
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.secondary,
   },
   submitButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: colors.status.success,
   },
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.text.inverse,
   },
   buttonDisabled: {
     opacity: 0.5,

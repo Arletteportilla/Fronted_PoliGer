@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -9,6 +9,7 @@ import { CLIMAS, ESTADOS_CAPSULA, ESTADOS_SEMILLA, CANTIDADES_SEMILLA, NIVELES }
 import { validateNumericInput } from '@/utils/formValidation';
 import { germinacionService } from '@/services/germinacion.service';
 import { logger } from '@/services/logger';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface GerminacionFormProps {
   visible: boolean;
@@ -41,18 +42,21 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   handleEspecieSelection,
   useOwnModal = true, // Por defecto usa su propio Modal
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
+  
   const [showClimaPicker, setShowClimaPicker] = useState(false);
   const [showEstadoCapsula, setShowEstadoCapsula] = useState(false);
   const [showEstadoSemilla, setShowEstadoSemilla] = useState(false);
   const [showCantidadSemilla, setShowCantidadSemilla] = useState(false);
   const [showNivel, setShowNivel] = useState(false);
 
-  // Estados para predicción automática
+  // Estados para predicciÃ³n automÃ¡tica
   const [prediccionData, setPrediccionData] = useState<any>(null);
   const [loadingPrediccion, setLoadingPrediccion] = useState(false);
   const prediccionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Estado para validación de código único en tiempo real
+  // Estado para validaciÃ³n de cÃ³digo Ãºnico en tiempo real
   const [codigoValidation, setCodigoValidation] = useState<{
     isValidating: boolean;
     disponible: boolean | null;
@@ -65,14 +69,14 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
 
   const validationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Validar código único en tiempo real con debouncing
+  // Validar cÃ³digo Ãºnico en tiempo real con debouncing
   useEffect(() => {
     // Limpiar timeout anterior
     if (validationTimeoutRef.current) {
       clearTimeout(validationTimeoutRef.current);
     }
 
-    // Si el código está vacío, resetear validación
+    // Si el cÃ³digo estÃ¡ vacÃ­o, resetear validaciÃ³n
     if (!form.codigo || form.codigo.trim() === '') {
       setCodigoValidation({
         isValidating: false,
@@ -82,14 +86,14 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
       return;
     }
 
-    // Mostrar estado de validación
+    // Mostrar estado de validaciÃ³n
     setCodigoValidation({
       isValidating: true,
       disponible: null,
       mensaje: 'Verificando...'
     });
 
-    // Validar después de 800ms de inactividad
+    // Validar despuÃ©s de 800ms de inactividad
     validationTimeoutRef.current = setTimeout(async () => {
       try {
         const result = await germinacionService.validateCodigoUnico(form.codigo);
@@ -99,7 +103,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
           mensaje: result.mensaje
         });
       } catch (error) {
-        logger.error('Error validando código:', error);
+        logger.error('Error validando cÃ³digo:', error);
         setCodigoValidation({
           isValidating: false,
           disponible: null,
@@ -116,21 +120,21 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
     };
   }, [form.codigo]);
 
-  // Calcular predicción automáticamente cuando los campos necesarios estén completos
+  // Calcular predicciÃ³n automÃ¡ticamente cuando los campos necesarios estÃ©n completos
   useEffect(() => {
     // Limpiar timeout anterior
     if (prediccionTimeoutRef.current) {
       clearTimeout(prediccionTimeoutRef.current);
     }
 
-    // Verificar si todos los campos necesarios están completos
+    // Verificar si todos los campos necesarios estÃ¡n completos
     const camposCompletos =
       form.especie_variedad && form.especie_variedad.trim() !== '' &&
       form.genero && form.genero.trim() !== '' &&
       form.fecha_siembra && form.fecha_siembra.trim() !== '' &&
       form.clima && form.clima.trim() !== '';
 
-    // Si no están completos, resetear predicción
+    // Si no estÃ¡n completos, resetear predicciÃ³n
     if (!camposCompletos) {
       setPrediccionData(null);
       return;
@@ -139,7 +143,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
     // Mostrar estado de carga
     setLoadingPrediccion(true);
 
-    // Calcular predicción después de 1 segundo de inactividad
+    // Calcular predicciÃ³n despuÃ©s de 1 segundo de inactividad
     prediccionTimeoutRef.current = setTimeout(async () => {
       try {
         const formDataPrediccion = {
@@ -152,7 +156,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
         const resultado = await germinacionService.calcularPrediccionMejorada(formDataPrediccion);
         setPrediccionData(resultado);
       } catch (error: any) {
-        console.error('Error calculando predicción automática:', error);
+        console.error('Error calculando predicciÃ³n automÃ¡tica:', error);
         setPrediccionData(null);
       } finally {
         setLoadingPrediccion(false);
@@ -192,23 +196,23 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
               onPress={onClose}
               style={styles.closeButtonInner}
             >
-              <Ionicons name="close" size={24} color="#182d49" />
+              <Ionicons name="close" size={24} color={themeColors.text.primary} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.popupTitle}>Nueva Germinación</Text>
+          <Text style={styles.popupTitle}>Nueva GerminaciÃ³n</Text>
           <View style={styles.placeholder} />
         </View>
       )}
 
       {/* Contenido del formulario */}
             <View style={styles.formContainer}>
-              {/* Sección de Fechas y Código */}
+              {/* SecciÃ³n de Fechas y CÃ³digo */}
               <View style={[styles.formSection, { zIndex: 1000 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="calendar-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="calendar-outline" size={20} color={themeColors.accent.primary} />
                   </View>
-                  <Text style={styles.sectionTitle}>Información Básica</Text>
+                  <Text style={styles.sectionTitle}>InformaciÃ³n BÃ¡sica</Text>
                 </View>
 
                 <View style={styles.dateRow}>
@@ -238,20 +242,20 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Sección de Planta */}
+              {/* SecciÃ³n de Planta */}
               <View style={[styles.formSection, { zIndex: 900 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="leaf-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="leaf-outline" size={20} color={themeColors.accent.primary} />
                   </View>
-                  <Text style={styles.sectionTitle}>Información de la Planta</Text>
+                  <Text style={styles.sectionTitle}>InformaciÃ³n de la Planta</Text>
                 </View>
 
                 <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
-                    {renderFormField('Código', (
+                    {renderFormField('CÃ³digo', (
                       <View style={[styles.inputContainer, form.codigo ? styles.autoFilledInput : null]}>
-                        <Ionicons name="barcode-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="barcode-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.codigo}
@@ -260,13 +264,13 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                         />
                         {form.codigo && (
                           <View style={styles.autoFillIndicator}>
-                            <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                            <Ionicons name="checkmark-circle" size={16} color={themeColors.status.success} />
                           </View>
                         )}
                       </View>
                     ), false)}
 
-                    {/* Feedback de validación en tiempo real */}
+                    {/* Feedback de validaciÃ³n en tiempo real */}
                     {form.codigo && form.codigo.trim() !== '' && (
                       <View style={styles.validationFeedback}>
                         {codigoValidation.isValidating ? (
@@ -303,9 +307,9 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   </View>
 
                   <View style={styles.inputColumn}>
-                    {renderFormField('Género', (
+                    {renderFormField('GÃ©nero', (
                       <View style={[styles.inputContainer, form.genero ? styles.autoFilledInput : null]}>
-                        <Ionicons name="flower-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="flower-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.genero}
@@ -314,7 +318,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                         />
                         {form.genero && (
                           <View style={styles.autoFillIndicator}>
-                            <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                            <Ionicons name="checkmark-circle" size={16} color={themeColors.status.success} />
                           </View>
                         )}
                       </View>
@@ -326,7 +330,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Clima', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="partly-sunny-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="partly-sunny-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TouchableOpacity
                           style={styles.modernInput}
                           onPress={() => setShowClimaPicker(true)}
@@ -340,7 +344,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                               : 'Seleccionar clima'
                             }
                           </Text>
-                          <Ionicons name="chevron-down" size={16} color="#666" />
+                          <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
                         </TouchableOpacity>
                       </View>
                     ), true)}
@@ -373,20 +377,20 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Sección de Estados */}
+              {/* SecciÃ³n de Estados */}
               <View style={[styles.formSection, { zIndex: 800 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="git-branch-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="git-branch-outline" size={20} color={themeColors.accent.primary} />
                   </View>
                   <Text style={styles.sectionTitle}>Estados</Text>
                 </View>
 
                 <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
-                    {renderFormField('Estado de Cápsula', (
+                    {renderFormField('Estado de CÃ¡psula', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="ellipse-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="ellipse-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TouchableOpacity
                           style={styles.modernInput}
                           onPress={() => setShowEstadoCapsula(true)}
@@ -400,7 +404,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                               : 'Seleccionar estado'
                             }
                           </Text>
-                          <Ionicons name="chevron-down" size={16} color="#666" />
+                          <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
                         </TouchableOpacity>
                       </View>
                     ), true)}
@@ -434,7 +438,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Estado de Semilla', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="water-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="water-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TouchableOpacity
                           style={styles.modernInput}
                           onPress={() => setShowEstadoSemilla(true)}
@@ -448,7 +452,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                               : 'Seleccionar estado'
                             }
                           </Text>
-                          <Ionicons name="chevron-down" size={16} color="#666" />
+                          <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
                         </TouchableOpacity>
                       </View>
                     ), true)}
@@ -481,11 +485,11 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Sección de Cantidades */}
+              {/* SecciÃ³n de Cantidades */}
               <View style={[styles.formSection, { zIndex: 700 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="calculator-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="calculator-outline" size={20} color={themeColors.accent.primary} />
                   </View>
                   <Text style={styles.sectionTitle}>Cantidades</Text>
                 </View>
@@ -494,7 +498,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad de Semilla', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="leaf-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TouchableOpacity
                           style={styles.modernInput}
                           onPress={() => setShowCantidadSemilla(true)}
@@ -508,7 +512,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                               : 'Seleccionar cantidad'
                             }
                           </Text>
-                          <Ionicons name="chevron-down" size={16} color="#666" />
+                          <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
                         </TouchableOpacity>
                       </View>
                     ), true)}
@@ -542,7 +546,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad Solicitada', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="arrow-up-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="arrow-up-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.cantidad_solicitada}
@@ -557,14 +561,14 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
 
                 <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
-                    {renderFormField('Número de Cápsulas', (
+                    {renderFormField('NÃºmero de CÃ¡psulas', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="ellipsis-horizontal-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="ellipsis-horizontal-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.no_capsulas}
                           onChangeText={(v: string) => setForm((f: any) => ({ ...f, no_capsulas: validateNumericInput(v) }))}
-                          placeholder="Número de cápsulas"
+                          placeholder="NÃºmero de cÃ¡psulas"
                           keyboardType="numeric"
                         />
                       </View>
@@ -573,13 +577,13 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Sección de Ubicación */}
+              {/* SecciÃ³n de UbicaciÃ³n */}
               <View style={[styles.formSection, { zIndex: 600 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="location-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="location-outline" size={20} color={themeColors.accent.primary} />
                   </View>
-                  <Text style={styles.sectionTitle}>Ubicación</Text>
+                  <Text style={styles.sectionTitle}>UbicaciÃ³n</Text>
                 </View>
 
                 <View style={[styles.inputRow, { zIndex: 600 }]}>
@@ -599,7 +603,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Nivel', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="layers-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="layers-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TouchableOpacity
                           style={styles.modernInput}
                           onPress={() => setShowNivel(true)}
@@ -610,7 +614,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                           ]}>
                             {form.nivel || 'Seleccionar nivel'}
                           </Text>
-                          <Ionicons name="chevron-down" size={16} color="#666" />
+                          <Ionicons name="chevron-down" size={16} color={themeColors.text.tertiary} />
                         </TouchableOpacity>
                       </View>
                     ), true)}
@@ -651,11 +655,11 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Sección de Observaciones */}
+              {/* SecciÃ³n de Observaciones */}
               <View style={[styles.formSection, { zIndex: 500 }]}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionIcon}>
-                    <Ionicons name="document-text-outline" size={20} color="#e9ad14" />
+                    <Ionicons name="document-text-outline" size={20} color={themeColors.accent.primary} />
                   </View>
                   <Text style={styles.sectionTitle}>Observaciones y Responsable</Text>
                 </View>
@@ -664,7 +668,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Observaciones', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="document-text-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="document-text-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TextInput
                           style={[styles.modernInput, styles.textAreaInput]}
                           value={form.observaciones}
@@ -682,7 +686,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   <View style={styles.inputColumn}>
                     {renderFormField('Responsable', (
                       <View style={styles.inputContainer}>
-                        <Ionicons name="person-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
+                        <Ionicons name="person-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
                         <TextInput
                           style={[styles.modernInput, styles.autoFilledInput]}
                           value={form.responsable}
@@ -691,7 +695,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                           editable={true}
                         />
                         <View style={styles.autoFillIndicator}>
-                          <Ionicons name="checkmark-circle" size={16} color="#28a745" />
+                          <Ionicons name="checkmark-circle" size={16} color={themeColors.status.success} />
                         </View>
                       </View>
                     ), true)}
@@ -699,7 +703,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </View>
               </View>
 
-              {/* Sección de Predicción Automática */}
+              {/* SecciÃ³n de PredicciÃ³n AutomÃ¡tica */}
               <PredictionDisplay
                 prediccionData={prediccionData}
                 loadingPrediccion={loadingPrediccion}
@@ -707,7 +711,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 tipo="germinacion"
               />
 
-              {/* Botones de acción */}
+              {/* Botones de acciÃ³n */}
               <View style={styles.actionButtons}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.cancelButton]}
@@ -723,7 +727,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                   onPress={onSubmit}
                   disabled={saving}
                 >
-                  <Ionicons name="save" size={20} color="#fff" />
+                  <Ionicons name="save" size={20} color={themeColors.text.inverse} />
                   <Text style={styles.actionButtonText}>
                     {saving ? 'Guardando...' : 'Guardar'}
                   </Text>
@@ -756,7 +760,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   return formContent;
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   popupOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -764,11 +768,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   popupContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     width: '85%',
     maxWidth: 600,
     height: '100%',
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: -4, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -787,8 +791,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB',
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.background.secondary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -796,7 +800,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -809,7 +813,7 @@ const styles = StyleSheet.create({
   popupTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#182d49',
+    color: colors.text.primary,
     textAlign: 'center',
   },
   placeholder: {
@@ -827,13 +831,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border.default,
   },
   sectionIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(233, 173, 20, 0.1)',
+    backgroundColor: colors.accent.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -841,7 +845,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#182d49',
+    color: colors.text.primary,
   },
   dateRow: {
     flexDirection: 'row',
@@ -861,10 +865,10 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -874,11 +878,11 @@ const styles = StyleSheet.create({
   modernInput: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
     paddingVertical: 8,
   },
   autoFilledInput: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: colors.accent.secondary + '10',
   },
   autoFillIndicator: {
     marginLeft: 8,
@@ -889,19 +893,19 @@ const styles = StyleSheet.create({
   },
   pickerText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
   },
   placeholderText: {
-    color: '#9ca3af',
+    color: colors.text.tertiary,
     fontSize: 14,
   },
   integratedDropdown: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.primary,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     marginTop: 4,
-    shadowColor: '#000',
+    shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -911,17 +915,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: colors.border.light,
   },
   integratedDropdownOptionSelected: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: colors.accent.secondary + '20',
   },
   integratedDropdownOptionText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text.primary,
   },
   integratedDropdownOptionTextSelected: {
-    color: '#182d49',
+    color: colors.accent.primary,
     fontWeight: '600',
   },
   actionButtons: {
@@ -939,20 +943,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveButton: {
-    backgroundColor: '#182d49',
+    backgroundColor: colors.primary.main,
   },
   cancelButton: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.background.secondary,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.border.default,
   },
   actionButtonText: {
-    color: '#fff',
+    color: colors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
   cancelButtonText: {
-    color: '#6b7280',
+    color: colors.text.secondary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -962,17 +966,17 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text.primary,
     marginBottom: 8,
   },
   fieldLabelRequired: {
-    color: '#182d49',
+    color: colors.text.primary,
   },
   requiredAsterisk: {
     color: '#EF4444',
     fontWeight: 'bold',
   },
-  // Estilos de validación de código en tiempo real
+  // Estilos de validaciÃ³n de cÃ³digo en tiempo real
   validationFeedback: {
     marginTop: 8,
     marginBottom: 4,
@@ -984,7 +988,7 @@ const styles = StyleSheet.create({
   },
   validationTextValidating: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     fontWeight: '500',
   },
   validationTextSuccess: {

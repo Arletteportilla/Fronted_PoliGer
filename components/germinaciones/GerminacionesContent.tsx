@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Pagination from '@/components/filters/Pagination';
@@ -29,6 +30,7 @@ interface GerminacionesContentProps {
   onGoToPage: (page: number) => void;
   onItemPress?: (item: any) => void;
   onTipoRegistroChange?: (tipo: 'historicos' | 'nuevos' | 'todos') => void;
+  onChangeEstado?: (id: number, nuevoEstado: string) => void;
 }
 
 export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
@@ -49,6 +51,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
   onGoToPage,
   onItemPress,
   onTipoRegistroChange,
+  onChangeEstado,
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
@@ -57,7 +60,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
   const getEstadoBgColor = (estado: string) => {
     const estadoLower = estado?.toLowerCase() || '';
     if (estadoLower === 'completado' || estadoLower === 'finalizado' || estadoLower === 'lista' || estadoLower === 'listo') return '#D1FAE5';
-    if (estadoLower === 'en proceso' || estadoLower === 'en_proceso' || estadoLower === 'pendiente') return '#FEF3C7';
+    if (estadoLower === 'en proceso' || estadoLower === 'en_proceso' || estadoLower === 'pendiente' || estadoLower === 'en_proceso_temprano' || estadoLower === 'en_proceso_avanzado') return '#FEF3C7';
     if (estadoLower === 'en desarrollo') return '#FEF3C7';
     if (estadoLower === 'ingresado' || estadoLower === 'inicial') return '#E5E7EB';
     if (estadoLower === 'cerrada') return '#E5E7EB';
@@ -66,10 +69,10 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
 
   // Función para obtener color de texto del estado
   const getEstadoTextColor = (estado: string) => {
-    const estadoLower = estado?.toUpperCase() || '';
-    if (estadoLower === 'INGRESADO' || estadoLower === 'PENDIENTE' || estadoLower === 'EN DESARROLLO' || estadoLower === 'CERRADA') return '#374151';
-    if (estadoLower === 'EN_PROCESO' || estadoLower === 'EN PROCESO') return '#92400E';
-    if (estadoLower === 'LISTA' || estadoLower === 'LISTO' || estadoLower === 'COMPLETADO' || estadoLower === 'FINALIZADO') return '#065F46';
+    const estadoUpper = estado?.toUpperCase() || '';
+    if (estadoUpper === 'INGRESADO' || estadoUpper === 'PENDIENTE' || estadoUpper === 'EN DESARROLLO' || estadoUpper === 'CERRADA') return '#374151';
+    if (estadoUpper === 'EN_PROCESO' || estadoUpper === 'EN PROCESO' || estadoUpper === 'EN_PROCESO_TEMPRANO' || estadoUpper === 'EN_PROCESO_AVANZADO') return '#92400E';
+    if (estadoUpper === 'LISTA' || estadoUpper === 'LISTO' || estadoUpper === 'COMPLETADO' || estadoUpper === 'FINALIZADO') return '#065F46';
     return '#374151';
   };
 
@@ -120,6 +123,9 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                 </View>
               </>
             )}
+            <View style={[styles.tableHeaderCell, { flex: 0.8 }]}>
+              <Text style={styles.headerText}>Acciones</Text>
+            </View>
           </View>
 
           {/* Filas de datos */}
@@ -134,7 +140,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
             const fechaEstimada = fechaEstimadaValue
               ? new Date(fechaEstimadaValue).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
               : '-';
-            const estadoActual = item.etapa_actual || item.estado_capsula || item.estado || 'En desarrollo';
+            const estadoActual = item.estado_germinacion || item.etapa_actual || item.estado_capsula || item.estado || 'En desarrollo';
 
             const itemKey = item.id?.toString() || `germ-${index}`;
             const estadoBgColor = getEstadoBgColor(estadoActual);
@@ -212,6 +218,16 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                       </View>
                     </>
                   )}
+                  <View style={[styles.tableCell, { flex: 0.8 }]}>
+                    <View style={styles.actionsCell}>
+                      <TouchableOpacity
+                        onPress={() => onItemPress?.(item)}
+                        style={styles.actionIconButton}
+                      >
+                        <Ionicons name="eye-outline" size={20} color="#3B82F6" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
 
                 {/* Barra de progreso por etapas - Solo para registros nuevos */}
@@ -226,6 +242,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                     <EstadoProgressBar
                       estadoActual={item.estado_germinacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
                       tipo="germinacion"
+                      {...(onChangeEstado ? { onChangeEstado: (nuevoEstado: string) => onChangeEstado(item.id, nuevoEstado) } : {})}
                     />
                   </View>
                 )}
@@ -398,5 +415,16 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   progressBarFill: {
     height: '100%',
     borderRadius: 3,
+  },
+  actionsCell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  actionIconButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: colors.background.secondary,
   },
 });

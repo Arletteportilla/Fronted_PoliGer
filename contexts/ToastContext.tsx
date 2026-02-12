@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from './ThemeContext';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -31,6 +32,7 @@ export const useToast = () => {
 };
 
 const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({ toast, onRemove }) => {
+  const { colors: themeColors } = useTheme();
   const fadeAnim = useRef(toast.animation).current;
   const slideAnim = useRef(new Animated.Value(100)).current; // Cambiar para animar desde la derecha
 
@@ -75,21 +77,21 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
     switch (type) {
       case 'success':
         return {
-          backgroundColor: '#92e27a',
+          backgroundColor: '#10B981',
           icon: 'checkmark-circle' as const,
-          borderColor: '#166534',
-          textColor: '#000000',
+          borderColor: '#059669',
+          textColor: '#FFFFFF',
         };
       case 'error':
         return {
-          backgroundColor: '#EF4444',
+          backgroundColor: themeColors.status.error,
           icon: 'close-circle' as const,
           borderColor: '#DC2626',
           textColor: '#FFFFFF',
         };
       case 'warning':
         return {
-          backgroundColor: '#F59E0B',
+          backgroundColor: themeColors.status.warning,
           icon: 'warning' as const,
           borderColor: '#D97706',
           textColor: '#FFFFFF',
@@ -97,7 +99,7 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
       case 'info':
       default:
         return {
-          backgroundColor: '#3B82F6',
+          backgroundColor: themeColors.status.info,
           icon: 'information-circle' as const,
           borderColor: '#2563EB',
           textColor: '#FFFFFF',
@@ -130,13 +132,25 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
       <View style={styles.toastIconContainer}>
         <Ionicons
           name={toastStyle.icon}
-          size={18}
-          color={toastStyle.textColor}
+          size={20}
+          color="#FFFFFF"
           style={styles.toastIcon}
         />
       </View>
       <View style={styles.toastContent}>
-        <Text style={[styles.toastText, { color: toastStyle.textColor }]}>{toast.message}</Text>
+        <Text 
+          style={[
+            styles.toastText, 
+            { 
+              color: '#FFFFFF',
+              backgroundColor: 'transparent',
+            }
+          ]} 
+          numberOfLines={3}
+          allowFontScaling={false}
+        >
+          {toast.message}
+        </Text>
       </View>
     </Animated.View>
   );
@@ -204,21 +218,21 @@ const styles = StyleSheet.create({
   toast: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
     marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
-    borderLeftWidth: 4,
-    minWidth: 250,
-    maxWidth: 350,
+    borderLeftWidth: 3,
+    minWidth: 200,
+    maxWidth: 300,
   },
   toastIconContainer: {
-    marginRight: 10,
+    marginRight: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -231,7 +245,10 @@ const styles = StyleSheet.create({
   toastText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 20,
+    fontWeight: '600',
+    lineHeight: 18,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });

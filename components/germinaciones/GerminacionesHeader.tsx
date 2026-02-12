@@ -20,7 +20,6 @@ interface GerminacionesHeaderProps {
   onToggleShowOnlyMine: () => void;
   onSearchChange: (text: string) => void;
   onShowForm: () => void;
-  onShowExportModal?: () => void;
   onShowFilters?: () => void;
 }
 
@@ -34,7 +33,6 @@ export const GerminacionesHeader: React.FC<GerminacionesHeaderProps> = ({
   onToggleShowOnlyMine,
   onSearchChange,
   onShowForm,
-  onShowExportModal,
   onShowFilters,
 }) => {
   const { colors: themeColors } = useTheme();

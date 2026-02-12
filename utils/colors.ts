@@ -54,8 +54,8 @@ export const ACCENT = {
 
 // Colores de estado (success, warning, error, info)
 export const STATUS = {
-  success: '#e9ad14',    // Amarillo/dorado para éxito
-  successLight: '#fef3c7',
+  success: '#10B981',    // Verde para éxito
+  successLight: '#d1fae5',
   warning: '#F59E0B',    // Amarillo/naranja advertencia
   warningLight: '#FEF3C7',
   error: '#EF4444',      // Rojo error

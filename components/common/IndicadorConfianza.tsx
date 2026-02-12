@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface IndicadorConfianzaProps {
   confianza: number;
@@ -19,6 +20,8 @@ export const IndicadorConfianza: React.FC<IndicadorConfianzaProps> = ({
   showPercentage = true,
   showModel = false
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
   const getConfianzaColor = (nivel: string) => {
     switch (nivel) {
       case 'alta': return '#28a745';
@@ -117,9 +120,9 @@ export const IndicadorConfianza: React.FC<IndicadorConfianzaProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   container: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.background.secondary,
     borderRadius: 8,
     padding: 8,
   },
@@ -154,7 +157,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   percentageText: {
-    color: '#666',
+    color: colors.text.secondary,
     marginTop: 2,
   },
   modeloBadge: {
@@ -165,13 +168,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   modeloText: {
-    color: '#fff',
+    color: colors.text.inverse,
     fontSize: 8,
     fontWeight: '600',
     marginLeft: 2,
   },
   progressBar: {
-    backgroundColor: '#e9ecef',
+    backgroundColor: colors.border.light,
     borderRadius: 3,
     overflow: 'hidden',
   },

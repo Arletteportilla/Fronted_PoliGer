@@ -8,12 +8,14 @@ import { usePolinizaciones } from '@/hooks/usePolinizaciones';
 import { getInitialFormState } from '@/utils/polinizacionConstants';
 import PolinizacionFilters from '@/components/filters/PolinizacionFilters';
 import type { PolinizacionFilterParams } from '@/types';
-import { ExportModal } from '@/components/export';
 import { useTheme } from '@/contexts/ThemeContext';
+import { reportesService } from '@/services/reportes.service';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function PolinizacionesScreen() {
   const { colors: themeColors } = useTheme();
-  
+  const { showToast } = useToast();
+
   // Usar el hook personalizado para polinizaciones con filtros
   const {
     polinizaciones,
@@ -47,9 +49,11 @@ export default function PolinizacionesScreen() {
   const [form, setForm] = useState(() => getInitialFormState(getUserFullName));
   const [detalle, setDetalle] = useState(null);
   const [showFiltersSection, setShowFiltersSection] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [tipoRegistro, setTipoRegistro] = useState<'historicos' | 'nuevos' | 'todos'>('todos');
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
+  const [downloading, setDownloading] = useState(false);
 
   // Funciones para manejar el formulario
   const handleSave = async () => {
@@ -117,17 +121,47 @@ export default function PolinizacionesScreen() {
   const handleTipoRegistroChange = (tipo: 'historicos' | 'nuevos' | 'todos') => {
     console.log('🔄 Cambiando tipo de registro:', tipo);
     setTipoRegistro(tipo);
-    
-    const newFilters = {
-      ...filters,
-      tipo_registro: tipo === 'todos' ? undefined : tipo
-    };
-    
-    setFilters(newFilters);
+
+    if (tipo === 'todos') {
+      const { tipo_registro, ...rest } = filters;
+      setFilters(rest);
+    } else {
+      setFilters({
+        ...filters,
+        tipo_registro: tipo
+      });
+    }
   };
 
   const handleApplyFilters = (newFilters: PolinizacionFilterParams) => {
     setFilters(newFilters);
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      setDownloading(true);
+
+      // Preparar filtros
+      const filtros: any = {};
+
+      if (fechaDesde) {
+        filtros.fecha_inicio = fechaDesde;
+      }
+
+      if (fechaHasta) {
+        filtros.fecha_fin = fechaHasta;
+      }
+
+      // Llamar al servicio de reportes
+      await reportesService.generarReportePolinizaciones('pdf', filtros);
+
+      showToast('PDF descargado exitosamente', 'success');
+    } catch (error) {
+      console.error('Error descargando PDF:', error);
+      showToast('Error al descargar el PDF', 'error');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const styles = createStyles(themeColors);
@@ -164,11 +198,16 @@ export default function PolinizacionesScreen() {
           search={filters.search || ''}
           activeFiltersCount={activeFiltersCount}
           tipoRegistro={tipoRegistro}
+          fechaDesde={fechaDesde}
+          fechaHasta={fechaHasta}
+          downloading={downloading}
           onSearchChange={handleSearchChange}
           onClearSearch={() => setFilters({ ...filters, search: '' })}
           onShowFilters={() => setShowFiltersSection(!showFiltersSection)}
-          onShowExportModal={() => setShowExportModal(true)}
+          onFechaDesdeChange={setFechaDesde}
+          onFechaHastaChange={setFechaHasta}
           onTipoRegistroChange={handleTipoRegistroChange}
+          onDownloadPDF={handleDownloadPDF}
           showFiltersSection={showFiltersSection}
         >
           <PolinizacionFilters
@@ -273,15 +312,6 @@ export default function PolinizacionesScreen() {
         saving={saving}
         isPredicting={isPredicting}
         prediccion={prediccion}
-      />
-
-      {/* Export Modal */}
-      <ExportModal
-        visible={showExportModal}
-        onClose={() => setShowExportModal(false)}
-        defaultEntity="polinizaciones"
-        allowEntitySelection={false}
-        title="Exportar Polinizaciones"
       />
     </ResponsiveLayout>
   );

@@ -259,7 +259,7 @@ export function PerfilNotificacionesTab({
           )}
           {stats.noLeidas > 0 && (
             <TouchableOpacity style={styles.markAllReadButton} onPress={handleMarkAllAsRead}>
-              <Ionicons name="checkmark-done" size={16} color="#fff" />
+              <Ionicons name="checkmark-done" size={16} color={themeColors.text.inverse} />
               {!isSmallScreen && <Text style={styles.markAllReadText}>Marcar todas leídas</Text>}
             </TouchableOpacity>
           )}
@@ -558,11 +558,11 @@ function NotificationCard({
   // Determinar tipo de notificación para mostrar categoría
   const getCategoryInfo = () => {
     if ((notification.tipo as string) === 'ESTADO_GERMINACION_ACTUALIZADO' || (notification.tipo as string) === 'ESTADO_POLINIZACION_ACTUALIZADO') {
-      return { label: 'ESTADO ACTUALIZADO', color: '#10b981', bgColor: '#d1fae5' };
+      return { label: 'ESTADO ACTUALIZADO', color: themeColors.status.success, bgColor: themeColors.status.successLight };
     } else if ((notification.tipo as string) === 'REVISION_GERMINACION' || (notification.tipo as string) === 'REVISION_POLINIZACION') {
-      return { label: 'ACTUALIZACIÓN GENERAL', color: '#f59e0b', bgColor: '#fef3c7' };
+      return { label: 'ACTUALIZACIÓN GENERAL', color: themeColors.status.warning, bgColor: themeColors.status.warningLight };
     } else if ((notification.tipo as string) === 'ALERTA_IMPORTADA') {
-      return { label: 'HISTORIAL', color: '#6366f1', bgColor: '#e0e7ff' };
+      return { label: 'HISTORIAL', color: themeColors.status.info, bgColor: themeColors.status.infoLight };
     }
     return { label: typeLabel.toUpperCase(), color: color, bgColor: `${color}20` };
   };
@@ -587,7 +587,7 @@ function NotificationCard({
             <Ionicons name={iconName as any} size={18} color={categoryInfo.color} />
           </View>
           <View style={[styles.categoryBadge, { backgroundColor: categoryInfo.bgColor }]}>
-            <Text style={[styles.categoryText, { color: categoryInfo.color }]}>
+            <Text style={[styles.categoryText, { color: themeColors.text.primary }]}>
               {categoryInfo.label}
             </Text>
           </View>
@@ -653,12 +653,12 @@ function NotificationCard({
             {estaFinalizado && (
               <View style={styles.finalizadoContainer}>
                 <View style={styles.finalizadoBadge}>
-                  <Ionicons name="checkmark-circle" size={14} color="#10b981" />
+                  <Ionicons name="checkmark-circle" size={14} color={themeColors.status.success} />
                   <Text style={styles.finalizadoText}>Finalizado</Text>
                 </View>
                 {fechaMaduracion && (
                   <View style={styles.fechaMaduracionBadge}>
-                    <Ionicons name="calendar" size={12} color="#6366f1" />
+                    <Ionicons name="calendar" size={12} color={themeColors.status.info} />
                     <Text style={styles.fechaMaduracionText}>
                       {new Date(fechaMaduracion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </Text>
@@ -681,12 +681,12 @@ function NotificationCard({
             {estaFinalizado && (
               <View style={styles.finalizadoContainer}>
                 <View style={styles.finalizadoBadge}>
-                  <Ionicons name="checkmark-circle" size={14} color="#10b981" />
+                  <Ionicons name="checkmark-circle" size={14} color={themeColors.status.success} />
                   <Text style={styles.finalizadoText}>Finalizado</Text>
                 </View>
                 {fechaMaduracion && (
                   <View style={styles.fechaMaduracionBadge}>
-                    <Ionicons name="calendar" size={12} color="#6366f1" />
+                    <Ionicons name="calendar" size={12} color={themeColors.status.info} />
                     <Text style={styles.fechaMaduracionText}>
                       {new Date(fechaMaduracion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </Text>
@@ -760,7 +760,7 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     flexShrink: 1,
   },
   unreadCount: {
-    color: '#f59e0b',
+    color: colors.status.warning,
     fontWeight: '600',
   },
   headerRight: {
@@ -831,18 +831,18 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     color: colors.accent.secondary,
   },
   filterChipActivePendiente: {
-    backgroundColor: '#fef3c7',
-    borderColor: '#f59e0b',
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warning,
   },
   filterChipTextActivePendiente: {
-    color: '#f59e0b',
+    color: colors.status.warning,
   },
   filterChipActiveFinalizado: {
-    backgroundColor: '#d1fae5',
-    borderColor: '#10b981',
+    backgroundColor: colors.status.successLight,
+    borderColor: colors.status.success,
   },
   filterChipTextActiveFinalizado: {
-    color: '#10b981',
+    color: colors.status.success,
   },
   filterChipActivePolinizacion: {
     backgroundColor: '#fce7f3',
@@ -859,18 +859,18 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     color: '#22c55e',
   },
   filterChipActiveRecordatorios: {
-    backgroundColor: '#fef3c7',
-    borderColor: '#f59e0b',
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warning,
   },
   filterChipTextActiveRecordatorios: {
-    color: '#f59e0b',
+    color: colors.status.warning,
   },
   filterChipActiveSistema: {
-    backgroundColor: '#e0e7ff',
-    borderColor: '#6366f1',
+    backgroundColor: colors.status.infoLight,
+    borderColor: colors.status.info,
   },
   filterChipTextActiveSistema: {
-    color: '#6366f1',
+    color: colors.status.info,
   },
   filterDivider: {
     width: 1,
@@ -1083,12 +1083,12 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#d1fae5',
+    backgroundColor: colors.status.successLight,
     borderRadius: 8,
   },
   finalizadoText: {
     fontSize: 13,
-    color: '#10b981',
+    color: colors.status.success,
     fontWeight: '600',
   },
   fechaMaduracionBadge: {

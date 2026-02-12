@@ -246,12 +246,6 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
                       >
                         <Ionicons name="eye-outline" size={20} color="#3B82F6" />
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => onEdit?.(item)}
-                        style={styles.actionIconButton}
-                      >
-                        <Ionicons name="create-outline" size={20} color="#F59E0B" />
-                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>

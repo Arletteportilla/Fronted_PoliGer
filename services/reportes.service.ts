@@ -4,6 +4,85 @@ import * as Sharing from 'expo-sharing';
 import * as SecureStore from '@/services/secureStore';
 import { API_CONFIG, buildApiUrl, getDownloadHeaders } from '@/config/api';
 import { logger } from '@/services/logger';
+import { Platform } from 'react-native';
+
+// Helper function para descargar en web usando axios
+const downloadFileWeb = async (url: string, fileName: string, token: string) => {
+  try {
+    const response = await api.get(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/octet-stream, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/pdf',
+      },
+      responseType: 'blob',
+    });
+
+    // Verificar que la respuesta sea válida
+    const contentType = response.headers['content-type'] || response.headers['Content-Type'];
+    logger.info(`Content-Type recibido: ${contentType}, tamaño: ${response.data.size} bytes`);
+
+    // Si el content-type es JSON, significa que el backend devolvió un error
+    if (contentType && contentType.includes('application/json')) {
+      // Leer el blob como texto para obtener el mensaje de error
+      const text = await response.data.text();
+      const errorData = JSON.parse(text);
+      throw new Error(errorData.detail || errorData.error || 'Error del servidor');
+    }
+
+    // Determinar el tipo MIME basado en la extensión del archivo
+    const mimeType = fileName.endsWith('.pdf')
+      ? 'application/pdf'
+      : fileName.endsWith('.xlsx')
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/octet-stream';
+
+    // Verificar que el tamaño del archivo sea razonable (mayor a 100 bytes)
+    if (response.data.size < 100) {
+      logger.error(`Archivo demasiado pequeño: ${response.data.size} bytes`);
+      throw new Error('El archivo descargado parece estar corrupto o vacío');
+    }
+
+    logger.info(`Descargando archivo: ${fileName}, tipo: ${mimeType}, tamaño: ${response.data.size} bytes`);
+
+    // Crear blob con el tipo MIME correcto
+    const blob = new Blob([response.data], { type: mimeType });
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.detail || error.message || 'Error desconocido';
+    logger.error(`Error en descarga:`, errorMsg);
+    throw new Error(`Error descargando archivo: ${errorMsg}`);
+  }
+};
+
+// Helper function para descargar en móvil
+const downloadFileMobile = async (url: string, fileUri: string, token: string, mimeType: string, dialogTitle: string) => {
+  const downloadResult = await FileSystem.downloadAsync(
+    url,
+    fileUri,
+    {
+      headers: getDownloadHeaders(token),
+    }
+  );
+
+  if (downloadResult.status === 200) {
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType,
+        dialogTitle,
+      });
+    }
+    return { success: true, fileUri };
+  } else {
+    throw new Error(`Error descargando archivo: ${downloadResult.status}`);
+  }
+};
 
 export const reportesService = {
   /**
@@ -26,38 +105,27 @@ export const reportesService = {
         params.append('search', search);
       }
 
-      const url = buildApiUrl(`germinaciones/mis-germinaciones-pdf/${params.toString() ? '?' + params.toString() : ''}`);
-      logger.info('🔗 URL:', url);
-
       // Crear nombre de archivo con timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const fileName = `mis_germinaciones_${timestamp}.pdf`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-      // Descargar archivo directamente usando FileSystem
-      const downloadResult = await FileSystem.downloadAsync(
-        url,
-        fileUri,
-        {
-          headers: getDownloadHeaders(token),
-        }
-      );
-
-      logger.info('📥 Estado de descarga:', downloadResult.status);
-
-      if (downloadResult.status === 200) {
-        logger.success(' PDF descargado exitosamente en:', fileUri);
-
-        // Compartir archivo
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'application/pdf',
-            dialogTitle: 'Descargar Reporte de Germinaciones (PDF)',
-          });
-        }
-        return { success: true, fileUri };
+      if (Platform.OS === 'web') {
+        // Para web, usar endpoint relativo (sin /api/)
+        const webEndpoint = `germinaciones/mis-germinaciones-pdf/${params.toString() ? '?' + params.toString() : ''}`;
+        await downloadFileWeb(webEndpoint, fileName, token);
+        return { success: true };
       } else {
-        throw new Error(`Error descargando archivo: ${downloadResult.status}`);
+        // Para móvil, construir URL completa
+        const endpoint = `germinaciones/mis-germinaciones-pdf/${params.toString() ? '?' + params.toString() : ''}`;
+        const url = buildApiUrl(endpoint);
+        const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+        return await downloadFileMobile(
+          url,
+          fileUri,
+          token,
+          'application/pdf',
+          'Descargar Reporte de Germinaciones (PDF)'
+        );
       }
     } catch (error) {
       logger.error('❌ Error generando PDF de germinaciones:', error);
@@ -89,38 +157,32 @@ export const reportesService = {
         }
       });
 
-      const url = buildApiUrl(`${API_CONFIG.ENDPOINTS.REPORTES.GERMINACIONES}?${params.toString()}`);
-
       // Crear nombre de archivo con timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const extension = formato === 'pdf' ? 'pdf' : 'xlsx';
       const fileName = `reporte_germinaciones_${timestamp}.${extension}`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-      // Descargar archivo directamente usando FileSystem
-      const downloadResult = await FileSystem.downloadAsync(
-        url,
-        fileUri,
-        {
-          headers: getDownloadHeaders(token),
-        }
-      );
-
-      if (downloadResult.status === 200) {
-        // Compartir archivo
-        if (await Sharing.isAvailableAsync()) {
-          const mimeType = formato === 'pdf'
-            ? 'application/pdf'
-            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-
-          await Sharing.shareAsync(fileUri, {
-            mimeType,
-            dialogTitle: `Descargar Reporte de Germinaciones (${formato.toUpperCase()})`,
-          });
-        }
-        return { success: true, fileUri };
+      if (Platform.OS === 'web') {
+        // Para web, usar endpoint relativo (sin /api/ porque axios ya tiene baseURL con /api/)
+        const webEndpoint = `germinaciones/reporte/?${params.toString()}`;
+        await downloadFileWeb(webEndpoint, fileName, token);
+        return { success: true };
       } else {
-        throw new Error(`Error descargando archivo: ${downloadResult.status}`);
+        // Para móvil, construir URL completa
+        const endpoint = `${API_CONFIG.ENDPOINTS.REPORTES.GERMINACIONES}?${params.toString()}`;
+        const url = buildApiUrl(endpoint);
+        const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+        const mimeType = formato === 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+        return await downloadFileMobile(
+          url,
+          fileUri,
+          token,
+          mimeType,
+          `Descargar Reporte de Germinaciones (${formato.toUpperCase()})`
+        );
       }
     } catch (error) {
       logger.error('Error generando reporte de germinaciones:', error);
@@ -135,50 +197,44 @@ export const reportesService = {
       if (!token) {
         throw new Error('No hay token de autenticación');
       }
-      
+
       // Construir URL con parámetros
       const params = new URLSearchParams();
       params.append('formato', formato);
-      
+
       // Añadir filtros si existen
       Object.keys(filtros).forEach(key => {
         if (filtros[key]) {
           params.append(key, filtros[key]);
         }
       });
-      
-      const url = buildApiUrl(`${API_CONFIG.ENDPOINTS.REPORTES.POLINIZACIONES}?${params.toString()}`);
-      
+
       // Crear nombre de archivo con timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const extension = formato === 'pdf' ? 'pdf' : 'xlsx';
       const fileName = `reporte_polinizaciones_${timestamp}.${extension}`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      
-      // Descargar archivo directamente usando FileSystem
-      const downloadResult = await FileSystem.downloadAsync(
-        url,
-        fileUri,
-        {
-          headers: getDownloadHeaders(token),
-        }
-      );
-      
-      if (downloadResult.status === 200) {
-        // Compartir archivo
-        if (await Sharing.isAvailableAsync()) {
-          const mimeType = formato === 'pdf' 
-            ? 'application/pdf' 
-            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-          
-          await Sharing.shareAsync(fileUri, {
-            mimeType,
-            dialogTitle: `Descargar Reporte de Polinizaciones (${formato.toUpperCase()})`,
-          });
-        }
-        return { success: true, fileUri };
+
+      if (Platform.OS === 'web') {
+        // Para web, usar endpoint relativo (sin /api/ porque axios ya tiene baseURL con /api/)
+        const webEndpoint = `polinizaciones/reporte/?${params.toString()}`;
+        await downloadFileWeb(webEndpoint, fileName, token);
+        return { success: true };
       } else {
-        throw new Error(`Error descargando archivo: ${downloadResult.status}`);
+        // Para móvil, construir URL completa
+        const endpoint = `${API_CONFIG.ENDPOINTS.REPORTES.POLINIZACIONES}?${params.toString()}`;
+        const url = buildApiUrl(endpoint);
+        const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+        const mimeType = formato === 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+        return await downloadFileMobile(
+          url,
+          fileUri,
+          token,
+          mimeType,
+          `Descargar Reporte de Polinizaciones (${formato.toUpperCase()})`
+        );
       }
     } catch (error) {
       logger.error('Error generando reporte de polinizaciones:', error);
@@ -243,57 +299,51 @@ export const reportesService = {
       if (!token) {
         throw new Error('No hay token de autenticación');
       }
-      
+
       // Construir URL con parámetros
       const params = new URLSearchParams();
       params.append('tipo', tipo);
       params.append('formato', formato);
-      
+
       // Añadir filtros si existen
       Object.keys(filtros).forEach(key => {
         if (filtros[key]) {
           params.append(key, filtros[key]);
         }
       });
-      
-      const url = buildApiUrl(`${API_CONFIG.ENDPOINTS.REPORTES.ESTADISTICAS}?${params.toString()}`);
-      
+
       // Crear nombre de archivo con timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const extension = formato === 'pdf' ? 'pdf' : 'xlsx';
       const incluirEstadisticas = filtros.estadisticas === 'true';
       const tipoReporte = incluirEstadisticas ? 'con_estadisticas_y_graficos' : 'solo_datos';
       const fileName = `reporte_${tipo}_${tipoReporte}_${timestamp}.${extension}`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      
-      // Descargar archivo directamente usando FileSystem
-      const downloadResult = await FileSystem.downloadAsync(
-        url,
-        fileUri,
-        {
-          headers: getDownloadHeaders(token),
-        }
-      );
-      
-      if (downloadResult.status === 200) {
-        // Compartir archivo
-        if (await Sharing.isAvailableAsync()) {
-          const mimeType = formato === 'pdf' 
-            ? 'application/pdf' 
-            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-          
-          const dialogTitle = incluirEstadisticas 
-            ? `Descargar Reporte ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} con Estadísticas y Gráficos (${formato.toUpperCase()})`
-            : `Descargar Reporte ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} - Solo Datos (${formato.toUpperCase()})`;
-          
-          await Sharing.shareAsync(fileUri, {
-            mimeType,
-            dialogTitle,
-          });
-        }
-        return { success: true, fileUri };
+
+      if (Platform.OS === 'web') {
+        // Para web, usar endpoint relativo (sin /api/)
+        const webEndpoint = `reportes/estadisticas/?${params.toString()}`;
+        await downloadFileWeb(webEndpoint, fileName, token);
+        return { success: true };
       } else {
-        throw new Error(`Error descargando archivo: ${downloadResult.status}`);
+        // Para móvil, construir URL completa
+        const endpoint = `${API_CONFIG.ENDPOINTS.REPORTES.ESTADISTICAS}?${params.toString()}`;
+        const url = buildApiUrl(endpoint);
+        const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+        const mimeType = formato === 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+        const dialogTitle = incluirEstadisticas
+          ? `Descargar Reporte ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} con Estadísticas y Gráficos (${formato.toUpperCase()})`
+          : `Descargar Reporte ${tipo.charAt(0).toUpperCase() + tipo.slice(1)} - Solo Datos (${formato.toUpperCase()})`;
+
+        return await downloadFileMobile(
+          url,
+          fileUri,
+          token,
+          mimeType,
+          dialogTitle
+        );
       }
     } catch (error) {
       logger.error('Error generando reporte:', error);
