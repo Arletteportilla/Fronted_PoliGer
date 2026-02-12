@@ -85,21 +85,23 @@ export function PerfilResumen({
 
   // Calcular polinizaciones en proceso (excluyendo completadas)
   const estadosCompletadosPol = ['COMPLETADA', 'FINALIZADA', 'MADURO', 'LISTO', 'FINALIZADO'];
-  const polinizacionesCompletadas = polinizaciones.filter(p =>
-    estadosCompletadosPol.includes(p.estado as string)
-  ).length;
-  const polinizacionesEnProceso = polinizaciones.length - polinizacionesCompletadas;
+  const polinizacionesCompletadas = (estadisticas as any).polinizaciones_completadas ??
+    polinizaciones.filter(p =>
+      estadosCompletadosPol.includes(p.estado as string)
+    ).length;
+  const polinizacionesEnProceso = estadisticas.total_polinizaciones - polinizacionesCompletadas;
 
   // Calcular germinaciones en proceso (excluyendo completadas)
   const estadosCompletadosGerm = ['FINALIZADO', 'LISTA', 'FINALIZADA'];
-  const germinacionesCompletadas = germinaciones.filter(g =>
-    estadosCompletadosGerm.includes(g.estado_germinacion as string)
-  ).length;
-  const germinacionesEnProceso = germinaciones.length - germinacionesCompletadas;
+  const germinacionesCompletadas = (estadisticas as any).germinaciones_completadas ??
+    germinaciones.filter(g =>
+      estadosCompletadosGerm.includes(g.estado_germinacion as string)
+    ).length;
+  const germinacionesEnProceso = estadisticas.total_germinaciones - germinacionesCompletadas;
 
   // Calcular éxito promedio combinado (polinizaciones + germinaciones completadas vs total)
   const totalCompletadas = polinizacionesCompletadas + germinacionesCompletadas;
-  const totalRegistros = polinizaciones.length + germinaciones.length;
+  const totalRegistros = estadisticas.total_polinizaciones + estadisticas.total_germinaciones;
 
   const exitoPromedio = totalRegistros > 0
     ? Math.round((totalCompletadas / totalRegistros) * 100)
