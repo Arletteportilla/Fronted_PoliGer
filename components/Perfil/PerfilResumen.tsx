@@ -16,6 +16,8 @@ interface PerfilResumenProps {
   onViewGerminacion?: (germinacion: Germinacion) => void;
   onViewAllPolinizaciones?: () => void;
   onViewAllGerminaciones?: () => void;
+  onDownloadPolinizacionesPDF?: () => void;
+  onDownloadGerminacionesPDF?: () => void;
   notifications?: Notification[];
   onViewAllNotifications?: () => void;
   canViewPolinizaciones?: boolean;
@@ -31,6 +33,8 @@ export function PerfilResumen({
   onViewGerminacion,
   onViewAllPolinizaciones,
   onViewAllGerminaciones,
+  onDownloadPolinizacionesPDF,
+  onDownloadGerminacionesPDF,
   notifications = [],
   onViewAllNotifications,
   canViewPolinizaciones = true,
@@ -79,12 +83,26 @@ export function PerfilResumen({
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
 
-  // Calcular éxito promedio (polinizaciones completadas vs total)
+  // Calcular polinizaciones en proceso (excluyendo completadas)
+  const estadosCompletadosPol = ['COMPLETADA', 'FINALIZADA', 'MADURO', 'LISTO', 'FINALIZADO'];
   const polinizacionesCompletadas = polinizaciones.filter(p =>
-    ['COMPLETADA', 'FINALIZADA', 'MADURO', 'LISTO'].includes(p.estado as string)
+    estadosCompletadosPol.includes(p.estado as string)
   ).length;
-  const exitoPromedio = polinizaciones.length > 0
-    ? Math.round((polinizacionesCompletadas / polinizaciones.length) * 100)
+  const polinizacionesEnProceso = polinizaciones.length - polinizacionesCompletadas;
+
+  // Calcular germinaciones en proceso (excluyendo completadas)
+  const estadosCompletadosGerm = ['FINALIZADO', 'LISTA', 'FINALIZADA'];
+  const germinacionesCompletadas = germinaciones.filter(g =>
+    estadosCompletadosGerm.includes(g.estado_germinacion as string)
+  ).length;
+  const germinacionesEnProceso = germinaciones.length - germinacionesCompletadas;
+
+  // Calcular éxito promedio combinado (polinizaciones + germinaciones completadas vs total)
+  const totalCompletadas = polinizacionesCompletadas + germinacionesCompletadas;
+  const totalRegistros = polinizaciones.length + germinaciones.length;
+
+  const exitoPromedio = totalRegistros > 0
+    ? Math.round((totalCompletadas / totalRegistros) * 100)
     : 0;
 
   return (
@@ -100,8 +118,30 @@ export function PerfilResumen({
             <Text style={styles.statLabel}>Polinizaciones</Text>
             <Text style={styles.statValue}>{estadisticas.total_polinizaciones}</Text>
             <Text style={styles.statSubtext}>
-              {estadisticas.polinizaciones_actuales} en proceso
+              {polinizacionesEnProceso} en proceso
             </Text>
+            {onDownloadPolinizacionesPDF && (
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 12,
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  backgroundColor: 'rgba(245, 124, 0, 0.1)',
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: '#F57C00',
+                }}
+                onPress={onDownloadPolinizacionesPDF}
+              >
+                <Ionicons name="document-text" size={16} color="#F57C00" />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#F57C00', marginLeft: 6 }}>
+                  Descargar PDF
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -114,8 +154,30 @@ export function PerfilResumen({
             <Text style={styles.statLabel}>Germinaciones</Text>
             <Text style={styles.statValue}>{estadisticas.total_germinaciones}</Text>
             <Text style={styles.statSubtext}>
-              {estadisticas.germinaciones_actuales} en proceso
+              {germinacionesEnProceso} en proceso
             </Text>
+            {onDownloadGerminacionesPDF && (
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 12,
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: '#4CAF50',
+                }}
+                onPress={onDownloadGerminacionesPDF}
+              >
+                <Ionicons name="document-text" size={16} color="#4CAF50" />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#4CAF50', marginLeft: 6 }}>
+                  Descargar PDF
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -128,7 +190,7 @@ export function PerfilResumen({
             <Text style={styles.statLabel}>Éxito Promedio</Text>
             <Text style={styles.statValue}>{exitoPromedio}%</Text>
             <Text style={styles.statSubtext}>
-              {polinizacionesCompletadas} completadas
+              {totalCompletadas} completadas de {totalRegistros}
             </Text>
           </View>
         )}

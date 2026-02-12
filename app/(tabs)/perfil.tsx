@@ -613,16 +613,19 @@ export default function PerfilScreen() {
     germinacionEditControls.open(item);
   };
 
-  const handleCambiarEtapaGerminacion = async (germinacionId: number, nuevaEtapa: 'INGRESADO' | 'EN_PROCESO' | 'FINALIZADO', fechaGerminacion?: string) => {
+  const handleCambiarEtapaGerminacion = async (germinacionId: number, nuevaEtapa: string, fechaGerminacion?: string) => {
     try {
       setLoading(true);
-      // Mapear etapas antiguas a estados nuevos compatibles con Germinacion['estado_germinacion']
+      // Mapear etapas legacy a estados nuevos si es necesario
       const estadoMap: Record<string, 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'> = {
         'INGRESADO': 'INICIAL',
         'EN_PROCESO': 'EN_PROCESO_TEMPRANO',
+        'INICIAL': 'INICIAL',
+        'EN_PROCESO_TEMPRANO': 'EN_PROCESO_TEMPRANO',
+        'EN_PROCESO_AVANZADO': 'EN_PROCESO_AVANZADO',
         'FINALIZADO': 'FINALIZADO'
       };
-      const nuevoEstado = estadoMap[nuevaEtapa] || 'EN_PROCESO_TEMPRANO';
+      const nuevoEstado = estadoMap[nuevaEtapa] || nuevaEtapa as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO';
       await germinacionService.cambiarEstadoGerminacion(germinacionId, nuevoEstado, fechaGerminacion);
 
       // Actualizar la germinación seleccionada en el modal de edición con el nuevo estado
@@ -646,13 +649,18 @@ export default function PerfilScreen() {
       await fetchData();
 
       // Mostrar mensaje de éxito según la etapa
-      const mensajes = {
+      const mensajes: Record<string, string> = {
+        'INICIAL': 'Germinación marcada como inicial',
+        'EN_PROCESO_TEMPRANO': 'Germinación en proceso temprano',
+        'EN_PROCESO_AVANZADO': 'Germinación en proceso avanzado',
+        'FINALIZADO': 'Germinación finalizada exitosamente',
+        // Estados legacy para compatibilidad
         'INGRESADO': 'Germinación marcada como ingresada',
         'EN_PROCESO': 'Germinación marcada como en proceso',
-        'FINALIZADO': 'Germinación finalizada y fecha de germinación registrada'
       };
 
-      toast.success(mensajes[nuevaEtapa]);
+      const mensaje = mensajes[nuevaEtapa] || 'Estado de germinación actualizado correctamente';
+      toast.success(mensaje);
     } catch (error: any) {
       console.error('Error cambiando etapa:', error);
       toast.error(error.response?.data?.message || 'No se pudo cambiar la etapa de la germinación');
@@ -661,8 +669,16 @@ export default function PerfilScreen() {
     }
   };
 
-  const handleOpenChangeStatus = (item: Germinacion) => {
-    changeStatusGerminacionControls.open(item);
+  const handleOpenChangeStatus = async (item: Germinacion) => {
+    try {
+      // Recargar la germinación desde el servidor para tener datos frescos (incluyendo predicción)
+      const germinacionActualizada = await germinacionService.getById(item.id);
+      changeStatusGerminacionControls.open(germinacionActualizada);
+    } catch (error) {
+      console.error('Error cargando germinación:', error);
+      // Si falla, usar los datos en caché
+      changeStatusGerminacionControls.open(item);
+    }
   };
 
   const handleOpenFinalizarModal = (item: Germinacion) => {
@@ -1132,9 +1148,7 @@ export default function PerfilScreen() {
                 // Abrir modal de finalizar con calendario
                 handleOpenFinalizarModal(changeStatusGerminacionModal.selectedItem);
               } else {
-                // Mapear INICIAL a INGRESADO para compatibilidad
-                const estadoMapeado = estado === 'INICIAL' ? 'INGRESADO' : estado;
-                handleCambiarEtapaGerminacion(changeStatusGerminacionModal.selectedItem.id, estadoMapeado as 'INGRESADO' | 'EN_PROCESO' | 'FINALIZADO');
+                handleCambiarEtapaGerminacion(changeStatusGerminacionModal.selectedItem.id, estado);
               }
             }
           }}
