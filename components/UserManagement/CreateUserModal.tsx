@@ -87,10 +87,10 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       }, 100);
 
       return () => clearTimeout(timer);
-    } else {
-      // Cuando se cierra, también resetear
-      resetForm();
     }
+    // Cuando se cierra, también resetear
+    resetForm();
+    return undefined;
   }, [visible]);
 
   // Función para resetear el formulario

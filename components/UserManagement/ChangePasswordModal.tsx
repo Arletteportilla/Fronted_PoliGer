@@ -33,7 +33,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const [errors, setErrors] = useState<{ password?: string | undefined; confirmPassword?: string | undefined }>({});
 
   useEffect(() => {
     if (visible) {

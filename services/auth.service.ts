@@ -6,11 +6,6 @@ export const authService = {
     return response.data;
   },
 
-  register: async (userData: { username: string, email: string, password: string }) => {
-    const response = await api.post('register/', userData);
-    return response.data;
-  },
-
   getProtectedData: async () => {
     // Usar el endpoint /api/protected/ que devuelve el usuario autenticado
     const response = await api.get('protected/');

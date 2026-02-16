@@ -26,7 +26,7 @@ export function PrediccionMLGerminacion({
   const [loading, setLoading] = useState(false);
   const [prediccion, setPrediccion] = useState<PrediccionGerminacionMLResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRequestRef = useRef<string>('');
 
   const realizarPrediccion = async () => {

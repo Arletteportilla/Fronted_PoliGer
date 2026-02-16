@@ -63,6 +63,11 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
 
   const fechaFormateada = formatDate(item.fecha_creacion || item.fecha_ingreso || item.fecha_siembra);
 
+  // Estado y progreso derivados del item
+  const currentStatus = item.estado_germinacion === 'FINALIZADO' ? 'Completado' :
+    (item.estado_germinacion === 'EN_PROCESO_TEMPRANO' || item.estado_germinacion === 'EN_PROCESO_AVANZADO') ? 'En Proceso' : 'Inicial';
+  const progress = item.progreso_germinacion || 0;
+
   const responsiveStyles = {
     card: {
       ...styles.card,

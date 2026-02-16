@@ -237,7 +237,6 @@ export interface UserWithProfile extends User {
 export interface AuthContextType {
   user: UserWithProfile | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (userData: { username: string; email: string; password: string }) => Promise<void>;
   logout: () => void;
   forceLogout: () => void;
   isLoading: boolean;
@@ -658,46 +657,46 @@ export interface Notification {
 }
 
 export interface PolinizacionFilterParams {
-  search?: string;
-  fechapol_desde?: string;
-  fechapol_hasta?: string;
-  fechamad_desde?: string;
-  fechamad_hasta?: string;
-  tipo_polinizacion?: string;
-  madre_codigo?: string;
-  madre_genero?: string;
-  madre_especie?: string;
-  padre_codigo?: string;
-  padre_genero?: string;
-  padre_especie?: string;
-  nueva_codigo?: string;
-  nueva_genero?: string;
-  nueva_especie?: string;
-  ubicacion_tipo?: string;
-  ubicacion_nombre?: string;
-  responsable?: string;
-  estado?: string;
-  tipo_registro?: 'historicos' | 'nuevos'; // Filtro para registros históricos vs nuevos
-  ordering?: string;
+  search?: string | undefined;
+  fechapol_desde?: string | undefined;
+  fechapol_hasta?: string | undefined;
+  fechamad_desde?: string | undefined;
+  fechamad_hasta?: string | undefined;
+  tipo_polinizacion?: string | undefined;
+  madre_codigo?: string | undefined;
+  madre_genero?: string | undefined;
+  madre_especie?: string | undefined;
+  padre_codigo?: string | undefined;
+  padre_genero?: string | undefined;
+  padre_especie?: string | undefined;
+  nueva_codigo?: string | undefined;
+  nueva_genero?: string | undefined;
+  nueva_especie?: string | undefined;
+  ubicacion_tipo?: string | undefined;
+  ubicacion_nombre?: string | undefined;
+  responsable?: string | undefined;
+  estado?: string | undefined;
+  tipo_registro?: 'historicos' | 'nuevos' | undefined;
+  ordering?: string | undefined;
 }
 
 export interface GerminacionFilterParams {
-  search?: string;
-  fecha_siembra_desde?: string;
-  fecha_siembra_hasta?: string;
-  fecha_polinizacion_desde?: string;
-  fecha_polinizacion_hasta?: string;
-  codigo?: string;
-  genero?: string;
-  especie_variedad?: string;
-  clima?: string;
-  percha?: string;
-  nivel?: string;
-  estado_capsula?: string;
-  estado_semilla?: string;
-  cantidad_semilla?: string;
-  responsable?: string;
-  estado_germinacion?: string;
-  tipo_registro?: 'historicos' | 'nuevos'; // Filtro para registros históricos vs nuevos
-  ordering?: string;
+  search?: string | undefined;
+  fecha_siembra_desde?: string | undefined;
+  fecha_siembra_hasta?: string | undefined;
+  fecha_polinizacion_desde?: string | undefined;
+  fecha_polinizacion_hasta?: string | undefined;
+  codigo?: string | undefined;
+  genero?: string | undefined;
+  especie_variedad?: string | undefined;
+  clima?: string | undefined;
+  percha?: string | undefined;
+  nivel?: string | undefined;
+  estado_capsula?: string | undefined;
+  estado_semilla?: string | undefined;
+  cantidad_semilla?: string | undefined;
+  responsable?: string | undefined;
+  estado_germinacion?: string | undefined;
+  tipo_registro?: 'historicos' | 'nuevos' | undefined;
+  ordering?: string | undefined;
 }

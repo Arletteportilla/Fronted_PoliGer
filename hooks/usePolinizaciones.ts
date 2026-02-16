@@ -60,7 +60,7 @@ export const usePolinizaciones = () => {
         data = paginationInfo.results;
         
         setTotalPages(paginationInfo.totalPages);
-        setTotalCount(paginationInfo.totalCount);
+        setTotalCount(paginationInfo.count);
         setHasNext(paginationInfo.hasNext);
         setHasPrevious(paginationInfo.hasPrevious);
         setCurrentPage(paginationInfo.currentPage);

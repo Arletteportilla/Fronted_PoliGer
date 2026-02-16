@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { polinizacionMLService } from '@/services/polinizacion-ml.service';
 import type { PrediccionMLRequest, PrediccionMLResponse } from '@/services/polinizacion-ml.service';
 import { logger } from '@/services/logger';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface PrediccionMLPolinizacionProps {
   formData: {
@@ -28,10 +29,12 @@ export function PrediccionMLPolinizacion({
   onPrediccionComplete,
   disabled = false
 }: PrediccionMLPolinizacionProps) {
+  const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
   const [loading, setLoading] = useState(false);
   const [prediccion, setPrediccion] = useState<PrediccionMLResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRequestRef = useRef<string>('');
 
   const realizarPrediccion = async () => {
@@ -177,7 +180,7 @@ export function PrediccionMLPolinizacion({
       {/* Estado de carga */}
       {loading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#2196F3" size="small" />
+          <ActivityIndicator color={themeColors.accent.secondary} size="small" />
           <Text style={styles.loadingText}>Calculando predicción ML...</Text>
         </View>
       )}
@@ -185,7 +188,7 @@ export function PrediccionMLPolinizacion({
       {/* Error */}
       {error && !loading && (
         <View style={styles.errorContainer}>
-          <Ionicons name="warning" size={20} color="#F44336" />
+          <Ionicons name="warning" size={20} color={themeColors.status.error} />
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
@@ -194,7 +197,7 @@ export function PrediccionMLPolinizacion({
       {prediccion && !loading && (
         <View style={styles.resultContainer}>
           <View style={styles.resultHeader}>
-            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={24} color={themeColors.status.success} />
             <Text style={styles.resultTitle}>Resultado de la Predicción</Text>
           </View>
 
@@ -207,7 +210,7 @@ export function PrediccionMLPolinizacion({
           {/* Fechas */}
           <View style={styles.resultItem}>
             <View style={styles.resultItemIcon}>
-              <Ionicons name="calendar" size={16} color="#666" />
+              <Ionicons name="calendar" size={16} color={themeColors.text.tertiary} />
             </View>
             <View style={styles.resultItemContent}>
               <Text style={styles.resultLabel}>Fecha de Polinización</Text>
@@ -219,7 +222,7 @@ export function PrediccionMLPolinizacion({
 
           <View style={styles.resultItem}>
             <View style={styles.resultItemIcon}>
-              <Ionicons name="calendar-outline" size={16} color="#666" />
+              <Ionicons name="calendar-outline" size={16} color={themeColors.text.tertiary} />
             </View>
             <View style={styles.resultItemContent}>
               <Text style={styles.resultLabel}>Fecha Estimada de Maduración</Text>
@@ -231,7 +234,7 @@ export function PrediccionMLPolinizacion({
 
           {/* Días Restantes */}
           <View style={styles.diasRestantes}>
-            <Ionicons name="time" size={20} color="#1976D2" />
+            <Ionicons name="time" size={20} color={themeColors.status.success} />
             <Text style={styles.diasRestantesText}>
               {calcularDiasRestantes(prediccion.fecha_estimada_maduracion)} días restantes
             </Text>
@@ -242,7 +245,7 @@ export function PrediccionMLPolinizacion({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   container: {
     minHeight: 60,
   },
@@ -251,34 +254,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#F0F9FF',
+    backgroundColor: colors.background.tertiary,
     borderRadius: 8,
   },
   loadingText: {
     fontSize: 14,
-    color: '#1976D2',
+    color: colors.accent.secondary,
     fontWeight: '500',
     marginLeft: 12,
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.status.errorLight,
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
   },
   errorText: {
-    color: '#F44336',
+    color: colors.status.error,
     marginLeft: 8,
     fontSize: 13,
     flex: 1,
   },
   resultContainer: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.primary,
     padding: 16,
     borderRadius: 8,
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: colors.border.default,
   },
   resultHeader: {
     flexDirection: 'row',
@@ -288,32 +293,35 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: colors.text.primary,
     marginLeft: 8,
   },
   mainResult: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.background.tertiary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.primary.main,
   },
   mainResultLabel: {
     fontSize: 13,
-    color: '#1976D2',
+    color: colors.primary.main,
+    fontWeight: '600',
     marginBottom: 4,
   },
   mainResultValue: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1976D2',
+    color: colors.primary.main,
   },
   resultItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border.light,
   },
   resultItemIcon: {
     marginRight: 10,
@@ -324,26 +332,28 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     marginBottom: 2,
   },
   resultValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   diasRestantes: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF3E0',
+    backgroundColor: colors.background.tertiary,
     padding: 12,
     borderRadius: 8,
     marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.status.success,
   },
   diasRestantesText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F57C00',
+    color: colors.status.success,
     marginLeft: 8,
   },
 });

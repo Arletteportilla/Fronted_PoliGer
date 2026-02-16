@@ -162,19 +162,6 @@ export const styles = StyleSheet.create({
     gap: 12,
     flexWrap: 'wrap',
   },
-  kpiCard: {
-    flex: 1,
-    minWidth: '30%',
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
   kpiIconContainer: {
     width: 48,
     height: 48,
@@ -183,12 +170,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
-  },
-  kpiLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 8,
-    letterSpacing: 0.2,
   },
   kpiChangeContainer: {
     flexDirection: 'row',

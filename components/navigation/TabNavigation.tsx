@@ -7,7 +7,7 @@ import { useSidebar, SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from '@/contexts/S
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface TabNavigationProps {
-  currentTab?: string;
+  currentTab?: string | undefined;
 }
 
 export const TabNavigation: React.FC<TabNavigationProps> = ({ currentTab }) => {

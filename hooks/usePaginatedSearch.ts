@@ -27,8 +27,8 @@ export interface PaginatedResult<T> {
 export interface FetcherParams {
   page: number;
   page_size: number;
-  search?: string;
-  dias_recientes?: number;
+  search?: string | undefined;
+  dias_recientes?: number | undefined;
 }
 
 /**

@@ -234,18 +234,7 @@ export default function GerminacionesScreen() {
               )}
             </View>
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => setShowFilters(true)}
-            >
-              <Ionicons name="options-outline" size={18} color={themeColors.text.secondary} />
-              <Text style={styles.actionButtonText}>Filtros</Text>
-              {activeFiltersCount > 0 && (
-                <View style={styles.actionBadge}>
-                  <Text style={styles.actionBadgeText}>{activeFiltersCount}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+{/* Botón de Filtros oculto */}
 
             {/* Fecha Desde */}
             <View style={styles.datePickerWrapper}>

@@ -266,14 +266,6 @@ export function PerfilGerminacionesTab({
                       >
                         <Ionicons name="create-outline" size={20} color="#F59E0B" />
                       </TouchableOpacity>
-                      {item.etapa_actual !== 'FINALIZADO' && (
-                        <TouchableOpacity
-                          onPress={() => handleOpenChangeStatus(item)}
-                          style={styles.actionIconButton}
-                        >
-                          <Ionicons name="swap-horizontal-outline" size={20} color="#8B5CF6" />
-                        </TouchableOpacity>
-                      )}
                       <TouchableOpacity
                         onPress={() => handleDeleteGerminacion(item)}
                         style={styles.actionIconButton}

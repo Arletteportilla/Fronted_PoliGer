@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 import { useRouter } from 'expo-router';
 import type { UserWithProfile, UserPermissions } from '@/types/index';
 import { useToast } from '@/contexts/ToastContext';
@@ -12,7 +12,6 @@ const getApiService = () => import('@/services/api').then(m => m.setLoggingOut);
 
 interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
-  register: (userData: { username: string, email: string, password: string }) => Promise<void>;
   logout: () => Promise<void>;
   forceLogout: () => void;
   isLoading: boolean;
@@ -33,7 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<UserWithProfile | null>(null);
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isLoggingOutRef = useRef(false);
 
   const loadUserPermissions = useCallback(async () => {
     try {
@@ -46,13 +45,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = useCallback(async () => {
     // Usar una referencia para evitar múltiples ejecuciones simultáneas
-    if (isLoggingOut) {
+    if (isLoggingOutRef.current) {
       return;
     }
 
     try {
       logger.start(' Iniciando proceso de logout...');
-      setIsLoggingOut(true);
+      isLoggingOutRef.current = true;
 
       // Limpiar estado del usuario INMEDIATAMENTE para evitar llamadas API
       logger.start(' Reseteando estado del usuario...');
@@ -125,7 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       // Asegurar que siempre se resetee el estado de logout
       logger.start(' Reseteando estado de logout...');
-      setIsLoggingOut(false);
+      isLoggingOutRef.current = false;
 
       // Resetear el flag en el servicio API
       try {
@@ -134,7 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
       }
     }
-  }, [router, isLoggingOut]); // Agregar isLoggingOut de vuelta pero con mejor manejo
+  }, [router, toast]);
 
   // Función de logout forzado (sin async, para casos de emergencia)
   const forceLogout = useCallback(() => {
@@ -143,7 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(null);
     setUser(null);
     setPermissions(null);
-    setIsLoggingOut(false);
+    isLoggingOutRef.current = false;
 
     // Limpiar tokens de forma síncrona si es posible
     try {
@@ -279,20 +278,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [loadUserData, loadUserPermissions, toast]);
 
-  const register = useCallback(async (userData: { username: string, email: string, password: string }) => {
-    try {
-      const authService = await getAuthService();
-      await authService.register(userData);
-      toast.success('Usuario registrado exitosamente');
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.detail ||
-        error?.message ||
-        'Error al registrar usuario';
-      toast.error(errorMessage);
-      throw error;
-    }
-  }, [toast]);
-
   const hasPermission = useCallback((module: string, action: string): boolean => {
     if (!permissions) return false;
 
@@ -312,7 +297,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value = {
     login,
-    register,
     logout,
     forceLogout,
     isLoading,

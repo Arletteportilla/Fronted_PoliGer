@@ -603,8 +603,8 @@ export default function HomeScreen() {
                   <View style={styles.barChartArea}>
                     {chartData.months.map((month, index) => {
                       const maxValue = Math.max(...chartData.germinacionesData, ...chartData.polinizacionesData);
-                      const gerHeight = maxValue > 0 ? (chartData.germinacionesData[index] / maxValue) * 100 : 0;
-                      const polHeight = maxValue > 0 ? (chartData.polinizacionesData[index] / maxValue) * 100 : 0;
+                      const gerHeight = maxValue > 0 ? ((chartData.germinacionesData[index] ?? 0) / maxValue) * 100 : 0;
+                      const polHeight = maxValue > 0 ? ((chartData.polinizacionesData[index] ?? 0) / maxValue) * 100 : 0;
 
                       return (
                         <View key={month} style={styles.barGroup}>
@@ -829,18 +829,6 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     fontWeight: '800',
     color: colors.text.primary,
     lineHeight: 24,
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: colors.text.tertiary,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  summaryDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: colors.border.default,
   },
   section: {
     marginBottom: 24,

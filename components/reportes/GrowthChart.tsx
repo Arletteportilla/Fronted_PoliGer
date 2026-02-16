@@ -5,6 +5,11 @@ import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/contexts/ThemeContext';
 import { downloadChartAsPNG } from '@/utils/chartExport';
 
+const COLORS = {
+  polinizaciones: '#F59E0B',
+  germinaciones: '#4CAF50',
+};
+
 interface GrowthChartProps {
   data?: Array<{ mes: string; total: number }>;
   dataPolinizaciones?: Array<{ mes: string; total: number }>;
@@ -25,43 +30,45 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
   const padding = 40;
   const chartWidth = containerWidth - 40; // Restar padding del contenedor (20px cada lado)
 
-  // Datos de ejemplo si no hay datos
-  const chartDataGerminaciones = data.length > 0 ? data : [
-    { mes: 'Sem 1', total: 20 },
-    { mes: 'Sem 2', total: 35 },
-    { mes: 'Sem 3', total: 45 },
-    { mes: 'Sem 4', total: 38 },
-    { mes: 'Sem 5', total: 55 },
-    { mes: 'Sem 6', total: 70 },
-  ];
+  const formatMonthLabel = (dateStr: string): string => {
+    const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    if (!dateStr) return '';
+    try {
+      if (dateStr.length <= 3) return dateStr;
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        return monthNames[date.getMonth()] ?? '';
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
 
-  const chartDataPolinizaciones = dataPolinizaciones.length > 0 ? dataPolinizaciones : [
-    { mes: 'Sem 1', total: 45 },
-    { mes: 'Sem 2', total: 50 },
-    { mes: 'Sem 3', total: 38 },
-    { mes: 'Sem 4', total: 60 },
-    { mes: 'Sem 5', total: 48 },
-    { mes: 'Sem 6', total: 55 },
-  ];
+  // Usar datos reales del backend
+  const chartDataGerminaciones = data;
+  const chartDataPolinizaciones = dataPolinizaciones;
+  const hasData = chartDataGerminaciones.length > 0 || chartDataPolinizaciones.length > 0;
 
   // Calcular valor máximo considerando ambas series
-  const maxValue = Math.max(
+  const allValues = [
     ...chartDataGerminaciones.map(d => d.total),
-    ...chartDataPolinizaciones.map(d => d.total)
-  );
+    ...chartDataPolinizaciones.map(d => d.total),
+  ];
+  const maxValue = allValues.length > 0 ? Math.max(...allValues) : 1;
 
   // Calcular puntos para germinaciones
   const pointsGerminaciones = chartDataGerminaciones.map((item, index) => {
     const x = padding + (index * (chartWidth - padding * 2)) / (chartDataGerminaciones.length - 1);
     const y = chartHeight - padding - ((item.total / maxValue) * (chartHeight - padding * 2));
-    return { x, y, value: item.total, label: item.mes };
+    return { x, y, value: item.total, label: formatMonthLabel(item.mes) };
   });
 
   // Calcular puntos para polinizaciones
   const pointsPolinizaciones = chartDataPolinizaciones.map((item, index) => {
     const x = padding + (index * (chartWidth - padding * 2)) / (chartDataPolinizaciones.length - 1);
     const y = chartHeight - padding - ((item.total / maxValue) * (chartHeight - padding * 2));
-    return { x, y, value: item.total, label: item.mes };
+    return { x, y, value: item.total, label: formatMonthLabel(item.mes) };
   });
 
   // Crear path para la curva suave
@@ -112,15 +119,23 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
       {/* Leyenda */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
+          <View style={[styles.legendDot, { backgroundColor: COLORS.polinizaciones }]} />
           <Text style={styles.legendText}>Polinizaciones</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: themeColors.primary.main }]} />
+          <View style={[styles.legendDot, { backgroundColor: COLORS.germinaciones }]} />
           <Text style={styles.legendText}>Germinaciones</Text>
         </View>
       </View>
 
+      {!hasData ? (
+        <View style={{ alignItems: 'center', justifyContent: 'center', height: 200 }}>
+          <Ionicons name="trending-up-outline" size={48} color={themeColors.text.disabled} />
+          <Text style={{ color: themeColors.text.tertiary, marginTop: 12, fontSize: 14 }}>
+            No hay datos de crecimiento
+          </Text>
+        </View>
+      ) : (
       <View style={styles.chartWrapper}>
         <Svg width={chartWidth} height={chartHeight} style={styles.chart}>
         {/* Grid lines */}
@@ -142,16 +157,16 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         {/* Curva de Polinizaciones (amarilla) */}
         <Path
           d={createSmoothPath(pointsPolinizaciones)}
-          stroke="#F59E0B"
+          stroke={COLORS.polinizaciones}
           strokeWidth="3"
           fill="none"
           strokeLinecap="round"
         />
 
-        {/* Curva de Germinaciones (azul) */}
+        {/* Curva de Germinaciones (verde) */}
         <Path
           d={createSmoothPath(pointsGerminaciones)}
-          stroke={themeColors.primary.main}
+          stroke={COLORS.germinaciones}
           strokeWidth="3"
           fill="none"
           strokeLinecap="round"
@@ -164,7 +179,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
             cx={point.x}
             cy={point.y}
             r="4"
-            fill="#F59E0B"
+            fill={COLORS.polinizaciones}
           />
         ))}
 
@@ -175,7 +190,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
             cx={point.x}
             cy={point.y}
             r="4"
-            fill={themeColors.primary.main}
+            fill={COLORS.germinaciones}
           />
         ))}
 
@@ -194,6 +209,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         ))}
         </Svg>
       </View>
+      )}
     </View>
   );
 };
@@ -239,5 +255,25 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     padding: 8,
     borderRadius: 8,
     backgroundColor: colors.background.secondary,
+  },
+  legend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 12,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  legendText: {
+    fontSize: 12,
+    color: colors.text.tertiary,
   },
 });

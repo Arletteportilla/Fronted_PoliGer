@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, ActivityIndicator, Modal, View, Text, Pressable, ScrollView } from 'react-native';
 import { ResponsiveLayout } from '@/components/layout';
 import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
@@ -10,6 +10,7 @@ import PolinizacionFilters from '@/components/filters/PolinizacionFilters';
 import type { PolinizacionFilterParams } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { reportesService } from '@/services/reportes.service';
+import { polinizacionService } from '@/services/polinizacion.service';
 import { useToast } from '@/contexts/ToastContext';
 
 export default function PolinizacionesScreen() {
@@ -55,6 +56,26 @@ export default function PolinizacionesScreen() {
   const [fechaHasta, setFechaHasta] = useState('');
   const [downloading, setDownloading] = useState(false);
 
+  // Métricas reales desde el backend
+  const [metricas, setMetricas] = useState({ activas: 0, cosechas: 0, tasaExito: 0 });
+
+  const fetchMetricas = useCallback(async () => {
+    try {
+      const stats = await polinizacionService.getStats(true);
+      setMetricas({
+        activas: stats.activas || 0,
+        cosechas: stats.cosechas || 0,
+        tasaExito: Math.round(stats.tasa_exito || 0)
+      });
+    } catch (err) {
+      setMetricas({ activas: totalCount, cosechas: 0, tasaExito: 0 });
+    }
+  }, [totalCount]);
+
+  useEffect(() => {
+    fetchMetricas();
+  }, [fetchMetricas]);
+
   // Funciones para manejar el formulario
   const handleSave = async () => {
     const success = await hookHandleSave(form, isEditMode);
@@ -64,6 +85,7 @@ export default function PolinizacionesScreen() {
       setPrediccion(null);
       setIsEditMode(false);
       refresh(); // Refrescar la lista después de guardar
+      fetchMetricas(); // Refrescar métricas
     }
   };
 
@@ -192,9 +214,9 @@ export default function PolinizacionesScreen() {
 
         {/* Content con métricas y búsqueda */}
         <PolinizacionesContent
-          totalPolinizaciones={124}
-          tasaExito={85}
-          cosechasRealizadas={32}
+          totalPolinizaciones={metricas.activas}
+          tasaExito={metricas.tasaExito}
+          cosechasRealizadas={metricas.cosechas}
           search={filters.search || ''}
           activeFiltersCount={activeFiltersCount}
           tipoRegistro={tipoRegistro}

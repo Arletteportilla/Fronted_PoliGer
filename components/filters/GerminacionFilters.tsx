@@ -13,14 +13,14 @@ import { germinacionService } from '@/services/germinacion.service';
 import { logger } from '@/services/logger';
 
 export interface GerminacionFilterParams {
-  search?: string;
-  estado_capsulas?: string;
-  clima?: string;
-  responsable?: string;
-  percha?: string;
-  tipo_polinizacion?: string;
-  fecha_siembra_desde?: string;
-  fecha_siembra_hasta?: string;
+  search?: string | undefined;
+  estado_capsulas?: string | undefined;
+  clima?: string | undefined;
+  responsable?: string | undefined;
+  percha?: string | undefined;
+  tipo_polinizacion?: string | undefined;
+  fecha_siembra_desde?: string | undefined;
+  fecha_siembra_hasta?: string | undefined;
 }
 
 interface GerminacionFiltersProps {

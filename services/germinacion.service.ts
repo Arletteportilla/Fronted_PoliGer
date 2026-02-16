@@ -452,20 +452,20 @@ export const germinacionService = {
 
   // Nuevo método para paginación con filtros
   getPaginated: async (params: {
-    page?: number;
-    page_size?: number;
-    search?: string;
-    codigo?: string;
-    especie_variedad?: string;
-    estado_capsulas?: string;
-    clima?: string;
-    responsable?: string;
-    percha?: string;
-    tipo_polinizacion?: string;
-    fecha_siembra_desde?: string;
-    fecha_siembra_hasta?: string;
-    ordering?: string;
-    tipo_registro?: 'historicos' | 'nuevos';
+    page?: number | undefined;
+    page_size?: number | undefined;
+    search?: string | undefined;
+    codigo?: string | undefined;
+    especie_variedad?: string | undefined;
+    estado_capsulas?: string | undefined;
+    clima?: string | undefined;
+    responsable?: string | undefined;
+    percha?: string | undefined;
+    tipo_polinizacion?: string | undefined;
+    fecha_siembra_desde?: string | undefined;
+    fecha_siembra_hasta?: string | undefined;
+    ordering?: string | undefined;
+    tipo_registro?: 'historicos' | 'nuevos' | undefined;
   } = {}) => {
     const page = params.page || 1;
     const page_size = params.page_size || 20;

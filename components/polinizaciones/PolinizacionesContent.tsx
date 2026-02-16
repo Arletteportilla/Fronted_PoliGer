@@ -147,22 +147,7 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           )}
         </View>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onShowFilters}
-        >
-          <Ionicons
-            name={showFiltersSection ? "chevron-up-outline" : "options-outline"}
-            size={18}
-            color={themeColors.text.tertiary}
-          />
-          <Text style={styles.actionButtonText}>Filtros</Text>
-          {activeFiltersCount > 0 && (
-            <View style={styles.actionBadge}>
-              <Text style={styles.actionBadgeText}>{activeFiltersCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+{/* Botón de Filtros oculto */}
 
         {/* Fecha Desde */}
         <View style={styles.datePickerWrapper}>

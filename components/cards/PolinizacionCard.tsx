@@ -136,7 +136,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     paddingBottom: 10,
     borderTopWidth: 1,
     borderTopColor: colors.border.default,
-    backgroundColor: colors.accent.infoLight,
+    backgroundColor: colors.status.infoLight,
     borderRadius: 8,
     padding: 10,
   },
@@ -247,7 +247,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderWidth: 1,
   },
   actionButtonView: {
-    backgroundColor: colors.accent.infoLight,
+    backgroundColor: colors.status.infoLight,
     borderColor: colors.accent.tertiary,
   },
   actionButtonEdit: {
@@ -259,7 +259,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderColor: colors.status.error,
   },
   actionButtonStatus: {
-    backgroundColor: colors.accent.infoLight,
+    backgroundColor: colors.status.infoLight,
     borderColor: colors.accent.tertiary,
   },
   actionButtonText: {

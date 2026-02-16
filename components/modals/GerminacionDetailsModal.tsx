@@ -197,20 +197,20 @@ export function GerminacionDetailsModal({
                       {
                         backgroundColor:
                           germinacion.estado_germinacion === 'FINALIZADO' ? '#D1FAE5' :
-                            germinacion.estado_germinacion === 'EN_PROCESO' ? '#FEF3C7' :
+                            germinacion.estado_germinacion?.includes('EN_PROCESO') ? '#FEF3C7' :
                               '#E5E7EB'
                       }
                     ]}>
                       <Ionicons
                         name={
                           germinacion.estado_germinacion === 'FINALIZADO' ? 'checkmark-circle' :
-                            germinacion.estado_germinacion === 'EN_PROCESO' ? 'time' :
+                            germinacion.estado_germinacion?.includes('EN_PROCESO') ? 'time' :
                               'ellipse'
                         }
                         size={18}
                         color={
                           germinacion.estado_germinacion === 'FINALIZADO' ? '#059669' :
-                            germinacion.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
+                            germinacion.estado_germinacion?.includes('EN_PROCESO') ? '#D97706' :
                               '#6B7280'
                         }
                       />
@@ -219,12 +219,12 @@ export function GerminacionDetailsModal({
                         {
                           color:
                             germinacion.estado_germinacion === 'FINALIZADO' ? '#059669' :
-                              germinacion.estado_germinacion === 'EN_PROCESO' ? '#D97706' :
+                              germinacion.estado_germinacion?.includes('EN_PROCESO') ? '#D97706' :
                                 '#6B7280'
                         }
                       ]}>
                         {germinacion.estado_germinacion === 'FINALIZADO' ? 'Finalizado' :
-                          germinacion.estado_germinacion === 'EN_PROCESO' ? 'En Proceso' :
+                          germinacion.estado_germinacion?.includes('EN_PROCESO') ? 'En Proceso' :
                             'Inicial'}
                       </Text>
                     </View>
@@ -262,7 +262,7 @@ export function GerminacionDetailsModal({
                           </TouchableOpacity>
                         )}
 
-                        {germinacion.estado_germinacion === 'EN_PROCESO' && onOpenFinalizar && (
+                        {germinacion.estado_germinacion?.includes('EN_PROCESO') && onOpenFinalizar && (
                           <TouchableOpacity
                             style={[styles.etapaButton, { backgroundColor: '#10B981' }]}
                             onPress={() => onOpenFinalizar(germinacion)}

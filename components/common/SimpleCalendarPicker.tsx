@@ -11,14 +11,17 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 
-interface SimpleCalendarPickerProps {
-  value?: string; // Formato YYYY-MM-DD
-  onDateChange?: (date: string) => void;
-  placeholder?: string;
+export interface SimpleCalendarPickerProps {
+  value?: string | undefined;
+  selectedDate?: string | undefined;
+  onDateChange?: ((date: string) => void) | undefined;
+  placeholder?: string | undefined;
   style?: any;
-  disabled?: boolean;
-  label?: string;
-  required?: boolean;
+  disabled?: boolean | undefined;
+  label?: string | undefined;
+  required?: boolean | undefined;
+  minDate?: string | undefined;
+  maxDate?: string | undefined;
 }
 
 // Hook responsivo
@@ -53,18 +56,22 @@ const parseLocalDate = (dateString: string): Date => {
 
 export function SimpleCalendarPicker({
   value,
+  selectedDate: selectedDateProp,
   onDateChange,
   placeholder = 'Seleccionar fecha',
   style,
   disabled = false,
   label,
-  required = false
+  required = false,
+  minDate,
+  maxDate,
 }: SimpleCalendarPickerProps) {
+  const resolvedValue = value ?? selectedDateProp;
   const responsive = useResponsiveDimensions();
   const { colors } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(value ? parseLocalDate(value) : new Date());
-  const [currentMonth, setCurrentMonth] = useState<Date>(value ? parseLocalDate(value) : new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(resolvedValue ? parseLocalDate(resolvedValue) : new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date>(resolvedValue ? parseLocalDate(resolvedValue) : new Date());
 
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString('es-ES', {
@@ -75,9 +82,9 @@ export function SimpleCalendarPicker({
   };
 
   const getInitialTextValue = (): string => {
-    if (value) {
+    if (resolvedValue) {
       try {
-        return formatDate(parseLocalDate(value));
+        return formatDate(parseLocalDate(resolvedValue));
       } catch {
         return '';
       }
@@ -89,13 +96,14 @@ export function SimpleCalendarPicker({
 
   // Actualizar el texto cuando cambia el value prop
   useEffect(() => {
-    if (value) {
-      const formatted = formatDate(parseLocalDate(value));
+    const val = value ?? selectedDateProp;
+    if (val) {
+      const formatted = formatDate(parseLocalDate(val));
       setTextValue(formatted);
     } else {
       setTextValue('');
     }
-  }, [value]);
+  }, [value, selectedDateProp]);
 
   const formatDateForAPI = (date: Date) => {
     const year = date.getFullYear();

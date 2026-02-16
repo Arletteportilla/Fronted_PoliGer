@@ -6,11 +6,11 @@ import { API_CONFIG, buildApiUrl } from '@/config/api';
 import { logger } from '@/services/logger';
 
 interface UseExportOptions {
-  defaultEntity?: ExportEntity;
-  defaultFormat?: ExportFormat;
-  defaultIncludeStats?: IncludeStats;
-  defaultFechaInicio?: string;
-  defaultFechaFin?: string;
+  defaultEntity?: ExportEntity | undefined;
+  defaultFormat?: ExportFormat | undefined;
+  defaultIncludeStats?: IncludeStats | undefined;
+  defaultFechaInicio?: string | undefined;
+  defaultFechaFin?: string | undefined;
 }
 
 export const useExport = (options: UseExportOptions = {}) => {

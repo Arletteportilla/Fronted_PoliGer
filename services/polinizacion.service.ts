@@ -37,11 +37,11 @@ export const polinizacionService = {
    * Obtiene las polinizaciones del usuario autenticado con paginación
    */
   getMisPolinizacionesPaginated: async (params: {
-    page?: number;
-    page_size?: number;
-    search?: string;
-    dias_recientes?: number;
-    tipo_registro?: 'historicos' | 'nuevos';
+    page?: number | undefined;
+    page_size?: number | undefined;
+    search?: string | undefined;
+    dias_recientes?: number | undefined;
+    tipo_registro?: 'historicos' | 'nuevos' | undefined;
   } = {}) => {
     const page = params.page || 1;
     const page_size = params.page_size || 20;
@@ -196,29 +196,29 @@ export const polinizacionService = {
 
   // Nuevo método para paginación
   getPaginated: async (params: {
-    page?: number;
-    page_size?: number;
-    search?: string;
-    fechapol_desde?: string;
-    fechapol_hasta?: string;
-    fechamad_desde?: string;
-    fechamad_hasta?: string;
-    tipo_polinizacion?: string;
-    madre_codigo?: string;
-    madre_genero?: string;
-    madre_especie?: string;
-    padre_codigo?: string;
-    padre_genero?: string;
-    padre_especie?: string;
-    nueva_codigo?: string;
-    nueva_genero?: string;
-    nueva_especie?: string;
-    ubicacion_tipo?: string;
-    ubicacion_nombre?: string;
-    responsable?: string;
-    estado?: string;
-    tipo_registro?: 'historicos' | 'nuevos';
-    ordering?: string;
+    page?: number | undefined;
+    page_size?: number | undefined;
+    search?: string | undefined;
+    fechapol_desde?: string | undefined;
+    fechapol_hasta?: string | undefined;
+    fechamad_desde?: string | undefined;
+    fechamad_hasta?: string | undefined;
+    tipo_polinizacion?: string | undefined;
+    madre_codigo?: string | undefined;
+    madre_genero?: string | undefined;
+    madre_especie?: string | undefined;
+    padre_codigo?: string | undefined;
+    padre_genero?: string | undefined;
+    padre_especie?: string | undefined;
+    nueva_codigo?: string | undefined;
+    nueva_genero?: string | undefined;
+    nueva_especie?: string | undefined;
+    ubicacion_tipo?: string | undefined;
+    ubicacion_nombre?: string | undefined;
+    responsable?: string | undefined;
+    estado?: string | undefined;
+    tipo_registro?: 'historicos' | 'nuevos' | undefined;
+    ordering?: string | undefined;
   } = {}) => {
     // Para simplificar, usar getMisPolinizacionesPaginated que ya maneja el filtro tipo_registro
     return await polinizacionService.getMisPolinizacionesPaginated({
@@ -418,8 +418,10 @@ export const polinizacionService = {
     return response.data;
   },
 
-  getStats: async () => {
-    const response = await api.get('estadisticas/polinizaciones/');
+  getStats: async (soloNuevos: boolean = false) => {
+    const params: any = {};
+    if (soloNuevos) params.solo_nuevos = 'true';
+    const response = await api.get('estadisticas/polinizaciones/', { params });
     return response.data;
   },
 

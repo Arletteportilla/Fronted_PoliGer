@@ -70,7 +70,7 @@ export function PerfilUsuariosTab() {
       <CreateUserModal
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreateUser={(formData) => handleCreate(formData)}
+        onCreateUser={async (formData) => { await handleCreate(formData); }}
       />
 
       {/* Modal de edición de usuario */}

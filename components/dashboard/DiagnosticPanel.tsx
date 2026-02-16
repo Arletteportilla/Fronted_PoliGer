@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 interface DiagnosticInfo {
   authStatus: string;
   userInfo: any;
-  permissions: string[];
+  permissions: any;
   sessionInfo: any;
   errors: string[];
 }
@@ -30,7 +30,7 @@ export const DiagnosticPanel: React.FC = () => {
       // Test 1: Authentication Status
       let authStatus = '❌ Not authenticated';
       let userInfo = null;
-      let permissions: string[] = [];
+      let permissions: any = null;
       
       if (user) {
         authStatus = '✅ Authenticated';
@@ -43,7 +43,7 @@ export const DiagnosticPanel: React.FC = () => {
           isActive: user.is_active,
           dateJoined: user.date_joined
         };
-        permissions = user.profile?.permisos || [];
+        permissions = user.profile?.permisos || null;
       }
 
       // Test 2: Session Information
@@ -61,7 +61,7 @@ export const DiagnosticPanel: React.FC = () => {
           tokenPreview: token ? token.substring(0, 20) + '...' : 'No token'
         };
       } catch (error) {
-        errors.push(`Session check error: ${error.message}`);
+        errors.push(`Session check error: ${(error as Error).message}`);
       }
 
       setDiagnosticInfo({
@@ -73,7 +73,7 @@ export const DiagnosticPanel: React.FC = () => {
       });
 
     } catch (error) {
-      errors.push(`General diagnostic error: ${error.message}`);
+      errors.push(`General diagnostic error: ${(error as Error).message}`);
       setDiagnosticInfo(prev => ({ ...prev, errors }));
     } finally {
       setLoading(false);
@@ -98,7 +98,7 @@ export const DiagnosticPanel: React.FC = () => {
               await logout();
               Alert.alert('Success', 'Logged out successfully');
             } catch (error) {
-              Alert.alert('Error', `Logout failed: ${error.message}`);
+              Alert.alert('Error', `Logout failed: ${(error as Error).message}`);
             }
           }
         }
@@ -123,7 +123,7 @@ export const DiagnosticPanel: React.FC = () => {
               Alert.alert('Success', 'Storage cleared');
               runDiagnostics();
             } catch (error) {
-              Alert.alert('Error', `Clear failed: ${error.message}`);
+              Alert.alert('Error', `Clear failed: ${(error as Error).message}`);
             }
           }
         }
@@ -171,13 +171,15 @@ export const DiagnosticPanel: React.FC = () => {
       </View>
 
       {/* Permissions */}
-      {diagnosticInfo.permissions.length > 0 && (
+      {diagnosticInfo.permissions && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🔑 Permissions</Text>
-          {diagnosticInfo.permissions.map((permission, index) => (
-            <View key={index} style={styles.permissionRow}>
+          {Object.entries(diagnosticInfo.permissions).map(([module, actions]: [string, any]) => (
+            <View key={module} style={styles.permissionRow}>
               <Ionicons name="checkmark-circle" size={16} color="#28a745" />
-              <Text style={styles.permissionText}>{permission}</Text>
+              <Text style={styles.permissionText}>
+                {module}: {typeof actions === 'object' ? Object.entries(actions).filter(([, v]) => v).map(([k]) => k).join(', ') : String(actions)}
+              </Text>
             </View>
           ))}
         </View>

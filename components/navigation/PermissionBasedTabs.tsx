@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { rbacService } from '@/services/rbac.service';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PermissionBasedTabsProps {
@@ -14,19 +13,6 @@ export function PermissionBasedTabs({ children }: PermissionBasedTabsProps) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>No se pudo cargar la información del usuario</Text>
-      </View>
-    );
-  }
-
-  // Verificar permisos básicos
-  const canViewDashboard = rbacService.canViewDashboard(user.role);
-  const canViewPredicciones = rbacService.canViewPredicciones(user.role);
-  const canViewPerfil = rbacService.canViewPerfil(user.role);
-
-  if (!canViewDashboard && !canViewPredicciones && !canViewPerfil) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>No tienes permisos para acceder a esta sección</Text>
       </View>
     );
   }

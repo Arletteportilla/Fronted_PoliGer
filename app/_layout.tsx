@@ -23,12 +23,12 @@ const RootLayoutNav = memo(() => {
     if (isLoading) return;
 
     // Si no hay token, redirigir a login (excepto si ya estamos en login)
-    if (!token && currentPath !== 'login' && currentPath !== 'register') {
+    if (!token && currentPath !== 'login') {
       logger.info('🚀 Redirecting to login - no token');
       router.replace('/login');
     }
     // Si hay token y estamos en login, redirigir a tabs
-    else if (token && (currentPath === 'login' || currentPath === 'register')) {
+    else if (token && currentPath === 'login') {
       logger.info('🚀 Redirecting to tabs - has token');
       router.replace('/(tabs)');
     }
@@ -68,7 +68,6 @@ const RootLayoutNav = memo(() => {
   return (
     <Stack>
       <Stack.Screen name="login" options={screenOptions} />
-      <Stack.Screen name="register" options={screenOptions} />
       <Stack.Screen name="diagnostic" options={screenOptions} />
       <Stack.Screen name="+not-found" options={screenOptions} />
     </Stack>

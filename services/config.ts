@@ -24,7 +24,6 @@ export const CONFIG = {
   ENDPOINTS: {
     // Autenticación
     LOGIN: '/login/',
-    REGISTER: '/register/',
     PROTECTED: '/protected/',
     TOKEN_REFRESH: '/token/refresh/',
     HEALTH: '/health/',
@@ -120,13 +119,13 @@ export const getEnvironmentConfig = () => {
     return {
       ...CONFIG,
       DEBUG_MODE: true,
-      API_TIMEOUT: 15000, // Timeout más largo en desarrollo
+      API_TIMEOUT: 10000, // Timeout más corto en desarrollo para feedback rápido
     };
   }
-  
+
   return {
     ...CONFIG,
     DEBUG_MODE: false,
-    API_TIMEOUT: 8000, // Timeout más corto en producción
+    API_TIMEOUT: 30000, // Timeout largo en producción para conexiones lentas
   };
 };

@@ -89,15 +89,11 @@ export function PerfilResumen({
     polinizaciones.filter(p =>
       estadosCompletadosPol.includes(p.estado as string)
     ).length;
-  const polinizacionesEnProceso = estadisticas.total_polinizaciones - polinizacionesCompletadas;
+  const polinizacionesEnProceso = Math.max(0, estadisticas.total_polinizaciones - polinizacionesCompletadas);
 
   // Calcular germinaciones en proceso (excluyendo completadas)
-  const estadosCompletadosGerm = ['FINALIZADO', 'LISTA', 'FINALIZADA'];
-  const germinacionesCompletadas = (estadisticas as any).germinaciones_completadas ??
-    germinaciones.filter(g =>
-      estadosCompletadosGerm.includes(g.estado_germinacion as string)
-    ).length;
-  const germinacionesEnProceso = estadisticas.total_germinaciones - germinacionesCompletadas;
+  const germinacionesCompletadas = (estadisticas as any).germinaciones_completadas ?? 0;
+  const germinacionesEnProceso = Math.max(0, estadisticas.total_germinaciones - germinacionesCompletadas);
 
   // Calcular éxito promedio combinado (polinizaciones + germinaciones completadas vs total)
   const totalCompletadas = polinizacionesCompletadas + germinacionesCompletadas;

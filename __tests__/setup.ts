@@ -92,7 +92,7 @@ global.IntersectionObserver = jest.fn(() => ({
   observe: jest.fn(),
   disconnect: jest.fn(),
   unobserve: jest.fn()
-}));
+})) as any;
 
 // Mock de ResizeObserver
 global.ResizeObserver = jest.fn(() => ({

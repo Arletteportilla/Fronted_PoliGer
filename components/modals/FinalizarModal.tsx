@@ -28,6 +28,7 @@ interface FinalizarModalProps {
     fechapol?: string;
     prediccion_fecha_estimada?: string;
     fecha_maduracion_predicha?: string;
+    fecha_germinacion_estimada?: string;
   } | null;
   tipo: 'germinacion' | 'polinizacion';
 }
@@ -78,7 +79,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      const fechaISO = selectedDate.toISOString().split('T')[0];
+      const fechaISO = selectedDate.toISOString().split('T')[0] ?? '';
       await onConfirm(fechaISO);
       onClose();
     } catch (error) {

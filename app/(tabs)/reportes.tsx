@@ -122,10 +122,8 @@ export default function ReportesScreen() {
   const perdidas = totalGerminaciones - germinacionesExitosas;
 
   // Calcular cambios porcentuales (simulados por ahora, se pueden calcular con datos históricos)
-  const cambioPolinizaciones = '+12%';
   const cambioEficienciaPol = pStats?.tasa_exito && pStats.tasa_exito > 60 ? '+5%' : '0%';
   const cambioEficienciaGer = gStats?.tasa_exito && gStats.tasa_exito > 60 ? '+5%' : '0%';
-  const cambioLotes = '0%';
   const cambioPerdidas = perdidas > 0 ? '-2%' : '0%';
 
   const reportesStyles = createStyles(themeColors);
@@ -171,13 +169,6 @@ export default function ReportesScreen() {
         {/* Métricas principales */}
         <View style={reportesStyles.metricsGrid}>
           <MetricCard
-            title="POLINIZACIONES"
-            value={pStats?.total?.toLocaleString() || '0'}
-            icon="flower-outline"
-            change={cambioPolinizaciones}
-            changeType="positive"
-          />
-          <MetricCard
             title="EFICIENCIA POLINIZACIONES"
             value={pStats?.tasa_exito ? `${pStats.tasa_exito}%` : '0%'}
             icon="flower-outline"
@@ -190,13 +181,6 @@ export default function ReportesScreen() {
             icon="leaf-outline"
             change={cambioEficienciaGer}
             changeType={gStats?.tasa_exito && gStats.tasa_exito > 60 ? "positive" : "neutral"}
-          />
-          <MetricCard
-            title="LOTES ACTIVOS"
-            value={totalGerminaciones?.toLocaleString() || '0'}
-            icon="grid-outline"
-            change={cambioLotes}
-            changeType="neutral"
           />
           <MetricCard
             title="PÉRDIDAS"
@@ -223,7 +207,7 @@ export default function ReportesScreen() {
         {/* Gráficos inferiores */}
         <View style={reportesStyles.chartsRow}>
           <View style={reportesStyles.chartSmall}>
-            <MonthlyActivityChart data={pStats?.por_mes} />
+            <MonthlyActivityChart dataPolinizaciones={pStats?.por_mes} dataGerminaciones={gStats?.por_mes} />
           </View>
           <View style={reportesStyles.chartLarge}>
             <RecentRecordsTable records={recentRecords} />

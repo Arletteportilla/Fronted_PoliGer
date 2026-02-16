@@ -126,17 +126,32 @@ class TokenManager {
     }
   }
 
+  // Parsear el payload de un JWT de forma segura
+  private parseJwtPayload(token: string): { exp: number } | null {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      const base64 = parts[1];
+      if (!base64) return null;
+      const payload = JSON.parse(atob(base64));
+      if (typeof payload?.exp !== 'number') return null;
+      return payload;
+    } catch {
+      return null;
+    }
+  }
+
   // Verificar si el token está próximo a expirar
   async isTokenExpiringSoon(): Promise<boolean> {
     try {
       const token = await this.getAccessToken();
       if (!token) return true;
 
-      const payload = JSON.parse(atob(token.split('.')[1] || ''));
-      const exp = payload.exp * 1000;
-      const now = Date.now();
-      const timeUntilExpiry = exp - now;
-      
+      const payload = this.parseJwtPayload(token);
+      if (!payload) return true;
+
+      const timeUntilExpiry = payload.exp * 1000 - Date.now();
+
       // Considerar que está próximo a expirar si quedan menos de 5 minutos
       return timeUntilExpiry < 5 * 60 * 1000;
     } catch (error) {
@@ -150,11 +165,10 @@ class TokenManager {
       const token = await this.getAccessToken();
       if (!token) return true;
 
-      const payload = JSON.parse(atob(token.split('.')[1] || ''));
-      const exp = payload.exp * 1000;
-      const now = Date.now();
-      
-      return now >= exp;
+      const payload = this.parseJwtPayload(token);
+      if (!payload) return true;
+
+      return Date.now() >= payload.exp * 1000;
     } catch (error) {
       return true;
     }
