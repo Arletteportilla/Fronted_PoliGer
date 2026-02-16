@@ -9,6 +9,7 @@ const getTokenManager = () => import('@/services/tokenManager').then(m => m.toke
 const getAuthService = () => import('@/services/auth.service').then(m => m.authService);
 
 const getApiService = () => import('@/services/api').then(m => m.setLoggingOut);
+const getApiClearCache = () => import('@/services/api').then(m => m.clearTokenCache);
 
 interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
@@ -67,7 +68,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Continuar aunque falle la limpieza de tokens
       }
 
-      // Marcar en el servicio API que estamos en logout (después de limpiar estado)
+      // Limpiar cache de tokens y headers del API
+      try {
+        const clearCache = await getApiClearCache();
+        clearCache();
+      } catch (cacheError) {
+        // Continuar aunque falle
+      }
+
+      // Marcar en el servicio API que estamos en logout
       try {
         const setLoggingOut = await getApiService();
         setLoggingOut(true);
@@ -202,17 +211,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const tokenManager = await getTokenManager();
         const storedToken = await tokenManager.getAccessToken();
         if (storedToken) {
-          setToken(storedToken);
+          // Verificar si el token esta expirado antes de usarlo
+          const isExpired = await tokenManager.isTokenExpired();
+          let activeToken = storedToken;
+
+          if (isExpired) {
+            logger.info('Token expirado, intentando refrescar...');
+            try {
+              const newToken = await tokenManager.refreshAccessToken();
+              activeToken = newToken;
+            } catch (refreshError) {
+              // Refresh fallo - limpiar todo y redirigir a login
+              logger.info('Refresh token expirado, redirigiendo a login');
+              await tokenManager.clearTokens();
+              const clearCache = await getApiClearCache();
+              clearCache();
+              setToken(null);
+              setUser(null);
+              setPermissions(null);
+              setIsLoading(false);
+              router.replace('/login');
+              return;
+            }
+          }
+
+          setToken(activeToken);
 
           const userDataLoaded = await loadUserData();
           if (!userDataLoaded) {
-            // No hacer return aquí, dejar que llegue al finally
-            const logoutFn = await getTokenManager();
-            await logoutFn.clearTokens();
+            await tokenManager.clearTokens();
+            const clearCache = await getApiClearCache();
+            clearCache();
             setToken(null);
             setUser(null);
             setPermissions(null);
-            // Limpiar isLoading antes de redirigir
             setIsLoading(false);
             router.replace('/login');
           } else {
@@ -224,8 +256,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (error) {
         try {
-          const logoutFn = await getTokenManager();
-          await logoutFn.clearTokens();
+          const tokenManager = await getTokenManager();
+          await tokenManager.clearTokens();
+          const clearCache = await getApiClearCache();
+          clearCache();
         } catch (clearError) {
         }
         setToken(null);
@@ -234,7 +268,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoading(false);
         router.replace('/login');
       } finally {
-        // Asegurar que siempre se limpie el estado de carga
         setIsLoading(false);
       }
     };
@@ -265,10 +298,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error('Respuesta de login inválida');
       }
     } catch (error: any) {
-      // Limpiar estado en caso de error
+      // Limpiar estado Y storage en caso de error
       setToken(null);
       setUser(null);
       setPermissions(null);
+
+      // Limpiar tokens de SecureStore para evitar estado inconsistente
+      try {
+        const tokenManager = await getTokenManager();
+        await tokenManager.clearTokens();
+        const clearCache = await getApiClearCache();
+        clearCache();
+      } catch (cleanupError) {
+        // Continuar aunque falle la limpieza
+      }
 
       const errorMessage = error?.response?.data?.detail ||
         error?.message ||

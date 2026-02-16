@@ -15,7 +15,6 @@ const api = axios.create({
   // Optimizaciones de rendimiento
   maxRedirects: 3,
   maxContentLength: 50 * 1024 * 1024, // 50MB max para manejar grandes datasets
-  validateStatus: (status) => status < 500, // No lanzar error para 4xx
 });
 
 // Cache simple para tokens para evitar lecturas frecuentes
@@ -30,6 +29,12 @@ export const setLoggingOut = (value: boolean) => {
     // Limpiar cache de tokens durante logout
     tokenCache = { token: null, timestamp: 0 };
   }
+};
+
+// Función para limpiar cache de tokens y headers por defecto
+export const clearTokenCache = () => {
+  tokenCache = { token: null, timestamp: 0 };
+  delete api.defaults.headers.common['Authorization'];
 };
 
 // Función optimizada para obtener token con cache
