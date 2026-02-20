@@ -28,6 +28,7 @@ export interface PerfilPolinizacionesTabProps {
   handleEditPolinizacion: (item: Polinizacion) => void;
   handleDeletePolinizacion: (item: Polinizacion) => void;
   onDescargarPDF: () => void;
+  onNewPolinizacion?: () => void;
 }
 
 export function PerfilPolinizacionesTab({
@@ -47,7 +48,8 @@ export function PerfilPolinizacionesTab({
   handleViewPolinizacion,
   handleEditPolinizacion,
   handleDeletePolinizacion,
-  onDescargarPDF
+  onDescargarPDF,
+  onNewPolinizacion
 }: PerfilPolinizacionesTabProps) {
   const router = useRouter();
   const { colors: themeColors } = useTheme();
@@ -82,10 +84,17 @@ export function PerfilPolinizacionesTab({
         <View style={styles.tableActionsContainer}>
           <TouchableOpacity
             style={styles.newItemButton}
-            onPress={() => router.push('/(tabs)/addPolinizacion')}
+            onPress={() => onNewPolinizacion ? onNewPolinizacion() : router.push('/(tabs)/addPolinizacion')}
           >
             <Ionicons name="add-circle" size={20} color={themeColors.background.primary} />
             <Text style={styles.newItemButtonText}>Nueva Polinización</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={fetchData}
+          >
+            <Ionicons name="refresh" size={18} color={themeColors.primary.main} />
+            <Text style={styles.refreshButtonText}>Actualizar</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.exportButton}

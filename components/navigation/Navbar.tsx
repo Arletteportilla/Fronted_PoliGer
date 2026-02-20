@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Animated, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -8,6 +8,8 @@ import { useNotificaciones } from '@/hooks/useNotificaciones';
 export function Navbar() {
   const router = useRouter();
   const { theme, toggleTheme, colors: themeColors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const thumbPosition = useRef(new Animated.Value(theme === 'dark' ? 1 : 0)).current;
 
   useEffect(() => {
@@ -107,18 +109,20 @@ export function Navbar() {
           </View>
         </TouchableOpacity>
 
-        {/* Profile */}
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={handleProfilePress}
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name="person-outline"
-            size={24}
-            color={themeColors.text.tertiary}
-          />
-        </TouchableOpacity>
+        {/* Profile - solo en desktop */}
+        {!isMobile && (
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={handleProfilePress}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="person-outline"
+              size={24}
+              color={themeColors.text.tertiary}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

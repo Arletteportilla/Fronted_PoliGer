@@ -67,6 +67,8 @@ interface PolinizacionesContentProps {
   onFechaHastaChange?: (date: string) => void;
   onTipoRegistroChange?: (tipo: 'historicos' | 'nuevos' | 'todos') => void;
   onDownloadPDF?: () => void;
+  onRefresh?: () => void;
+  refreshing?: boolean;
   showFiltersSection?: boolean;
   children?: React.ReactNode;
 }
@@ -88,6 +90,8 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
   onFechaHastaChange,
   onTipoRegistroChange,
   onDownloadPDF,
+  onRefresh,
+  refreshing = false,
   showFiltersSection = false,
   children
 }) => {
@@ -168,6 +172,20 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
             label="Hasta"
           />
         </View>
+
+        {/* Botón Actualizar */}
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={onRefresh}
+          disabled={refreshing}
+        >
+          {refreshing ? (
+            <ActivityIndicator size="small" color={themeColors.primary.main} />
+          ) : (
+            <Ionicons name="refresh" size={20} color={themeColors.primary.main} />
+          )}
+          <Text style={styles.refreshButtonText}>Actualizar</Text>
+        </TouchableOpacity>
 
         {/* Botón Descargar PDF */}
         <TouchableOpacity
@@ -496,6 +514,25 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     maxWidth: 200,
   },
 
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary.main,
+    minHeight: 48,
+    flexShrink: 0,
+  },
+  refreshButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.primary.main,
+  },
   downloadButton: {
     flexDirection: 'row',
     alignItems: 'center',

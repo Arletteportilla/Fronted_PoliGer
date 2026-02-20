@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -24,6 +24,8 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
   onViewAll,
 }) => {
   const { colors: themeColors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const styles = createStyles(themeColors);
   
   // Datos de ejemplo si no hay datos
@@ -59,52 +61,86 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
         )}
       </View>
 
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHeaderText, styles.colId]}>CÓDIGO</Text>
-        <Text style={[styles.tableHeaderText, styles.colTipo]}>TIPO</Text>
-        <Text style={[styles.tableHeaderText, styles.colPlanta]}>PLANTA MADRE</Text>
-        <Text style={[styles.tableHeaderText, styles.colFecha]}>FECHA</Text>
-        <Text style={[styles.tableHeaderText, styles.colEstado]}>ESTADO</Text>
-      </View>
-
-      <ScrollView style={styles.tableBody} showsVerticalScrollIndicator={false}>
-        {tableData.map((record, index) => (
-          <View key={index} style={styles.tableRow}>
-            <View style={[styles.tableCell, styles.colId]}>
-              <Text style={styles.idText}>{record.id}</Text>
-            </View>
-
-            <View style={[styles.tableCell, styles.colTipo]}>
-              <View style={[styles.tipoBadge, {
-                backgroundColor: record.tipo === 'Polinización' ? '#FEF3C7' : '#DBEAFE'
-              }]}>
-                <Text style={[styles.tipoText, {
-                  color: record.tipo === 'Polinización' ? '#92400E' : '#1E40AF'
-                }]}>
-                  {record.tipo}
-                </Text>
+      {isMobile ? (
+        /* Vista de tarjetas para móvil */
+        <View style={styles.cardsContainer}>
+          {tableData.map((record, index) => (
+            <View key={index} style={styles.mobileCard}>
+              <View style={styles.mobileCardHeader}>
+                <Text style={styles.idText}>{record.id}</Text>
+                <View style={styles.mobileCardBadges}>
+                  <View style={[styles.tipoBadge, {
+                    backgroundColor: record.tipo === 'Polinización' ? '#FEF3C7' : '#DBEAFE'
+                  }]}>
+                    <Text style={[styles.tipoText, {
+                      color: record.tipo === 'Polinización' ? '#92400E' : '#1E40AF'
+                    }]}>
+                      {record.tipo === 'Polinización' ? 'POL' : 'GER'}
+                    </Text>
+                  </View>
+                  <View style={[styles.estadoBadge, { backgroundColor: `${getEstadoColor(record.estado)}20` }]}>
+                    <Text style={[styles.estadoText, { color: getEstadoColor(record.estado) }]}>
+                      {record.estado}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.mobileCardPlanta}>
+                <View style={[styles.plantaDot, { backgroundColor: record.color }]} />
+                <Text style={styles.plantaText} numberOfLines={1}>{record.plantaMadre}</Text>
+              </View>
+              <View style={styles.mobileCardFooter}>
+                <Ionicons name="calendar-outline" size={12} color={themeColors.text.tertiary} />
+                <Text style={styles.mobileCardDate}>{record.fecha}</Text>
               </View>
             </View>
-
-            <View style={[styles.tableCell, styles.colPlanta, styles.plantaCell]}>
-              <View style={[styles.plantaDot, { backgroundColor: record.color }]} />
-              <Text style={styles.plantaText}>{record.plantaMadre}</Text>
-            </View>
-
-            <View style={[styles.tableCell, styles.colFecha]}>
-              <Text style={styles.tableCellText}>{record.fecha}</Text>
-            </View>
-
-            <View style={[styles.tableCell, styles.colEstado]}>
-              <View style={[styles.estadoBadge, { backgroundColor: `${getEstadoColor(record.estado)}20` }]}>
-                <Text style={[styles.estadoText, { color: getEstadoColor(record.estado) }]}>
-                  {record.estado}
-                </Text>
-              </View>
-            </View>
+          ))}
+        </View>
+      ) : (
+        <>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderText, styles.colId]}>CÓDIGO</Text>
+            <Text style={[styles.tableHeaderText, styles.colTipo]}>TIPO</Text>
+            <Text style={[styles.tableHeaderText, styles.colPlanta]}>PLANTA MADRE</Text>
+            <Text style={[styles.tableHeaderText, styles.colFecha]}>FECHA</Text>
+            <Text style={[styles.tableHeaderText, styles.colEstado]}>ESTADO</Text>
           </View>
-        ))}
-      </ScrollView>
+          <ScrollView style={styles.tableBody} showsVerticalScrollIndicator={false}>
+            {tableData.map((record, index) => (
+              <View key={index} style={styles.tableRow}>
+                <View style={[styles.tableCell, styles.colId]}>
+                  <Text style={styles.idText}>{record.id}</Text>
+                </View>
+                <View style={[styles.tableCell, styles.colTipo]}>
+                  <View style={[styles.tipoBadge, {
+                    backgroundColor: record.tipo === 'Polinización' ? '#FEF3C7' : '#DBEAFE'
+                  }]}>
+                    <Text style={[styles.tipoText, {
+                      color: record.tipo === 'Polinización' ? '#92400E' : '#1E40AF'
+                    }]}>
+                      {record.tipo}
+                    </Text>
+                  </View>
+                </View>
+                <View style={[styles.tableCell, styles.colPlanta, styles.plantaCell]}>
+                  <View style={[styles.plantaDot, { backgroundColor: record.color }]} />
+                  <Text style={styles.plantaText}>{record.plantaMadre}</Text>
+                </View>
+                <View style={[styles.tableCell, styles.colFecha]}>
+                  <Text style={styles.tableCellText}>{record.fecha}</Text>
+                </View>
+                <View style={[styles.tableCell, styles.colEstado]}>
+                  <View style={[styles.estadoBadge, { backgroundColor: `${getEstadoColor(record.estado)}20` }]}>
+                    <Text style={[styles.estadoText, { color: getEstadoColor(record.estado) }]}>
+                      {record.estado}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </>
+      )}
     </View>
   );
 };
@@ -228,5 +264,42 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   estadoText: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  // Estilos móvil
+  cardsContainer: {
+    gap: 10,
+  },
+  mobileCard: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  mobileCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  mobileCardBadges: {
+    flexDirection: 'row',
+    gap: 6,
+    flexShrink: 0,
+  },
+  mobileCardPlanta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  mobileCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  mobileCardDate: {
+    fontSize: 12,
+    color: colors.text.tertiary,
   },
 });

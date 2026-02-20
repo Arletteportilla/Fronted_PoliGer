@@ -230,6 +230,8 @@ export default function PolinizacionesScreen() {
           onFechaHastaChange={setFechaHasta}
           onTipoRegistroChange={handleTipoRegistroChange}
           onDownloadPDF={handleDownloadPDF}
+          onRefresh={refresh}
+          refreshing={refreshing}
           showFiltersSection={showFiltersSection}
         >
           <PolinizacionFilters

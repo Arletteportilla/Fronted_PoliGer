@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Pagination from '@/components/filters/Pagination';
@@ -46,6 +47,8 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
   onEdit,
 }) => {
   const { colors: themeColors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const styles = createStyles(themeColors);
 
   // Función para obtener color de tipo
@@ -104,6 +107,92 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
           <Text style={styles.emptySubtitle}>
             {activeFiltersCount > 0 ? 'No se encontraron resultados para tu búsqueda' : 'Crea tu primera polinización'}
           </Text>
+        </View>
+      ) : isMobile ? (
+        /* Vista de tarjetas para móvil */
+        <View style={styles.cardsContainer}>
+          {polinizaciones.map((item, index) => {
+            const especieCompleta = item.nueva_especie || item.especie || item.madre_especie || 'Sin especie';
+            const generoCompleto = item.nueva_genero || item.genero || item.madre_genero || 'Sin género';
+            const codigoCompleto = item.codigo || item.nueva_codigo || item.madre_codigo || `#POL-${item.numero}`;
+            const fechaPolinizacion = item.fechapol
+              ? new Date(item.fechapol).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+              : 'Sin fecha';
+            const fechaEstimadaValue = item.fecha_maduracion_predicha || item.prediccion_fecha_estimada;
+            const fechaEstimada = fechaEstimadaValue
+              ? new Date(fechaEstimadaValue).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+              : null;
+            const estadoActual = getEstadoLabel(item);
+            const tipo = item.tipo_polinizacion || item.tipo || 'SELF';
+            const itemKey = item.numero?.toString() || item.id?.toString() || `pol-${index}`;
+            const estadoBgColor = getEstadoBgColor(estadoActual, item.fechamad, fechaEstimadaValue);
+            const estadoTextColor = getEstadoTextColor(estadoActual, item.fechamad, fechaEstimadaValue);
+            const tipoBgColor = getTipoColor(tipo);
+            const tipoTextColor = getTipoTextColor(tipo);
+
+            const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+            const diasFaltantes = fechaEstimadaValue
+              ? Math.ceil((new Date(fechaEstimadaValue).setHours(0,0,0,0) - hoy.getTime()) / (1000 * 60 * 60 * 24))
+              : null;
+
+            return (
+              <TouchableOpacity
+                key={itemKey}
+                style={styles.mobileCard}
+                onPress={() => onItemPress?.(item)}
+                activeOpacity={0.8}
+              >
+                {/* Fila superior: código + tipo + estado */}
+                <View style={styles.mobileCardHeader}>
+                  <Text style={styles.mobileCardCodigo} numberOfLines={1}>{codigoCompleto}</Text>
+                  <View style={styles.mobileCardBadges}>
+                    <View style={[styles.mobileBadge, { backgroundColor: tipoBgColor }]}>
+                      <Text style={[styles.mobileBadgeText, { color: tipoTextColor }]}>{tipo}</Text>
+                    </View>
+                    <View style={[styles.mobileBadge, { backgroundColor: estadoBgColor }]}>
+                      <Text style={[styles.mobileBadgeText, { color: estadoTextColor }]}>{estadoActual}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Especie */}
+                <Text style={styles.mobileCardEspecie} numberOfLines={1}>{especieCompleta}</Text>
+                <Text style={styles.mobileCardGenero} numberOfLines={1}>{generoCompleto}</Text>
+
+                {/* Fechas */}
+                <View style={styles.mobileCardFooter}>
+                  <View style={styles.mobileCardDateRow}>
+                    <Ionicons name="calendar-outline" size={12} color={themeColors.text.tertiary} />
+                    <Text style={styles.mobileCardDate}>Pol: {fechaPolinizacion}</Text>
+                  </View>
+                  {fechaEstimada && (
+                    <View style={styles.mobileCardDateRow}>
+                      <Ionicons name="time-outline" size={12} color={themeColors.text.tertiary} />
+                      <Text style={styles.mobileCardDate}>Est: {fechaEstimada}</Text>
+                      {diasFaltantes !== null && (
+                        <Text style={{
+                          fontSize: 10, fontWeight: '700',
+                          color: diasFaltantes > 0 ? '#F59E0B' : diasFaltantes === 0 ? '#10B981' : '#EF4444'
+                        }}>
+                          {diasFaltantes > 0 ? `${diasFaltantes}d` : diasFaltantes === 0 ? 'Hoy' : 'Venc.'}
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                </View>
+
+                {/* Progress bar */}
+                {tipoRegistro !== 'historicos' && item.estado_polinizacion && (
+                  <View style={{ marginTop: 8 }}>
+                    <EstadoProgressBar
+                      estadoActual={item.estado_polinizacion as 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO'}
+                      tipo="polinizacion"
+                    />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       ) : (
         <View style={styles.tableContainer}>
@@ -424,5 +513,75 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     padding: 6,
     borderRadius: 8,
     backgroundColor: colors.background.secondary,
+  },
+  // Estilos móvil - tarjetas
+  cardsContainer: {
+    gap: 10,
+    marginBottom: 20,
+  },
+  mobileCard: {
+    backgroundColor: colors.background.primary,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    shadowColor: colors.shadow.color,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  mobileCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  mobileCardCodigo: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.text.primary,
+    flex: 1,
+    marginRight: 8,
+  },
+  mobileCardBadges: {
+    flexDirection: 'row',
+    gap: 6,
+    flexShrink: 0,
+  },
+  mobileBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  mobileBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  mobileCardEspecie: {
+    fontSize: 13,
+    color: colors.text.primary,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  mobileCardGenero: {
+    fontSize: 12,
+    color: colors.text.tertiary,
+    marginBottom: 8,
+  },
+  mobileCardFooter: {
+    flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
+  },
+  mobileCardDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  mobileCardDate: {
+    fontSize: 12,
+    color: colors.text.tertiary,
   },
 });

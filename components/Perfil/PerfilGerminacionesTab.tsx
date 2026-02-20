@@ -28,6 +28,7 @@ export interface PerfilGerminacionesTabProps {
   handleDeleteGerminacion: (item: Germinacion) => void;
   handleOpenChangeStatus: (item: Germinacion) => void;
   onDescargarPDF: () => void;
+  onNewGerminacion?: () => void;
 }
 
 export function PerfilGerminacionesTab({
@@ -48,7 +49,8 @@ export function PerfilGerminacionesTab({
   handleEditGerminacion,
   handleDeleteGerminacion,
   handleOpenChangeStatus,
-  onDescargarPDF
+  onDescargarPDF,
+  onNewGerminacion
 }: PerfilGerminacionesTabProps) {
   const router = useRouter();
   const { colors: themeColors } = useTheme();
@@ -83,7 +85,7 @@ export function PerfilGerminacionesTab({
         <View style={styles.tableActionsContainer}>
           <TouchableOpacity
             style={styles.newItemButton}
-            onPress={() => router.push('/(tabs)/addGerminacion')}
+            onPress={() => onNewGerminacion ? onNewGerminacion() : router.push('/(tabs)/addGerminacion')}
           >
             <Ionicons name="add-circle" size={20} color={themeColors.background.primary} />
             <Text style={styles.newItemButtonText}>Nueva Germinación</Text>

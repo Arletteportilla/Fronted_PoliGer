@@ -12,6 +12,7 @@ import { prediccionValidacionService } from '@/services/prediccion-validacion.se
 import { CONFIG } from '@/services/config';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useConfirmation, useModalState, useCRUDOperations } from '@/hooks';
+import { getInitialFormState } from '@/utils/polinizacionConstants';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as SecureStore from '@/services/secureStore';
 import { ResponsiveLayout } from '@/components/layout';
@@ -100,6 +101,21 @@ export default function PerfilScreen() {
   // Estados para formularios de edición
   const [polinizacionEditForm, setPolinizacionEditForm] = useState<any>(null);
   const [germinacionEditForm, setGerminacionEditForm] = useState<any>(null);
+
+  // Estados para formularios de creación (nueva polinización / nueva germinación desde perfil)
+  const [showNewPolinizacionForm, setShowNewPolinizacionForm] = useState(false);
+  const [newPolinizacionForm, setNewPolinizacionForm] = useState<any>(() =>
+    getInitialFormState(() => user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.username || '')
+  );
+  const [showNewGerminacionForm, setShowNewGerminacionForm] = useState(false);
+  const [newGerminacionForm, setNewGerminacionForm] = useState<any>({
+    codigo: '', genero: '', especie_variedad: '', fecha_siembra: '',
+    fecha_polinizacion: '', clima: 'I', percha: '', nivel: '', clima_lab: 'I',
+    finca: '', numero_vivero: '', cantidad_solicitada: '', no_capsulas: '',
+    estado_capsula: 'CERRADA', estado_semilla: 'MADURA',
+    cantidad_semilla: 'ABUNDANTE', semilla_en_stock: false,
+    observaciones: '', responsable: '', etapa_actual: 'INGRESADO',
+  });
 
   // Sincronizar formulario cuando se abre el modal de edición de polinización
   useEffect(() => {
@@ -591,6 +607,41 @@ export default function PerfilScreen() {
   );
 
   // ============================================================================
+  // FUNCIONES PARA CREAR NUEVOS REGISTROS DESDE PERFIL
+  // ============================================================================
+
+  const handleCreatePolinizacion = async () => {
+    try {
+      await polinizacionService.create(newPolinizacionForm);
+      setShowNewPolinizacionForm(false);
+      setNewPolinizacionForm(getInitialFormState(() => user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.username || ''));
+      await fetchData();
+      toast.success('Polinización creada correctamente');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'No se pudo crear la polinización');
+    }
+  };
+
+  const handleCreateGerminacion = async () => {
+    try {
+      await germinacionService.create(newGerminacionForm);
+      setShowNewGerminacionForm(false);
+      setNewGerminacionForm({
+        codigo: '', genero: '', especie_variedad: '', fecha_siembra: '',
+        fecha_polinizacion: '', clima: 'I', percha: '', nivel: '', clima_lab: 'I',
+        finca: '', numero_vivero: '', cantidad_solicitada: '', no_capsulas: '',
+        estado_capsula: 'CERRADA', estado_semilla: 'MADURA',
+        cantidad_semilla: 'ABUNDANTE', semilla_en_stock: false,
+        observaciones: '', responsable: '', etapa_actual: 'INGRESADO',
+      });
+      await fetchData();
+      toast.success('Germinación creada correctamente');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'No se pudo crear la germinación');
+    }
+  };
+
+  // ============================================================================
   // FUNCIONES PARA POLINIZACIONES
   // ============================================================================
 
@@ -960,6 +1011,7 @@ export default function PerfilScreen() {
               handleEditPolinizacion={handleEditPolinizacion}
               handleDeletePolinizacion={handleDeletePolinizacion}
               onDescargarPDF={() => handleDescargarPDF('polinizaciones')}
+              onNewPolinizacion={() => setShowNewPolinizacionForm(true)}
             />
           )}
           {tab === 'germinaciones' && canViewGerminaciones() && (
@@ -982,6 +1034,7 @@ export default function PerfilScreen() {
               handleDeleteGerminacion={handleDeleteGerminacion}
               handleOpenChangeStatus={handleOpenChangeStatus}
               onDescargarPDF={() => handleDescargarPDF('germinaciones')}
+              onNewGerminacion={() => setShowNewGerminacionForm(true)}
             />
           )}
           {tab === 'notificaciones' && (
@@ -1209,6 +1262,35 @@ export default function PerfilScreen() {
         />
 
       </ScrollView>
+
+      {/* Modal: Nueva Polinización desde perfil */}
+      <PolinizacionForm
+        visible={showNewPolinizacionForm}
+        onClose={() => setShowNewPolinizacionForm(false)}
+        form={newPolinizacionForm}
+        setForm={setNewPolinizacionForm}
+        onSave={handleCreatePolinizacion}
+        onPrediccion={() => {}}
+        saving={false}
+        isPredicting={false}
+        prediccion={null}
+      />
+
+      {/* Modal: Nueva Germinación desde perfil */}
+      <GerminacionForm
+        visible={showNewGerminacionForm}
+        onClose={() => setShowNewGerminacionForm(false)}
+        form={newGerminacionForm}
+        setForm={setNewGerminacionForm}
+        onSubmit={handleCreateGerminacion}
+        saving={false}
+        codigosDisponibles={[]}
+        especiesDisponibles={[]}
+        perchasDisponibles={[]}
+        nivelesDisponibles={[]}
+        handleCodigoSelection={() => {}}
+        handleEspecieSelection={() => {}}
+      />
     </ResponsiveLayout>
   );
 }

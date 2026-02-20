@@ -1,8 +1,9 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { TabNavigation, Navbar } from '@/components/navigation';
+import { MobileTabBar } from '@/components/navigation/MobileTabBar';
 
 interface ResponsiveLayoutProps {
   children: ReactNode;
@@ -10,15 +11,34 @@ interface ResponsiveLayoutProps {
   style?: any;
 }
 
-export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ 
-  children, 
+export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
+  children,
   currentTab,
-  style 
+  style
 }) => {
   const { sidebarWidth } = useSidebar();
   const { colors: themeColors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   const styles = createStyles(themeColors);
+
+  if (isMobile) {
+    return (
+      <View style={styles.mobileContainer}>
+        {/* Navbar en la parte superior */}
+        <View style={styles.mobileNavbarContainer}>
+          <Navbar />
+        </View>
+        {/* Contenido principal */}
+        <View style={[styles.mobileContent, style]}>
+          {children}
+        </View>
+        {/* Tab bar en la parte inferior */}
+        <MobileTabBar currentTab={currentTab} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -47,6 +67,11 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flexDirection: 'row',
     position: 'relative',
   },
+  mobileContainer: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  // Desktop styles
   content: {
     flex: 1,
     backgroundColor: colors.background.secondary,
@@ -69,5 +94,15 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flex: 1,
     position: 'relative',
     zIndex: 1,
+  },
+  // Mobile styles
+  mobileNavbarContainer: {
+    height: 64,
+    zIndex: 10001,
+    elevation: 11,
+  },
+  mobileContent: {
+    flex: 1,
+    backgroundColor: colors.background.secondary,
   },
 });

@@ -252,11 +252,13 @@ export function PerfilNotificacionesTab({
           </Text>
         </View>
         <View style={styles.headerRight}>
-          {!isVerySmallScreen && (
-            <TouchableOpacity style={styles.settingsButton}>
-              <Ionicons name="settings-outline" size={22} color={themeColors.text.secondary} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh} disabled={refreshing}>
+            {refreshing ? (
+              <ActivityIndicator size="small" color={themeColors.primary.main} />
+            ) : (
+              <Ionicons name="refresh" size={18} color={themeColors.primary.main} />
+            )}
+          </TouchableOpacity>
           {stats.noLeidas > 0 && (
             <TouchableOpacity style={styles.markAllReadButton} onPress={handleMarkAllAsRead}>
               <Ionicons name="checkmark-done" size={16} color={themeColors.text.inverse} />
@@ -774,6 +776,16 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     height: isSmallScreen ? 36 : 40,
     borderRadius: 10,
     backgroundColor: colors.background.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  refreshButton: {
+    width: isSmallScreen ? 36 : 40,
+    height: isSmallScreen ? 36 : 40,
+    borderRadius: 10,
+    backgroundColor: colors.background.secondary,
+    borderWidth: 1,
+    borderColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
   },

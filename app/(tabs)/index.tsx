@@ -588,7 +588,7 @@ export default function HomeScreen() {
         <View style={styles.performanceSection}>
           <View style={styles.performanceContainer}>
             {/* Resumen de Rendimiento */}
-            <View style={styles.performanceCard}>
+            <View style={[styles.performanceCard, isMobile ? { width: '100%' } : { flex: 2, minWidth: 400 }]}>
               <View style={styles.performanceHeader}>
                 <View>
                   <Text style={styles.performanceTitle}>Resumen de Rendimiento</Text>
@@ -671,7 +671,7 @@ export default function HomeScreen() {
             </View>
 
             {/* Actividad Reciente */}
-            <View style={styles.activityCard}>
+            <View style={[styles.activityCard, isMobile ? { width: '100%' } : { flex: 1, minWidth: 250 }]}>
               <View style={styles.activityHeader}>
                 <Text style={styles.activityTitle}>Actividad Reciente</Text>
               </View>
@@ -943,11 +943,9 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   performanceContainer: {
     flexDirection: isMobile ? 'column' : 'row',
     gap: 20,
-    flexWrap: 'wrap',
+    flexWrap: isMobile ? 'nowrap' : 'wrap',
   },
   performanceCard: {
-    flex: isMobile ? 0 : 2,
-    minWidth: isMobile ? '100%' : 400,
     backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: isMobile ? 16 : 24,
@@ -1181,8 +1179,6 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     lineHeight: 14,
   },
   activityCard: {
-    flex: isMobile ? 0 : 1,
-    minWidth: isMobile ? '100%' : 250,
     backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: isMobile ? 16 : 20,
