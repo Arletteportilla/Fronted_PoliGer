@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { SimpleCalendarPicker } from '@/components/common';
@@ -33,6 +33,8 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   prediccion
 }) => {
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 500;
   const [showTipoPicker, setShowTipoPicker] = useState(false);
   const [showCantidadSemillaPicker, setShowCantidadSemillaPicker] = useState(false);
   const [buscandoPlanta, setBuscandoPlanta] = useState<string | null>(null);
@@ -474,7 +476,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
     </View>
   );
 
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, isMobile);
 
   return (
     <Modal
@@ -627,21 +629,27 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                             </View>
                             {showEspeciesMadre && especiesFiltradas.length > 0 && (
                               <View style={styles.autocompleteDropdown}>
-                                {especiesFiltradas.map((item, index) => (
-                                  <TouchableOpacity
-                                    key={`${item.especie}-${index}`}
-                                    style={[
-                                      styles.autocompleteOption,
-                                      index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
-                                    ]}
-                                    onPress={() => seleccionarEspecie(item, 'madre')}
-                                  >
-                                    <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
-                                    <Text style={styles.autocompleteOptionDetalle}>
-                                      {item.genero} - {item.codigo}
-                                    </Text>
-                                  </TouchableOpacity>
-                                ))}
+                                <ScrollView
+                                  keyboardShouldPersistTaps="handled"
+                                  nestedScrollEnabled={true}
+                                  showsVerticalScrollIndicator={true}
+                                >
+                                  {especiesFiltradas.map((item, index) => (
+                                    <TouchableOpacity
+                                      key={`${item.especie}-${index}`}
+                                      style={[
+                                        styles.autocompleteOption,
+                                        index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
+                                      ]}
+                                      onPress={() => seleccionarEspecie(item, 'madre')}
+                                    >
+                                      <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
+                                      <Text style={styles.autocompleteOptionDetalle}>
+                                        {item.genero} - {item.codigo}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  ))}
+                                </ScrollView>
                               </View>
                             )}
                           </View>
@@ -732,21 +740,27 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                               </View>
                               {showEspeciesPadre && especiesFiltradas.length > 0 && (
                                 <View style={styles.autocompleteDropdown}>
-                                  {especiesFiltradas.map((item, index) => (
-                                    <TouchableOpacity
-                                      key={`${item.especie}-${index}`}
-                                      style={[
-                                        styles.autocompleteOption,
-                                        index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
-                                      ]}
-                                      onPress={() => seleccionarEspecie(item, 'padre')}
-                                    >
-                                      <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
-                                      <Text style={styles.autocompleteOptionDetalle}>
-                                        {item.genero} - {item.codigo}
-                                      </Text>
-                                    </TouchableOpacity>
-                                  ))}
+                                  <ScrollView
+                                    keyboardShouldPersistTaps="handled"
+                                    nestedScrollEnabled={true}
+                                    showsVerticalScrollIndicator={true}
+                                  >
+                                    {especiesFiltradas.map((item, index) => (
+                                      <TouchableOpacity
+                                        key={`${item.especie}-${index}`}
+                                        style={[
+                                          styles.autocompleteOption,
+                                          index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
+                                        ]}
+                                        onPress={() => seleccionarEspecie(item, 'padre')}
+                                      >
+                                        <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
+                                        <Text style={styles.autocompleteOptionDetalle}>
+                                          {item.genero} - {item.codigo}
+                                        </Text>
+                                      </TouchableOpacity>
+                                    ))}
+                                  </ScrollView>
                                 </View>
                               )}
                             </View>
@@ -846,21 +860,27 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                             </View>
                             {form.tipo_polinizacion === 'HIBRIDA' && showEspeciesNueva && especiesFiltradas.length > 0 && (
                               <View style={styles.autocompleteDropdown}>
-                                {especiesFiltradas.map((item, index) => (
-                                  <TouchableOpacity
-                                    key={`${item.especie}-${index}`}
-                                    style={[
-                                      styles.autocompleteOption,
-                                      index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
-                                    ]}
-                                    onPress={() => seleccionarEspecie(item, 'nueva')}
-                                  >
-                                    <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
-                                    <Text style={styles.autocompleteOptionDetalle}>
-                                      {item.genero} - {item.codigo}
-                                    </Text>
-                                  </TouchableOpacity>
-                                ))}
+                                <ScrollView
+                                  keyboardShouldPersistTaps="handled"
+                                  nestedScrollEnabled={true}
+                                  showsVerticalScrollIndicator={true}
+                                >
+                                  {especiesFiltradas.map((item, index) => (
+                                    <TouchableOpacity
+                                      key={`${item.especie}-${index}`}
+                                      style={[
+                                        styles.autocompleteOption,
+                                        index === especiesFiltradas.length - 1 && styles.autocompleteOptionLast
+                                      ]}
+                                      onPress={() => seleccionarEspecie(item, 'nueva')}
+                                    >
+                                      <Text style={styles.autocompleteOptionCodigo}>{item.especie}</Text>
+                                      <Text style={styles.autocompleteOptionDetalle}>
+                                        {item.genero} - {item.codigo}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  ))}
+                                </ScrollView>
                               </View>
                             )}
                           </View>
@@ -1308,7 +1328,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   );
 };
 
-const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>, isMobile = false) => StyleSheet.create({
   popupOverlay: {
     flex: 1,
     backgroundColor: colors.background.modal,
@@ -1411,14 +1431,14 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     marginBottom: 12,
   },
   dateRow: {
-    flexDirection: 'row',
+    flexDirection: isMobile ? 'column' : 'row',
     gap: 12,
   },
   dateColumn: {
-    flex: 1,
+    flex: isMobile ? undefined : 1,
   },
   inputRow: {
-    flexDirection: 'row',
+    flexDirection: isMobile ? 'column' : 'row',
     gap: 12,
     marginBottom: 12,
   },
@@ -1426,7 +1446,8 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     marginTop: 260,
   },
   inputColumn: {
-    flex: 1,
+    flex: isMobile ? undefined : 1,
+    width: isMobile ? '100%' : undefined,
     position: 'relative',
     zIndex: 1,
   },
@@ -1630,7 +1651,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderWidth: 1,
     borderColor: colors.border.medium,
     marginTop: 4,
-    maxHeight: 250,
+    maxHeight: 220,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
