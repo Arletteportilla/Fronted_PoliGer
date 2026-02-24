@@ -111,7 +111,9 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
       form.fecha_polinizacion &&
       form.tipo_polinizacion &&
       form.madre_especie &&
-      (!isPadreRequired || form.padre_especie);
+      (!isPadreRequired || form.padre_especie) &&
+      form.cantidad_solicitada &&
+      form.cantidad_disponible;
     if (isValid) {
       onSave();
     }
@@ -1173,8 +1175,8 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                 <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad Solicitada', (
-                      <View style={[styles.inputContainer, cantidadError && styles.inputContainerError]}>
-                        <Ionicons name="arrow-up-outline" size={20} color={cantidadError ? "#ef4444" : "#e9ad14"} style={styles.inputIcon} />
+                      <View style={[styles.inputContainer, (cantidadError || (submitted && !form.cantidad_solicitada)) && styles.inputContainerError]}>
+                        <Ionicons name="arrow-up-outline" size={20} color={(cantidadError || (submitted && !form.cantidad_solicitada)) ? "#ef4444" : "#e9ad14"} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.cantidad_solicitada}
@@ -1183,13 +1185,13 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                           keyboardType="numeric"
                         />
                       </View>
-                    ), false)}
+                    ), true)}
                   </View>
 
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad Disponible', (
-                      <View style={[styles.inputContainer, cantidadError && styles.inputContainerError]}>
-                        <Ionicons name="checkmark-circle-outline" size={20} color={cantidadError ? "#ef4444" : "#e9ad14"} style={styles.inputIcon} />
+                      <View style={[styles.inputContainer, (cantidadError || (submitted && !form.cantidad_disponible)) && styles.inputContainerError]}>
+                        <Ionicons name="checkmark-circle-outline" size={20} color={(cantidadError || (submitted && !form.cantidad_disponible)) ? "#ef4444" : "#e9ad14"} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.cantidad_disponible}
@@ -1198,7 +1200,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                           keyboardType="numeric"
                         />
                       </View>
-                    ), false)}
+                    ), true)}
                   </View>
                 </View>
 

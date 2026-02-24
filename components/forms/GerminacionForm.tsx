@@ -50,6 +50,18 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   const [showEstadoSemilla, setShowEstadoSemilla] = useState(false);
   const [showCantidadSemilla, setShowCantidadSemilla] = useState(false);
   const [showNivel, setShowNivel] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (visible) setSubmitted(false);
+  }, [visible]);
+
+  const handleSubmitValidated = () => {
+    setSubmitted(true);
+    if (form.cantidad_solicitada) {
+      onSubmit();
+    }
+  };
 
   // Estados para predicción automática
   const [prediccionData, setPrediccionData] = useState<any>(null);
@@ -545,8 +557,8 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
 
                   <View style={styles.inputColumn}>
                     {renderFormField('Cantidad Solicitada', (
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="arrow-up-outline" size={20} color={themeColors.accent.primary} style={styles.inputIcon} />
+                      <View style={[styles.inputContainer, submitted && !form.cantidad_solicitada && styles.inputContainerError]}>
+                        <Ionicons name="arrow-up-outline" size={20} color={submitted && !form.cantidad_solicitada ? "#ef4444" : themeColors.accent.primary} style={styles.inputIcon} />
                         <TextInput
                           style={styles.modernInput}
                           value={form.cantidad_solicitada}
@@ -724,7 +736,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.saveButton]}
-                  onPress={onSubmit}
+                  onPress={handleSubmitValidated}
                   disabled={saving}
                 >
                   <Ionicons name="save" size={20} color={themeColors.text.inverse} />
@@ -871,6 +883,10 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     borderColor: colors.border.default,
     paddingHorizontal: 12,
     paddingVertical: 8,
+  },
+  inputContainerError: {
+    borderColor: '#ef4444',
+    borderWidth: 2,
   },
   inputIcon: {
     marginRight: 8,
