@@ -2,6 +2,18 @@ import api from './api';
 import * as SecureStore from '@/services/secureStore';
 import { logger } from '@/services/logger';
 
+/**
+ * Normaliza el estado_polinizacion que viene del backend.
+ * El backend ahora maneja los 4 estados: INICIAL, EN_PROCESO_TEMPRANO, EN_PROCESO_AVANZADO, FINALIZADO.
+ * Se mantiene el mapeo de EN_PROCESO → EN_PROCESO_TEMPRANO para compatibilidad con registros legacy.
+ */
+function normalizarPolinizacion<T extends object>(p: T): T {
+  if (p && (p as any)['estado_polinizacion'] === 'EN_PROCESO') {
+    return { ...p, estado_polinizacion: 'EN_PROCESO_TEMPRANO' };
+  }
+  return p;
+}
+
 export const polinizacionService = {
   /**
    * Obtiene solo las polinizaciones del usuario autenticado
@@ -21,9 +33,9 @@ export const polinizacionService = {
       
       // Manejar respuesta paginada o directa
       if (Array.isArray(response.data)) {
-        return response.data;
+        return response.data.map(normalizarPolinizacion);
       } else if (response.data && response.data.results && Array.isArray(response.data.results)) {
-        return response.data.results;
+        return response.data.results.map(normalizarPolinizacion);
       } else {
         return [];
       }
@@ -84,7 +96,7 @@ export const polinizacionService = {
       });
       
       return {
-        results: response.data?.results || [],
+        results: (response.data?.results || []).map(normalizarPolinizacion),
         count: response.data?.count || 0,
         totalPages: response.data?.total_pages || 0,
         currentPage: response.data?.current_page || page,
@@ -306,7 +318,7 @@ export const polinizacionService = {
 
   getById: async (id: number) => {
     const response = await api.get(`polinizaciones/${id}/`);
-    return response.data;
+    return normalizarPolinizacion(response.data);
   },
 
   create: async (data: any) => {
@@ -697,7 +709,6 @@ export const polinizacionService = {
     fechaMaduracion?: string
   ) => {
     try {
-      
       const response = await api.post(`polinizaciones/${id}/cambiar-estado/`, {
         estado,
         fecha_maduracion: fechaMaduracion,
