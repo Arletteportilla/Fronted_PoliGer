@@ -210,6 +210,10 @@ export default function PolinizacionesScreen() {
           currentPage={currentPage}
           totalPages={totalPages}
           onShowForm={handleNew}
+          onRefresh={refresh}
+          refreshing={refreshing}
+          onDownloadPDF={handleDownloadPDF}
+          downloading={downloading}
         />
 
         {/* Content con métricas y búsqueda */}

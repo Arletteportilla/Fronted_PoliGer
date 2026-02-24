@@ -259,12 +259,6 @@ export function PerfilNotificacionesTab({
               <Ionicons name="refresh" size={18} color={themeColors.primary.main} />
             )}
           </TouchableOpacity>
-          {stats.noLeidas > 0 && (
-            <TouchableOpacity style={styles.markAllReadButton} onPress={handleMarkAllAsRead}>
-              <Ionicons name="checkmark-done" size={16} color={themeColors.text.inverse} />
-              {!isSmallScreen && <Text style={styles.markAllReadText}>Marcar todas leídas</Text>}
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 

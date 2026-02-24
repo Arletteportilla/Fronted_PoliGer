@@ -172,6 +172,8 @@ export default function GerminacionesScreen() {
             onSearchChange={(text) => setFilters({ ...filters, search: text })}
             onShowForm={() => setShowForm(true)}
             onShowFilters={() => setShowFilters(true)}
+            onRefresh={refresh}
+            refreshing={refreshing}
           />
 
           {/* Tarjetas de Métricas */}
@@ -255,20 +257,6 @@ export default function GerminacionesScreen() {
                 label="Hasta"
               />
             </View>
-
-            {/* Botón Actualizar */}
-            <TouchableOpacity
-              style={styles.refreshButton}
-              onPress={refresh}
-              disabled={refreshing}
-            >
-              {refreshing ? (
-                <ActivityIndicator size="small" color={themeColors.primary.main} />
-              ) : (
-                <Ionicons name="refresh" size={20} color={themeColors.primary.main} />
-              )}
-              <Text style={styles.refreshButtonText}>Actualizar</Text>
-            </TouchableOpacity>
 
             {/* Botón Descargar PDF */}
             <TouchableOpacity

@@ -2,6 +2,8 @@ import React from 'react';
 import {
   View,
   Text,
+  TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +15,10 @@ interface PolinizacionesHeaderProps {
   currentPage?: number;
   totalPages?: number;
   onShowForm: () => void;
+  onRefresh?: () => void;
+  refreshing?: boolean;
+  onDownloadPDF?: () => void;
+  downloading?: boolean;
 }
 
 export const PolinizacionesHeader: React.FC<PolinizacionesHeaderProps> = ({
@@ -20,6 +26,10 @@ export const PolinizacionesHeader: React.FC<PolinizacionesHeaderProps> = ({
   currentPage = 1,
   totalPages = 1,
   onShowForm,
+  onRefresh,
+  refreshing = false,
+  onDownloadPDF,
+  downloading = false,
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
@@ -42,15 +52,42 @@ export const PolinizacionesHeader: React.FC<PolinizacionesHeaderProps> = ({
           </Text>
         </View>
 
-        <ProtectedButton
-          requiredModule="polinizaciones"
-          requiredAction="crear"
-          onPress={onShowForm}
-          style={styles.newButton}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text style={styles.newButtonText}>Nueva Polinización</Text>
-        </ProtectedButton>
+        <View style={styles.headerButtons}>
+          <ProtectedButton
+            requiredModule="polinizaciones"
+            requiredAction="crear"
+            onPress={onShowForm}
+            style={styles.newButton}
+          >
+            <Ionicons name="add" size={18} color="#fff" />
+            <Text style={styles.newButtonText}>Nueva Polinización</Text>
+          </ProtectedButton>
+
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={onRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <ActivityIndicator size="small" color={themeColors.primary.main} />
+            ) : (
+              <Ionicons name="refresh" size={20} color={themeColors.primary.main} />
+            )}
+            <Text style={styles.refreshButtonText}>Actualizar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.downloadButton, downloading && styles.downloadButtonDisabled]}
+            onPress={onDownloadPDF}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <Ionicons name="download-outline" size={20} color="#ffffff" />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </>
   );
@@ -118,5 +155,40 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     color: colors.text.inverse,
     fontSize: 13,
     fontWeight: '700',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+  },
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.secondary,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
+  },
+  refreshButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary.main,
+  },
+  downloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.text.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  downloadButtonDisabled: {
+    opacity: 0.5,
   },
 });
