@@ -173,6 +173,39 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           />
         </View>
 
+        {/* Botón Actualizar */}
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={onRefresh}
+          disabled={refreshing}
+        >
+          {refreshing ? (
+            <ActivityIndicator size="small" color={themeColors.primary.main} />
+          ) : (
+            <Ionicons name="refresh" size={20} color={themeColors.primary.main} />
+          )}
+          <Text style={styles.refreshButtonText}>Actualizar</Text>
+        </TouchableOpacity>
+
+        {/* Botón Descargar PDF */}
+        <TouchableOpacity
+          style={[styles.downloadButton, downloading && styles.downloadButtonDisabled]}
+          onPress={onDownloadPDF}
+          disabled={downloading}
+        >
+          {downloading ? (
+            <>
+              <ActivityIndicator size="small" color="#ffffff" />
+              <Text style={styles.downloadButtonText}>Descargando...</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="document-text" size={18} color="#ffffff" />
+              <Text style={styles.downloadButtonText}>Descargar PDF</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
       </View>
 
       {/* Sección de Filtros Expandible */}
@@ -338,7 +371,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   },
   searchBarContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     flexWrap: 'wrap',
     backgroundColor: colors.background.primary,
     padding: 20,

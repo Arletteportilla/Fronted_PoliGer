@@ -2,9 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,33 +9,11 @@ import { ProtectedButton } from '@/components/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface GerminacionesHeaderProps {
-  totalGerminaciones: number;
-  currentPage?: number;
-  totalPages?: number;
-  showOnlyMine: boolean;
-  search: string;
-  activeFiltersCount?: number;
-  onToggleShowOnlyMine: () => void;
-  onSearchChange: (text: string) => void;
   onShowForm: () => void;
-  onShowFilters?: () => void;
-  onRefresh?: () => void;
-  refreshing?: boolean;
 }
 
 export const GerminacionesHeader: React.FC<GerminacionesHeaderProps> = ({
-  totalGerminaciones,
-  currentPage = 1,
-  totalPages = 1,
-  showOnlyMine,
-  search,
-  activeFiltersCount = 0,
-  onToggleShowOnlyMine,
-  onSearchChange,
   onShowForm,
-  onShowFilters,
-  onRefresh,
-  refreshing = false,
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
@@ -61,30 +36,15 @@ export const GerminacionesHeader: React.FC<GerminacionesHeaderProps> = ({
           </Text>
         </View>
 
-        <View style={styles.headerButtons}>
-          <ProtectedButton
-            requiredModule="germinaciones"
-            requiredAction="crear"
-            onPress={onShowForm}
-            style={styles.newButton}
-          >
-            <Ionicons name="add" size={18} color={themeColors.text.inverse} />
-            <Text style={styles.newButtonText}>Nueva Germinación</Text>
-          </ProtectedButton>
-
-          <TouchableOpacity
-            style={styles.refreshButton}
-            onPress={onRefresh}
-            disabled={refreshing}
-          >
-            {refreshing ? (
-              <ActivityIndicator size="small" color={themeColors.primary.main} />
-            ) : (
-              <Ionicons name="refresh" size={20} color={themeColors.primary.main} />
-            )}
-            <Text style={styles.refreshButtonText}>Actualizar</Text>
-          </TouchableOpacity>
-        </View>
+        <ProtectedButton
+          requiredModule="germinaciones"
+          requiredAction="crear"
+          onPress={onShowForm}
+          style={styles.newButton}
+        >
+          <Ionicons name="add" size={18} color={themeColors.text.inverse} />
+          <Text style={styles.newButtonText}>Nueva Germinación</Text>
+        </ProtectedButton>
       </View>
     </>
   );
@@ -152,28 +112,5 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     color: colors.text.inverse,
     fontSize: 13,
     fontWeight: '700',
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-  },
-  refreshButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.secondary,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
-  },
-  refreshButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primary.main,
   },
 });

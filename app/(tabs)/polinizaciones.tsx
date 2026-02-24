@@ -206,14 +206,7 @@ export default function PolinizacionesScreen() {
       >
         {/* Header */}
         <PolinizacionesHeader
-          totalPolinizaciones={totalCount}
-          currentPage={currentPage}
-          totalPages={totalPages}
           onShowForm={handleNew}
-          onRefresh={refresh}
-          refreshing={refreshing}
-          onDownloadPDF={handleDownloadPDF}
-          downloading={downloading}
         />
 
         {/* Content con métricas y búsqueda */}
