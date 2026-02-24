@@ -8,6 +8,7 @@ import { TIPOS_POLINIZACION, CLIMAS, CANTIDAD_SEMILLA } from '@/utils/polinizaci
 import { polinizacionService } from '@/services/polinizacion.service';
 import { polinizacionPrediccionService } from '@/services/polinizacion-prediccion.service';
 import { useTheme } from '@/contexts/ThemeContext';
+import { validateNumericInput } from '@/utils/formValidation';
 
 interface PolinizacionFormProps {
   visible: boolean;
@@ -89,13 +90,15 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
 
   // Manejadores para cambios en cantidades con validación
   const handleCantidadSolicitadaChange = (value: string) => {
-    setForm((f: any) => ({ ...f, cantidad_solicitada: value }));
-    validarCantidades(value, form.cantidad_disponible);
+    const numerico = validateNumericInput(value);
+    setForm((f: any) => ({ ...f, cantidad_solicitada: numerico }));
+    validarCantidades(numerico, form.cantidad_disponible);
   };
 
   const handleCantidadDisponibleChange = (value: string) => {
-    setForm((f: any) => ({ ...f, cantidad_disponible: value }));
-    validarCantidades(form.cantidad_solicitada, value);
+    const numerico = validateNumericInput(value);
+    setForm((f: any) => ({ ...f, cantidad_disponible: numerico }));
+    validarCantidades(form.cantidad_solicitada, numerico);
   };
 
   // Resetear errores de validación cada vez que el formulario se abre
