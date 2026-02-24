@@ -70,6 +70,8 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
 
   // Estado para validación de cantidades
   const [cantidadError, setCantidadError] = useState<string>('');
+  // Estado para mostrar errores de campos requeridos al intentar guardar
+  const [submitted, setSubmitted] = useState(false);
 
   // Función para validar cantidades
   const validarCantidades = (solicitada: string, disponible: string) => {
@@ -94,6 +96,25 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
   const handleCantidadDisponibleChange = (value: string) => {
     setForm((f: any) => ({ ...f, cantidad_disponible: value }));
     validarCantidades(form.cantidad_solicitada, value);
+  };
+
+  // Resetear errores de validación cada vez que el formulario se abre
+  useEffect(() => {
+    if (visible) setSubmitted(false);
+  }, [visible]);
+
+  // Interceptar el guardado para mostrar errores en campos requeridos vacíos
+  const handleSave = () => {
+    setSubmitted(true);
+    const isPadreRequired = form.tipo_polinizacion === 'SIBLING' || form.tipo_polinizacion === 'HIBRIDA';
+    const isValid =
+      form.fecha_polinizacion &&
+      form.tipo_polinizacion &&
+      form.madre_especie &&
+      (!isPadreRequired || form.padre_especie);
+    if (isValid) {
+      onSave();
+    }
   };
 
   // Cargar códigos disponibles al montar el componente
@@ -526,6 +547,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       onDateChange={(date: string) => setForm((f: any) => ({ ...f, fecha_polinizacion: date }))}
                       placeholder="Seleccionar fecha"
                       required={true}
+                      style={submitted && !form.fecha_polinizacion ? styles.inputContainerError : undefined}
                     />
                   </View>
                 </View>
@@ -543,7 +565,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                 <View style={styles.inputRow}>
                   <View style={styles.inputColumn}>
                     {renderFormField('Tipo de Polinización', (
-                      <View style={styles.inputContainer}>
+                      <View style={[styles.inputContainer, submitted && !form.tipo_polinizacion && styles.inputContainerError]}>
                         <Ionicons name="list-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                         <TouchableOpacity
                           style={styles.modernInput}
@@ -610,7 +632,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                       <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
                         {renderFormField('Especie Madre', (
                           <View style={styles.autocompleteWrapper}>
-                            <View style={styles.inputContainer}>
+                            <View style={[styles.inputContainer, submitted && !form.madre_especie && styles.inputContainerError]}>
                               <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                               <TextInput
                                 style={styles.modernInput}
@@ -721,7 +743,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                         <View style={[styles.inputColumn, styles.inputColumnWithAutocomplete]}>
                           {renderFormField('Especie Padre', (
                             <View style={styles.autocompleteWrapper}>
-                              <View style={styles.inputContainer}>
+                              <View style={[styles.inputContainer, submitted && !form.padre_especie && styles.inputContainerError]}>
                                 <Ionicons name="leaf-outline" size={20} color="#e9ad14" style={styles.inputIcon} />
                                 <TextInput
                                   style={styles.modernInput}
@@ -1311,7 +1333,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
                     styles.saveButton,
                     (saving || cantidadError) && styles.saveButtonDisabled
                   ]}
-                  onPress={onSave}
+                  onPress={handleSave}
                   disabled={saving || !!cantidadError}
                 >
                   <Ionicons name="save" size={20} color="#fff" />
