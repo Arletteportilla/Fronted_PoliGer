@@ -92,6 +92,13 @@ export function PerfilGerminacionesTab({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.exportButton}
+            onPress={() => fetchData()}
+          >
+            <Ionicons name="refresh-outline" size={20} color={themeColors.primary.main} />
+            <Text style={styles.exportButtonText}>Actualizar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.exportButton}
             onPress={() => {
               logger.info('🔔 Botón Descargar PDF clickeado - Germinaciones');
               onDescargarPDF();
@@ -376,14 +383,6 @@ export function PerfilGerminacionesTab({
                         >
                           <Ionicons name="create-outline" size={20} color="#F59E0B" />
                         </TouchableOpacity>
-                        {item.etapa_actual !== 'FINALIZADO' && (
-                          <TouchableOpacity
-                            onPress={() => handleOpenChangeStatus(item)}
-                            style={styles.actionIconButton}
-                          >
-                            <Ionicons name="swap-horizontal-outline" size={20} color="#8B5CF6" />
-                          </TouchableOpacity>
-                        )}
                         <TouchableOpacity
                           onPress={() => handleDeleteGerminacion(item)}
                           style={styles.actionIconButton}

@@ -10,6 +10,7 @@ const getAuthService = () => import('@/services/auth.service').then(m => m.authS
 
 const getApiService = () => import('@/services/api').then(m => m.setLoggingOut);
 const getApiClearCache = () => import('@/services/api').then(m => m.clearTokenCache);
+const getSetAuthExpiredHandler = () => import('@/services/api').then(m => m.setAuthExpiredHandler);
 
 interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
@@ -187,6 +188,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
   }, [router]);
+
+  // Registrar handler para cuando el token expira durante una sesión activa
+  useEffect(() => {
+    getSetAuthExpiredHandler().then(setHandler => {
+      setHandler(() => {
+        if (!isLoggingOutRef.current) {
+          forceLogout();
+        }
+      });
+    });
+    return () => {
+      getSetAuthExpiredHandler().then(setHandler => setHandler(null));
+    };
+  }, [forceLogout]);
 
   // Función para cargar datos del usuario
   const loadUserData = useCallback(async () => {

@@ -13,7 +13,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Notification } from '@/types';
 import type { getColors } from '@/utils/colors';
-
 type ThemeColors = ReturnType<typeof getColors>;
 
 interface RecordatoriosModalProps {
@@ -428,14 +427,14 @@ function createOuterStyles(c: ThemeColors) {
 }
 
 // ─── Fila de información ───────────────────────────────────────────────────
-function InfoRow({ icon, label, value, accent }: {
-  icon: string; label: string; value: string; accent: string;
+function InfoRow({ icon, label, value, accent, iconComponent }: {
+  icon?: string; label: string; value: string; accent: string; iconComponent?: React.ReactNode;
 }) {
   const { colors: c } = useTheme();
   const s = createInfoRowStyles(c);
   return (
     <View style={s.row}>
-      <Ionicons name={icon as any} size={14} color={accent} />
+      {iconComponent ?? <Ionicons name={icon as any} size={14} color={accent} />}
       <View style={s.texts}>
         <Text style={s.label}>{label}</Text>
         <Text style={s.value} numberOfLines={2}>{value}</Text>
@@ -533,7 +532,7 @@ function AlertCard({
                 <>
                   <InfoRow icon="leaf-outline" label="Especie" value={detalle?.nombrePlanta || '—'} accent={accent} />
                   {detalle?.genero && (
-                    <InfoRow icon="male-female-outline" label="Género" value={detalle.genero} accent={accent} />
+                    <InfoRow icon="flower-outline" label="Género" value={detalle.genero} accent={accent} />
                   )}
                   {detalle?.ubicacion && (
                     <InfoRow icon="location-outline" label="Ubicación" value={detalle.ubicacion} accent={accent} />

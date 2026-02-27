@@ -29,7 +29,7 @@ class RBACService {
   // ============================================================================
   
   async getMyProfile(): Promise<UserProfile> {
-    const response = await api.get('user-profiles/mi_perfil/');
+    const response = await api.get('user-profiles/mi-perfil/');
     return response.data;
   }
   

@@ -166,7 +166,7 @@ export const germinacionService = {
       if (response.data) {
         return { 
           disponible: true, 
-          mensaje: 'Código encontrado (se permiten duplicados en germinaciones)' 
+          mensaje: ''
         };
       }
 

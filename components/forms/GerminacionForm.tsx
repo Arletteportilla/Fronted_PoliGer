@@ -292,17 +292,14 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                               {codigoValidation.mensaje}
                             </Text>
                           </View>
-                        ) : codigoValidation.disponible === true ? (
+                        ) : codigoValidation.disponible === true && codigoValidation.mensaje ? (
                           <View style={styles.validationRow}>
                             <Ionicons
-                              name={codigoValidation.mensaje.includes('duplicado') ? 'information-circle' : 'checkmark-circle'}
+                              name="checkmark-circle"
                               size={18}
-                              color={codigoValidation.mensaje.includes('duplicado') ? '#3B82F6' : '#10B981'}
+                              color="#10B981"
                             />
-                            <Text style={[
-                              styles.validationTextSuccess,
-                              codigoValidation.mensaje.includes('duplicado') && styles.validationTextInfo
-                            ]}>
+                            <Text style={styles.validationTextSuccess}>
                               {codigoValidation.mensaje}
                             </Text>
                           </View>

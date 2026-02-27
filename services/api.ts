@@ -22,6 +22,12 @@ let tokenCache: { token: string | null; timestamp: number } = { token: null, tim
 const TOKEN_CACHE_TTL = 30 * 1000; // 30 segundos
 let isLoggingOut = false; // Flag para evitar refresh durante logout
 
+// Handler global para cuando la sesión expira en mid-session
+let _onAuthExpired: (() => void) | null = null;
+export const setAuthExpiredHandler = (handler: (() => void) | null) => {
+  _onAuthExpired = handler;
+};
+
 // Función para marcar que estamos en proceso de logout
 export const setLoggingOut = (value: boolean) => {
   isLoggingOut = value;
@@ -122,14 +128,19 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         logger.info('Error al refrescar token:', refreshError);
-        
+
         // Si el refresh falla, limpiar tokens
         await SecureStore.secureStore.removeItem('authToken');
         await SecureStore.secureStore.removeItem('refreshToken');
-        
+
         // Limpiar cache de tokens
         tokenCache = { token: null, timestamp: 0 };
-        
+
+        // Notificar al AuthContext para que haga logout y redirija a login
+        if (_onAuthExpired) {
+          _onAuthExpired();
+        }
+
         // Rechazar con error de autenticación
         return Promise.reject({
           ...error,
