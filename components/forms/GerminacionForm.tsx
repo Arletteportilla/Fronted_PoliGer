@@ -53,7 +53,11 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    if (visible) setSubmitted(false);
+    if (visible) {
+      setSubmitted(false);
+      setPrediccionData(null);
+      setLoadingPrediccion(false);
+    }
   }, [visible]);
 
   const handleSubmitValidated = () => {
@@ -149,6 +153,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
     // Si no están completos, resetear predicción
     if (!camposCompletos) {
       setPrediccionData(null);
+      setLoadingPrediccion(false);
       return;
     }
 

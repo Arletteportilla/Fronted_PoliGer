@@ -46,6 +46,7 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
     especie_variedad?: string | null;
     nueva_especie?: string | null;
     genero?: string | null;
+    clima?: string | null;
     estado_germinacion?: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO';
     estado_polinizacion?: 'INICIAL' | 'EN_PROCESO_TEMPRANO' | 'EN_PROCESO_AVANZADO' | 'FINALIZADO';
     // Campos para FinalizarModal (date picker)
@@ -195,6 +196,7 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
             codigo: g.codigo ?? null,
             especie_variedad: g.especie_variedad ?? null,
             genero: g.genero ?? null,
+            clima: g.clima ?? null,
             estado_germinacion: g.estado_germinacion ?? 'INICIAL',
             fecha_siembra: (g as any).fecha_siembra ?? undefined,
             prediccion_fecha_estimada: (g as any).prediccion_fecha_estimada ?? (g as any).fecha_germinacion_estimada ?? undefined,

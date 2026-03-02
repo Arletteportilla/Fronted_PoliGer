@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -24,11 +24,13 @@ interface FinalizarModalProps {
     especie?: string | null;
     especie_variedad?: string | null;
     nueva_especie?: string | null;
+    genero?: string | null;
+    clima?: string | null;
     fecha_siembra?: string;
     fechapol?: string;
-    prediccion_fecha_estimada?: string;
+    prediccion_fecha_estimada?: string | null;
     fecha_maduracion_predicha?: string;
-    fecha_germinacion_estimada?: string;
+    fecha_germinacion_estimada?: string | null;
   } | null;
   tipo: 'germinacion' | 'polinizacion';
 }
@@ -46,13 +48,53 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [prediccionCalculada, setPrediccionCalculada] = useState<string | null>(null);
+  const [loadingPrediccion, setLoadingPrediccion] = useState(false);
+  const isMountedRef = useRef(true);
 
-  // Resetear fecha al abrir el modal
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
+  // Resetear fecha al abrir el modal y calcular predicción si no existe
   useEffect(() => {
     if (visible) {
       setSelectedDate(new Date());
+      setPrediccionCalculada(null);
     }
   }, [visible]);
+
+  // Calcular predicción on-the-fly cuando el modal abre y no hay predicción guardada
+  useEffect(() => {
+    if (!visible || !item || tipo !== 'germinacion') return;
+
+    const tienePrediccionGuardada = !!(
+      item.prediccion_fecha_estimada || item.fecha_germinacion_estimada
+    );
+    if (tienePrediccionGuardada) return;
+
+    const { especie_variedad, genero, fecha_siembra, clima } = item;
+    if (!especie_variedad || !fecha_siembra) return;
+
+    setLoadingPrediccion(true);
+    import('@/services/germinacion.service').then(({ germinacionService }) => {
+      germinacionService.calcularPrediccionMejorada({
+        especie: especie_variedad,
+        genero: genero || '',
+        fecha_siembra,
+        clima: (clima || 'I') as any,
+      }).then(resultado => {
+        if (isMountedRef.current && resultado?.prediccion?.fecha_estimada) {
+          setPrediccionCalculada(resultado.prediccion.fecha_estimada);
+        }
+      }).catch(() => {
+        // Sin predicción disponible
+      }).finally(() => {
+        if (isMountedRef.current) setLoadingPrediccion(false);
+      });
+    });
+  }, [visible, item, tipo]);
 
   if (!item) return null;
 
@@ -63,9 +105,9 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
     : (item.nueva_especie || item.especie);
   const fechaInicio = tipo === 'germinacion' ? item.fecha_siembra : item.fechapol;
 
-  // Intentar múltiples campos de predicción
+  // Intentar múltiples campos de predicción (guardada en DB o calculada al vuelo)
   const fechaPredicha = tipo === 'germinacion'
-    ? (item.prediccion_fecha_estimada || item.fecha_germinacion_estimada)
+    ? (item.prediccion_fecha_estimada || item.fecha_germinacion_estimada || prediccionCalculada)
     : (item.fecha_maduracion_predicha || item.prediccion_fecha_estimada);
 
   const titulo = tipo === 'germinacion'
@@ -174,7 +216,14 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
               {/* Fecha de Predicción */}
               <View style={styles.dateColumn}>
                 <Text style={styles.dateLabel}>Fecha de Predicción</Text>
-                {fechaPredicha ? (
+                {loadingPrediccion ? (
+                  <View style={[styles.datePredictedBox, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+                    <ActivityIndicator size="small" color={themeColors.text.tertiary} />
+                    <Text style={[styles.datePredictedText, { color: themeColors.text.tertiary }]}>
+                      Calculando...
+                    </Text>
+                  </View>
+                ) : fechaPredicha ? (
                   <View style={styles.datePredictedBox}>
                     <Text style={styles.datePredictedText}>
                       {new Date(fechaPredicha).toLocaleDateString('es-ES', {

@@ -198,17 +198,9 @@ export function PerfilNotificacionesTab({
         );
         if (!esRecordatorio) return false;
       } else if (tipoFilter === 'sistema') {
-        // Sistema = notificaciones del sistema (reportes, mensajes, errores, actualizaciones, etc.)
-        // Incluye: notificaciones sin polinización/germinación asociada O tipos específicos del sistema
-        const tiposDelSistema = ['MENSAJE', 'ERROR', 'ACTUALIZACION', 'REPORTE', 'DESCARGA', 'SISTEMA'];
-        const esTipoSistema = tiposDelSistema.some(t =>
-          notification.tipo?.toUpperCase().includes(t) ||
-          notification.titulo?.toUpperCase().includes(t) ||
-          notification.titulo?.toUpperCase().includes('REPORTE') ||
-          notification.titulo?.toUpperCase().includes('DESCARGA')
-        );
-        const noTieneAsociacion = !notification.polinizacion && !notification.germinacion;
-        if (!esTipoSistema && !noTieneAsociacion) return false;
+        // Sistema = notificaciones sin germinación ni polinización asociada
+        // (login, descargas de PDF, reportes generados, etc.)
+        if (notification.polinizacion || notification.germinacion) return false;
       }
     }
 
