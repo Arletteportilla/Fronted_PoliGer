@@ -2425,6 +2425,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
 
     tableActionsContainer: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: 12,
       alignItems: 'center',
     },
@@ -2964,9 +2965,13 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       gap: 4,
     },
     activeListItemCode: {
+      color: colors.text.secondary,
+      fontSize: 13,
+    },
+    activeListItemSpecies: {
       color: colors.text.primary,
+      fontSize: 14,
       fontWeight: '700',
-      fontSize: 15,
     },
     activeListItemMeta: {
       flexDirection: 'row',

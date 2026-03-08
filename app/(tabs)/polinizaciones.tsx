@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, ActivityIndicator, Modal, View, Text, Pressable, ScrollView } from 'react-native';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { StyleSheet, ActivityIndicator, View, Text, ScrollView } from 'react-native';
 import { ResponsiveLayout } from '@/components/layout';
 import { PolinizacionForm } from '@/components/forms/PolinizacionForm';
 import { PolinizacionesHeader, PolinizacionesContent, PolinizacionesTableContent } from '@/components/polinizaciones';
@@ -7,11 +7,13 @@ import { usePolinizacionesWithFilters } from '@/hooks/usePolinizacionesWithFilte
 import { usePolinizaciones } from '@/hooks/usePolinizaciones';
 import { getInitialFormState } from '@/utils/polinizacionConstants';
 import PolinizacionFilters from '@/components/filters/PolinizacionFilters';
-import type { PolinizacionFilterParams } from '@/types';
+import type { PolinizacionFilterParams, Polinizacion } from '@/types';
+import { PolinizacionDetailsModal } from '@/components/modals/PolinizacionDetailsModal';
 import { useTheme } from '@/contexts/ThemeContext';
 import { reportesService } from '@/services/reportes.service';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { useToast } from '@/contexts/ToastContext';
+import { logger } from '@/services/logger';
 
 export default function PolinizacionesScreen() {
   const { colors: themeColors } = useTheme();
@@ -48,7 +50,7 @@ export default function PolinizacionesScreen() {
   // Estados locales del componente
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(() => getInitialFormState(getUserFullName));
-  const [detalle, setDetalle] = useState(null);
+  const [detalle, setDetalle] = useState<Polinizacion | null>(null);
   const [showFiltersSection, setShowFiltersSection] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [tipoRegistro, setTipoRegistro] = useState<'historicos' | 'nuevos' | 'todos'>('todos');
@@ -141,7 +143,7 @@ export default function PolinizacionesScreen() {
   };
 
   const handleTipoRegistroChange = (tipo: 'historicos' | 'nuevos' | 'todos') => {
-    console.log('🔄 Cambiando tipo de registro:', tipo);
+    logger.info(' Cambiando tipo de registro:', tipo);
     setTipoRegistro(tipo);
 
     if (tipo === 'todos') {
@@ -179,14 +181,14 @@ export default function PolinizacionesScreen() {
 
       showToast('PDF descargado exitosamente', 'success');
     } catch (error) {
-      console.error('Error descargando PDF:', error);
+      logger.error('Error descargando PDF:', error);
       showToast('Error al descargar el PDF', 'error');
     } finally {
       setDownloading(false);
     }
   };
 
-  const styles = createStyles(themeColors);
+  const styles = useMemo(() => createStyles(themeColors), [themeColors]);
 
   if (loading && !refreshing) {
     return (
@@ -257,68 +259,11 @@ export default function PolinizacionesScreen() {
         />
       </ScrollView>
 
-      {/* Modal de detalle */}
-      <Modal
+      <PolinizacionDetailsModal
         visible={!!detalle}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDetalle(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.detalleTitle}>Detalle de Polinización</Text>
-            {detalle && (
-              <ScrollView style={styles.detalleContent}>
-                {Object.entries(detalle)
-                  .filter(([key]) => {
-                    // Campos a excluir del detalle
-                    const excludedFields = [
-                      'fechapol',
-                      'fechamad',
-                      'madre_codigo',
-                      'madre_genero',
-                      'madre_especie',
-                      'madre_clima',
-                      'padre_codigo',
-                      'padre_genero',
-                      'padre_clima',
-                      'padre_especie',
-                      'nueva_codigo',
-                      'nueva_genero',
-                      'nueva_clima',
-                      'nueva_especie',
-                      'ubicacion_tipo',
-                      'ubicacion_nombre',
-                      'prediccion_dias_estimados',
-                      'prediccion_confianza',
-                      'prediccion_fecha_estimada',
-                      'prediccion_tipo',
-                      'prediccion_condiciones_climaticas',
-                      'prediccion_especie_info',
-                      'prediccion_parametros_usados',
-                    ];
-                    return !excludedFields.includes(key);
-                  })
-                  .map(([key, value]) => (
-                    <View key={key} style={styles.detalleRow}>
-                      <Text style={styles.detalleLabel}>{key}:</Text>
-                      <Text style={styles.detalleValue}>
-                        {typeof value === 'string' && value.length > 50
-                          ? `${value.slice(0, 50)}...`
-                          : String(value || 'N/A')}
-                      </Text>
-                    </View>
-                  ))}
-              </ScrollView>
-            )}
-            <View style={styles.modalButtons}>
-              <Pressable style={styles.modalButton} onPress={() => setDetalle(null)}>
-                <Text style={styles.modalButtonText}>Cerrar</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        polinizacion={detalle}
+        onClose={() => setDetalle(null)}
+      />
 
       {/* Modal de Filtros - Ahora se muestra inline en PolinizacionesContent */}
 

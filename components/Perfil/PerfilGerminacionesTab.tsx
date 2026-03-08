@@ -12,11 +12,9 @@ import { logger } from '@/services/logger';
 export interface PerfilGerminacionesTabProps {
   loading: boolean;
   germinaciones: Germinacion[];
-  searchGerminaciones: string;
-  setSearchGerminaciones: (value: string) => void;
   setGerminacionesPage: (page: number) => void;
   fetchData: () => Promise<void>;
-  handleBuscarGerminaciones: () => void;
+  handleBuscarGerminaciones: (search: string) => void;
   germinacionesTotalPages: number;
   germinacionesTotalCount: number;
   germinacionesPage: number;
@@ -26,16 +24,15 @@ export interface PerfilGerminacionesTabProps {
   handleViewGerminacion: (item: Germinacion) => void;
   handleEditGerminacion: (item: Germinacion) => void;
   handleDeleteGerminacion: (item: Germinacion) => void;
-  handleOpenChangeStatus: (item: Germinacion) => void;
   onDescargarPDF: () => void;
   onNewGerminacion?: () => void;
 }
 
+import { useState } from 'react';
+
 export function PerfilGerminacionesTab({
   loading,
   germinaciones,
-  searchGerminaciones,
-  setSearchGerminaciones,
   setGerminacionesPage,
   fetchData,
   handleBuscarGerminaciones,
@@ -48,10 +45,10 @@ export function PerfilGerminacionesTab({
   handleViewGerminacion,
   handleEditGerminacion,
   handleDeleteGerminacion,
-  handleOpenChangeStatus,
   onDescargarPDF,
-  onNewGerminacion
+  onNewGerminacion,
 }: PerfilGerminacionesTabProps) {
+  const [inputSearch, setInputSearch] = useState('');
   const router = useRouter();
   const { colors: themeColors } = useTheme();
   const { width } = useWindowDimensions();
@@ -100,7 +97,7 @@ export function PerfilGerminacionesTab({
           <TouchableOpacity
             style={styles.exportButton}
             onPress={() => {
-              logger.info('🔔 Botón Descargar PDF clickeado - Germinaciones');
+              logger.info(' Botón Descargar PDF clickeado - Germinaciones');
               onDescargarPDF();
             }}
           >
@@ -117,19 +114,19 @@ export function PerfilGerminacionesTab({
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar por código, género, especie..."
-            value={searchGerminaciones}
-            onChangeText={setSearchGerminaciones}
-            onSubmitEditing={handleBuscarGerminaciones}
+            value={inputSearch}
+            onChangeText={setInputSearch}
+            onSubmitEditing={() => handleBuscarGerminaciones(inputSearch)}
           />
-          {searchGerminaciones.length > 0 && (
+          {inputSearch.length > 0 && (
             <>
-              <TouchableOpacity onPress={handleBuscarGerminaciones} style={{ marginRight: 8 }}>
+              <TouchableOpacity onPress={() => handleBuscarGerminaciones(inputSearch)} style={{ marginRight: 8 }}>
                 <Ionicons name="search" size={20} color={themeColors.primary.main} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => {
-                setSearchGerminaciones('');
+                setInputSearch('');
                 setGerminacionesPage(1);
-                fetchData();
+                handleBuscarGerminaciones('');
               }}>
                 <Ionicons name="close-circle" size={20} color={themeColors.text.tertiary} />
               </TouchableOpacity>
@@ -143,10 +140,10 @@ export function PerfilGerminacionesTab({
         <View style={styles.listEmptyContainer}>
           <Ionicons name="leaf-outline" size={48} color={themeColors.text.tertiary} />
           <Text style={styles.listEmptyText}>
-            {searchGerminaciones ? 'No se encontraron germinaciones' : 'No hay germinaciones registradas'}
+            {inputSearch ? 'No se encontraron germinaciones' : 'No hay germinaciones registradas'}
           </Text>
           <Text style={styles.emptySubtext}>
-            {searchGerminaciones ? 'Intenta con otros términos de búsqueda' : 'Las germinaciones que registres aparecerán aquí'}
+            {inputSearch ? 'Intenta con otros términos de búsqueda' : 'Las germinaciones que registres aparecerán aquí'}
           </Text>
         </View>
       ) : (
@@ -193,6 +190,7 @@ export function PerfilGerminacionesTab({
                 ? new Date(fechaEstimadaValue).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
                 : '-';
               const estadoActual = item.etapa_actual || item.estado_capsula || 'En desarrollo';
+              const isFinalized = item.estado_germinacion === 'FINALIZADO' || item.etapa_actual === 'FINALIZADO';
 
               const itemKey = item.id?.toString() || `germ-${index}`;
               const estadoColor = getEstadoColor(estadoActual);
@@ -270,14 +268,14 @@ export function PerfilGerminacionesTab({
                         <Ionicons name="eye-outline" size={20} color="#3B82F6" />
                       </TouchableOpacity>
                       <TouchableOpacity
-                        onPress={() => handleEditGerminacion(item)}
-                        style={styles.actionIconButton}
+                        onPress={() => !isFinalized && handleEditGerminacion(item)}
+                        style={[styles.actionIconButton, isFinalized && { opacity: 0.3 }]}
                       >
                         <Ionicons name="create-outline" size={20} color="#F59E0B" />
                       </TouchableOpacity>
                       <TouchableOpacity
-                        onPress={() => handleDeleteGerminacion(item)}
-                        style={styles.actionIconButton}
+                        onPress={() => !isFinalized && handleDeleteGerminacion(item)}
+                        style={[styles.actionIconButton, isFinalized && { opacity: 0.3 }]}
                       >
                         <Ionicons name="trash-outline" size={20} color="#EF4444" />
                       </TouchableOpacity>
@@ -378,14 +376,14 @@ export function PerfilGerminacionesTab({
                           <Ionicons name="eye-outline" size={20} color="#3B82F6" />
                         </TouchableOpacity>
                         <TouchableOpacity
-                          onPress={() => handleEditGerminacion(item)}
-                          style={styles.actionIconButton}
+                          onPress={() => !isFinalized && handleEditGerminacion(item)}
+                          style={[styles.actionIconButton, isFinalized && { opacity: 0.3 }]}
                         >
                           <Ionicons name="create-outline" size={20} color="#F59E0B" />
                         </TouchableOpacity>
                         <TouchableOpacity
-                          onPress={() => handleDeleteGerminacion(item)}
-                          style={styles.actionIconButton}
+                          onPress={() => !isFinalized && handleDeleteGerminacion(item)}
+                          style={[styles.actionIconButton, isFinalized && { opacity: 0.3 }]}
                         >
                           <Ionicons name="trash-outline" size={20} color="#EF4444" />
                         </TouchableOpacity>

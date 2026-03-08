@@ -20,7 +20,6 @@ interface AuthContextType {
   user: UserWithProfile | null;
   permissions: UserPermissions | null;
   hasPermission: (module: string, action: string) => boolean;
-  refreshPermissions: () => Promise<void>;
   refreshUser: () => Promise<boolean>;
   token: string | null;
 }
@@ -35,15 +34,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserWithProfile | null>(null);
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const isLoggingOutRef = useRef(false);
-
-  const loadUserPermissions = useCallback(async () => {
-    try {
-      // Los permisos ya vienen incluidos en los datos del usuario desde el endpoint protected
-      // No necesitamos hacer una llamada adicional
-    } catch (error) {
-      setPermissions(null);
-    }
-  }, []);
 
   const logout = useCallback(async () => {
     // Usar una referencia para evitar múltiples ejecuciones simultáneas
@@ -91,11 +81,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Usar push en lugar de replace para asegurar navegación
         router.push('/login');
       } catch (routerError) {
-        console.error('❌ Error con router.push, intentando replace:', routerError);
+        logger.error(' Error con router.push, intentando replace:', routerError);
         try {
           router.replace('/login');
         } catch (replaceError) {
-          console.error('❌ Error con router.replace, usando fallback:', replaceError);
+          logger.error(' Error con router.replace, usando fallback:', replaceError);
           // Fallback: usar window.location si está disponible (web)
           if (typeof window !== 'undefined' && window.location) {
             window.location.href = '/login';
@@ -105,7 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               try {
                 router.replace('/login');
               } catch (retryError) {
-                console.error('❌ Error en reintento de navegación:', retryError);
+                logger.error(' Error en reintento de navegación:', retryError);
               }
             }, 100);
           }
@@ -114,7 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       toast.success('Sesión cerrada exitosamente');
     } catch (error) {
-      console.error('❌ Error durante logout:', error);
+      logger.error(' Error durante logout:', error);
       toast.error('Error al cerrar sesión');
 
       // Limpiar estado local en caso de error
@@ -126,7 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         router.replace('/login');
       } catch (navError) {
-        console.error('❌ Error de navegación de fallback:', navError);
+        logger.error(' Error de navegación de fallback:', navError);
         if (typeof window !== 'undefined' && window.location) {
           window.location.href = '/login';
         }
@@ -155,23 +145,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isLoggingOutRef.current = false;
 
     // Limpiar tokens de forma síncrona si es posible
-    try {
-      const { tokenManager } = require('@/services/tokenManager');
-      tokenManager.clearTokens().then(() => {
-      }).catch((error: any) => {
-      });
-    } catch (error) {
-    }
+    import('@/services/tokenManager')
+      .then(m => m.tokenManager.clearTokens())
+      .catch(() => {});
 
     // Navegación inmediata con múltiples intentos
     try {
       router.push('/login');
     } catch (error) {
-      console.error('❌ [DEBUG] Error en forceLogout router.push:', error);
+      logger.error('Error en forceLogout router.push:', error);
       try {
         router.replace('/login');
       } catch (replaceError) {
-        console.error('❌ [DEBUG] Error en forceLogout router.replace:', replaceError);
+        logger.error('Error en forceLogout router.replace:', replaceError);
         // Fallback para web
         if (typeof window !== 'undefined' && window.location) {
           window.location.href = '/login';
@@ -181,7 +167,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             try {
               router.replace('/login');
             } catch (retryError) {
-              console.error('❌ [DEBUG] Error en reintento de forceLogout:', retryError);
+              logger.error('Error en reintento de forceLogout:', retryError);
             }
           }, 100);
         }
@@ -262,8 +248,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setPermissions(null);
             setIsLoading(false);
             router.replace('/login');
-          } else {
-            await loadUserPermissions();
           }
         } else {
           // No hay token, limpiar isLoading y redirigir a login
@@ -288,7 +272,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     loadToken();
-  }, []); // Removidas las dependencias que causaban el bucle infinito
+  }, [loadUserData, router]); // loadUserData and router are stable references
 
   const login = useCallback(async (username: string, password: string) => {
     try {
@@ -307,8 +291,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           throw new Error('No se pudieron cargar los datos del usuario');
         }
 
-        await loadUserPermissions();
         toast.success('Sesión iniciada exitosamente');
+        // Redirigir a cambio de contraseña obligatorio si aplica
+        // (la navegación real la maneja _layout.tsx al observar el estado del usuario)
       } else {
         throw new Error('Respuesta de login inválida');
       }
@@ -334,7 +319,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.error(errorMessage);
       throw error;
     }
-  }, [loadUserData, loadUserPermissions, toast]);
+  }, [loadUserData, toast]);
 
   const hasPermission = useCallback((module: string, action: string): boolean => {
     if (!permissions) return false;
@@ -345,14 +330,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return modulePermissions[action as keyof typeof modulePermissions] === true;
   }, [permissions]);
 
-  const refreshPermissions = useCallback(async () => {
-    try {
-      await loadUserPermissions();
-    } catch (error) {
-      // Error silencioso - no afecta funcionalidad crítica
-    }
-  }, [loadUserPermissions]);
-
   const value = {
     login,
     logout,
@@ -361,7 +338,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     permissions,
     hasPermission,
-    refreshPermissions,
     refreshUser: loadUserData,
     token,
   };

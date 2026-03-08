@@ -2,13 +2,14 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { logger } from '@/services/logger';
 
+// SECURITY NOTE (web): tokens are stored in sessionStorage (cleared on tab close)
+// instead of localStorage. The definitive solution is httpOnly cookies server-side.
 export const secureStore = {
   async getItem(key: string): Promise<string | null> {
     try {
       if (Platform.OS === 'web') {
-        // Use localStorage on web
         if (typeof window !== 'undefined') {
-          return localStorage.getItem(key);
+          return sessionStorage.getItem(key);
         }
         return null;
       }
@@ -22,9 +23,8 @@ export const secureStore = {
   async setItem(key: string, value: string): Promise<void> {
     try {
       if (Platform.OS === 'web') {
-        // Use localStorage on web
         if (typeof window !== 'undefined') {
-          localStorage.setItem(key, value);
+          sessionStorage.setItem(key, value);
         }
         return;
       }
@@ -38,9 +38,8 @@ export const secureStore = {
   async removeItem(key: string): Promise<void> {
     try {
       if (Platform.OS === 'web') {
-        // Use localStorage on web
         if (typeof window !== 'undefined') {
-          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
         }
         return;
       }
@@ -54,9 +53,8 @@ export const secureStore = {
   async clear(): Promise<void> {
     try {
       if (Platform.OS === 'web') {
-        // Use localStorage on web
         if (typeof window !== 'undefined') {
-          localStorage.clear();
+          sessionStorage.clear();
         }
         return;
       }

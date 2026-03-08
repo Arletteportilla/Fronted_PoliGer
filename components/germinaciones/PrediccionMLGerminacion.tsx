@@ -78,7 +78,7 @@ export function PrediccionMLGerminacion({
       }
 
     } catch (err: any) {
-      logger.error('❌ Error en predicción ML de germinación:', err);
+      logger.error(' Error en predicción ML de germinación:', err);
 
       let mensajeError = 'Error al realizar la predicción ML de germinación';
 

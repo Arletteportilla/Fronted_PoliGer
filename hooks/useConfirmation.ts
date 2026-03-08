@@ -1,44 +1,31 @@
 import { Platform, Alert } from 'react-native';
+import { useConfirmationContext } from '@/contexts/ConfirmationContext';
 
 /**
- * Hook para manejar confirmaciones de usuario multiplataforma
- * Usa confirm() en web y Alert.alert() en mobile
+ * Hook para manejar confirmaciones de usuario multiplataforma.
+ * - Web: usa el modal personalizado del sistema (ConfirmationContext)
+ * - Mobile: usa Alert.alert nativo de React Native
  */
 export const useConfirmation = () => {
-  /**
-   * Muestra un diálogo de confirmación
-   * @param title - Título del diálogo
-   * @param message - Mensaje del diálogo
-   * @param confirmText - Texto del botón de confirmación (default: 'Aceptar')
-   * @param cancelText - Texto del botón de cancelación (default: 'Cancelar')
-   * @returns Promise<boolean> - true si el usuario confirma, false si cancela
-   */
+  const { showConfirmation: showModal } = useConfirmationContext();
+
   const showConfirmation = async (
     title: string,
     message: string,
     confirmText: string = 'Aceptar',
-    cancelText: string = 'Cancelar'
+    cancelText: string = 'Cancelar',
+    variant: 'danger' | 'warning' | 'info' | 'download' = 'danger'
   ): Promise<boolean> => {
     if (Platform.OS === 'web') {
-      // En web usamos el confirm nativo del navegador
-      return confirm(`${title}\n\n${message}`);
+      return showModal({ title, message, confirmText, cancelText, variant });
     } else {
-      // En mobile usamos Alert.alert de React Native
       return new Promise((resolve) => {
         Alert.alert(
           title,
           message,
           [
-            {
-              text: cancelText,
-              onPress: () => resolve(false),
-              style: 'cancel'
-            },
-            {
-              text: confirmText,
-              onPress: () => resolve(true),
-              style: 'destructive'
-            }
+            { text: cancelText, onPress: () => resolve(false), style: 'cancel' },
+            { text: confirmText, onPress: () => resolve(true), style: 'destructive' },
           ],
           { cancelable: false }
         );

@@ -5,6 +5,7 @@ import { logger } from '@/services/logger';
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [adminStats, setAdminStats] = useState<NotificationStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -13,26 +14,20 @@ export function useNotifications() {
   const fetchNotifications = useCallback(async (params: {
     solo_no_leidas?: boolean;
     incluir_archivadas?: boolean;
-    solo_propias?: boolean;  // Forzar solo notificaciones del usuario actual (para perfil)
+    solo_propias?: boolean;
+    tipo?: string;
+    page_size?: number;
   } = {}) => {
     setLoading(true);
     try {
-
-      const response = await notificationService.getNotifications(params);
-      
-      // Manejar respuesta según si es admin o usuario normal
-      if (Array.isArray(response)) {
-        // Usuario normal - respuesta directa como array
-        setNotifications(response);
-        setAdminStats(null);
-      } else {
-        // Administrador - respuesta con estadísticas
-        setNotifications(response.notificaciones || []);
-        setAdminStats(response.estadisticas_admin || null);
-      }
+      const { notifications: list, total } = await notificationService.getNotifications(params);
+      setNotifications(list);
+      setTotalCount(total);
+      setAdminStats(null);
     } catch (error) {
-      logger.error('❌ Error cargando notificaciones:', error);
+      logger.error(' Error cargando notificaciones:', error);
       setNotifications([]);
+      setTotalCount(0);
       setAdminStats(null);
     } finally {
       setLoading(false);
@@ -43,6 +38,8 @@ export function useNotifications() {
     solo_no_leidas?: boolean;
     incluir_archivadas?: boolean;
     solo_propias?: boolean;
+    tipo?: string;
+    page_size?: number;
   } = {}) => {
     setRefreshing(true);
     try {
@@ -74,7 +71,7 @@ export function useNotifications() {
       }
       
     } catch (error) {
-      logger.error('❌ Error marcando notificación como leída:', error);
+      logger.error(' Error marcando notificación como leída:', error);
       throw error;
     }
   }, [adminStats]);
@@ -102,7 +99,7 @@ export function useNotifications() {
       
       return result;
     } catch (error) {
-      logger.error('❌ Error marcando todas las notificaciones como leídas:', error);
+      logger.error(' Error marcando todas las notificaciones como leídas:', error);
       throw error;
     }
   }, [adminStats]);
@@ -122,7 +119,7 @@ export function useNotifications() {
       
       return result;
     } catch (error) {
-      logger.error('❌ Error cambiando estado de favorita:', error);
+      logger.error(' Error cambiando estado de favorita:', error);
       throw error;
     }
   }, []);
@@ -147,7 +144,7 @@ export function useNotifications() {
       }
       
     } catch (error) {
-      logger.error('❌ Error archivando notificación:', error);
+      logger.error(' Error archivando notificación:', error);
       throw error;
     }
   }, [adminStats, notifications]);
@@ -160,7 +157,7 @@ export function useNotifications() {
 
   // Estadísticas calculadas
   const stats = {
-    total: notifications.length,
+    total: totalCount || notifications.length,
     noLeidas: notifications.filter(n => !n.leida).length,
     favoritas: notifications.filter(n => n.favorita).length,
     porTipo: notifications.reduce((acc, n) => {

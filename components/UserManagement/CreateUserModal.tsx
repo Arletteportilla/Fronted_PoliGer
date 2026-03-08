@@ -115,7 +115,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
   const validateForm = (): boolean => {
     logger.debug(' Iniciando validación del formulario...');
-    logger.info('📋 Datos a validar:', formData);
+    logger.info(' Datos a validar:', formData);
     
     const newErrors: Partial<Record<keyof UserFormData, string>> = {};
 
@@ -171,16 +171,16 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       logger.success(' Password confirm: válido');
     }
 
-    logger.info('📊 Errores encontrados:', newErrors);
-    logger.info('🎯 Validación', Object.keys(newErrors).length === 0 ? 'EXITOSA' : 'FALLÓ');
+    logger.info(' Errores encontrados:', newErrors);
+    logger.info(' Validación', Object.keys(newErrors).length === 0 ? 'EXITOSA' : 'FALLÓ');
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    logger.info('🔘 CreateUserModal.handleSubmit - Botón presionado');
-    logger.info('📋 Datos del formulario:', formData);
+    logger.info(' CreateUserModal.handleSubmit - Botón presionado');
+    logger.info(' Datos del formulario:', formData);
     logger.start(' Loading actual:', loading);
     
     if (!validateForm()) {
@@ -188,7 +188,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       const errorMessages = Object.entries(errors)
         .map(([field, message]) => `${field}: ${message}`)
         .join('\n');
-      logger.info('📝 Mensajes de error:', errorMessages);
+      logger.info(' Mensajes de error:', errorMessages);
       
       Alert.alert(
         'Errores en el formulario', 
@@ -201,7 +201,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     setLoading(true);
     
     try {
-      logger.info('🚀 Llamando a onCreateUser...');
+      logger.info(' Llamando a onCreateUser...');
       await onCreateUser(formData);
       logger.success(' onCreateUser completado exitosamente');
 
@@ -209,7 +209,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       resetForm();
       onClose();
     } catch (error: any) {
-      logger.error('❌ Error en handleSubmit:', error);
+      logger.error(' Error en handleSubmit:', error);
       
       let errorMessage = 'Error al crear usuario';
 
@@ -234,7 +234,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
       Alert.alert('Error al crear usuario', errorMessage);
     } finally {
-      logger.info('🏁 Finalizando handleSubmit, setting loading to false');
+      logger.info(' Finalizando handleSubmit, setting loading to false');
       setLoading(false);
     }
   };
@@ -586,9 +586,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <TouchableOpacity
                 style={[styles.createButton, loading && styles.createButtonDisabled]}
                 onPress={() => {
-                  logger.info('🔘 Botón "Crear Usuario" presionado');
+                  logger.info(' Botón "Crear Usuario" presionado');
                   logger.start(' Loading state:', loading);
-                  logger.info('📋 Form data:', formData);
+                  logger.info(' Form data:', formData);
                   handleSubmit();
                 }}
                 disabled={loading}

@@ -22,7 +22,7 @@ export const germinacionService = {
       const codes = Array.isArray(response.data.codigos) ? response.data.codigos : [];
       return codes;
     } catch (error: any) {
-      logger.error('❌ germinacionService.getCodes() - Error:', error.message);
+      logger.error(' germinacionService.getCodes() - Error:', error.message);
       // Fallback: intentar obtener de todas las germinaciones solo si falla
       try {
         logger.start(' Usando fallback...');
@@ -51,7 +51,7 @@ export const germinacionService = {
       const codesWithSpecies = Array.isArray(response.data.codigos_especies) ? response.data.codigos_especies : [];
       return codesWithSpecies;
     } catch (error: any) {
-      logger.error('❌ germinacionService.getCodesWithSpecies() - Error:', error.message);
+      logger.error(' germinacionService.getCodesWithSpecies() - Error:', error.message);
       // Fallback: intentar obtener de todas las germinaciones solo si falla
       try {
         logger.start(' Usando fallback...');
@@ -141,7 +141,7 @@ export const germinacionService = {
       if (error.response?.status === 404) {
         return null;
       }
-      logger.error('❌ germinacionService.getGerminacionByEspecie() - Error:', error.message);
+      logger.error(' germinacionService.getGerminacionByEspecie() - Error:', error.message);
       return null;
     }
   },
@@ -179,7 +179,7 @@ export const germinacionService = {
       }
 
       // Otros errores: permitimos continuar (no bloqueamos por errores de red)
-      logger.error('⚠️ Error validando código (permitiendo continuar):', error.message);
+      logger.error(' Error validando código (permitiendo continuar):', error.message);
       return { disponible: true, mensaje: 'No se pudo verificar el código' };
     }
   },
@@ -217,7 +217,7 @@ export const germinacionService = {
 
       return result;
     } catch (error: any) {
-      logger.error('❌ germinacionService.getFiltrosOpciones() - Error:', error.message);
+      logger.error(' germinacionService.getFiltrosOpciones() - Error:', error.message);
       return {
         perchas: [],
         niveles: [],
@@ -259,7 +259,7 @@ export const germinacionService = {
         return [];
       }
     } catch (error: any) {
-      logger.error('❌ Error obteniendo mis germinaciones:', error);
+      logger.error(' Error obteniendo mis germinaciones:', error);
       return [];
     }
   },
@@ -334,7 +334,7 @@ export const germinacionService = {
         previous: response.data?.previous || null,
       };
     } catch (error: any) {
-      logger.error('❌ Error obteniendo mis germinaciones paginadas:', error);
+      logger.error(' Error obteniendo mis germinaciones paginadas:', error);
       return {
         results: [],
         count: 0,
@@ -408,9 +408,9 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ germinacionService.getAllForAdmin() - Error en la llamada:', error);
-      logger.error('❌ Detalles del error:', error.response?.data || error.message);
-      logger.error('❌ Status del error:', error.response?.status);
+      logger.error(' germinacionService.getAllForAdmin() - Error en la llamada:', error);
+      logger.error(' Detalles del error:', error.response?.data || error.message);
+      logger.error(' Status del error:', error.response?.status);
       
       // Mejorar el manejo de errores específicos
       if (error.response?.status === 401) {
@@ -445,7 +445,7 @@ export const germinacionService = {
       });
       return response.data;
     } catch (error) {
-      logger.error('❌ Error obteniendo métricas de germinaciones:', error);
+      logger.error(' Error obteniendo métricas de germinaciones:', error);
       return { en_proceso: 0, finalizados: 0, exito_promedio: 0, total: 0 };
     }
   },
@@ -517,9 +517,9 @@ export const germinacionService = {
         previous: response.data?.previous || null,
       };
     } catch (error: any) {
-      logger.error('❌ Error en germinacionService.getPaginated():', error);
-      logger.error('❌ Status:', error.response?.status);
-      logger.error('❌ Data:', error.response?.data);
+      logger.error(' Error en germinacionService.getPaginated():', error);
+      logger.error(' Status:', error.response?.status);
+      logger.error(' Data:', error.response?.data);
 
       // En caso de error, devolver estructura vacía
       return {
@@ -553,7 +553,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo opciones de filtros:', error);
+      logger.error(' Error obteniendo opciones de filtros:', error);
       return {
         opciones: {
           responsables: [],
@@ -600,8 +600,8 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error descargando PDF de mis germinaciones:', error);
-      logger.error('❌ Detalles:', error.response?.data || error.message);
+      logger.error(' Error descargando PDF de mis germinaciones:', error);
+      logger.error(' Detalles:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -656,8 +656,8 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ germinacionService.create() - Error:', error);
-      logger.error('❌ Detalles del error:', error.response?.data || error.message);
+      logger.error(' germinacionService.create() - Error:', error);
+      logger.error(' Detalles del error:', error.response?.data || error.message);
 
       // Mejorar el mensaje de error para el usuario
       if (error.response?.data) {
@@ -693,6 +693,11 @@ export const germinacionService = {
         updateData.especie_variedad = data.especie;
       }
 
+      // Mapear responsable si viene como responsable_polinizacion o responsable_germinacion
+      if (!updateData.responsable) {
+        updateData.responsable = data.responsable_polinizacion || data.responsable_germinacion || '';
+      }
+
       // Asegurar que los números sean enteros
       if (data.cantidad_solicitada !== undefined) {
         updateData.cantidad_solicitada = parseInt(data.cantidad_solicitada) || 0;
@@ -714,8 +719,8 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ germinacionService.update() - Error:', error);
-      logger.error('❌ Detalles del error:', error.response?.data || error.message);
+      logger.error(' germinacionService.update() - Error:', error);
+      logger.error(' Detalles del error:', error.response?.data || error.message);
 
       // Mejorar el mensaje de error para el usuario
       if (error.response?.data) {
@@ -799,7 +804,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error calculando predicción mejorada:', error);
+      logger.error(' Error calculando predicción mejorada:', error);
 
       // Manejar errores específicos del backend
       if (error.response?.data?.error) {
@@ -818,7 +823,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo alertas:', error);
+      logger.error(' Error obteniendo alertas:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -841,7 +846,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error actualizando alerta:', error);
+      logger.error(' Error actualizando alerta:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -859,7 +864,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo estadísticas:', error);
+      logger.error(' Error obteniendo estadísticas:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -887,7 +892,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error exportando datos a CSV:', error);
+      logger.error(' Error exportando datos a CSV:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -907,7 +912,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error creando backup del modelo:', error);
+      logger.error(' Error creando backup del modelo:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -925,7 +930,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo información del modelo:', error);
+      logger.error(' Error obteniendo información del modelo:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -943,7 +948,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error reentrenando modelo:', error);
+      logger.error(' Error reentrenando modelo:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -962,7 +967,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error completando predicciones:', error);
+      logger.error(' Error completando predicciones:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -980,7 +985,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo estado del modelo:', error);
+      logger.error(' Error obteniendo estado del modelo:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -998,7 +1003,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo métricas:', error);
+      logger.error(' Error obteniendo métricas:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -1030,7 +1035,7 @@ export const germinacionService = {
       const response = await api.patch(`germinaciones/${id}/`, updateData);
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error cambiando estado de cápsula:', error);
+      logger.error(' Error cambiando estado de cápsula:', error);
       throw error;
     }
   },
@@ -1058,7 +1063,7 @@ export const germinacionService = {
       const response = await api.patch(`germinaciones/${id}/`, updateData);
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error cambiando etapa:', error);
+      logger.error(' Error cambiando etapa:', error);
       throw error;
     }
   },
@@ -1081,7 +1086,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error cambiando estado de germinación:', error);
+      logger.error(' Error cambiando estado de germinación:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -1106,7 +1111,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error actualizando progreso de germinación:', error);
+      logger.error(' Error actualizando progreso de germinación:', error);
       
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -1150,7 +1155,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error validando predicción:', error);
+      logger.error(' Error validando predicción:', error);
 
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -1183,7 +1188,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo germinaciones validadas:', error);
+      logger.error(' Error obteniendo germinaciones validadas:', error);
 
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -1210,7 +1215,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error exportando datos:', error);
+      logger.error(' Error exportando datos:', error);
 
       if (error.response?.data?.error) {
         throw new Error(error.response.data.error);
@@ -1238,7 +1243,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error marcando germinación como revisada:', error);
+      logger.error(' Error marcando germinación como revisada:', error);
       throw error;
     }
   },
@@ -1251,7 +1256,7 @@ export const germinacionService = {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo germinaciones pendientes:', error);
+      logger.error(' Error obteniendo germinaciones pendientes:', error);
       throw error;
     }
   },

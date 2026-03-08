@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '@/contexts/ThemeContext';
+import { logger } from '@/services/logger';
 
 interface FinalizarModalProps {
   visible: boolean;
@@ -125,7 +126,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
       await onConfirm(fechaISO);
       onClose();
     } catch (error) {
-      console.error('Error finalizando:', error);
+      logger.error('Error finalizando:', error);
       alert(`Error al finalizar la ${tipo}`);
     } finally {
       setLoading(false);
@@ -159,7 +160,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerIcon}>
-                <Ionicons name="checkmark-circle" size={40} color={themeColors.status.success} />
+                <Ionicons name="checkmark-circle-outline" size={32} color={themeColors.primary.main} />
               </View>
               <Text style={styles.title}>{titulo}</Text>
               <Text style={styles.subtitle}>{codigo}</Text>
@@ -262,7 +263,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
                   <ActivityIndicator color={themeColors.text.inverse} />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle-outline" size={20} color={themeColors.text.inverse} />
+                    <Ionicons name="checkmark-circle-outline" size={20} color={themeColors.primary.contrast} />
                     <Text style={styles.confirmButtonText}>Finalizar</Text>
                   </>
                 )}
@@ -325,6 +326,12 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     marginBottom: 24,
   },
   headerIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.primary.light,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 16,
   },
   title: {
@@ -443,12 +450,12 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     color: colors.text.secondary,
   },
   confirmButton: {
-    backgroundColor: colors.status.success,
+    backgroundColor: colors.primary.main,
   },
   confirmButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.text.inverse,
+    color: colors.primary.contrast,
   },
   iosPickerButtonContainer: {
     backgroundColor: colors.background.secondary,
@@ -459,7 +466,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     alignItems: 'flex-end',
   },
   iosPickerButton: {
-    backgroundColor: colors.status.success,
+    backgroundColor: colors.primary.main,
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,

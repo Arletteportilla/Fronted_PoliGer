@@ -232,6 +232,7 @@ export interface UserWithProfile extends User {
   rol: string;
   rol_display: string;
   permisos: UserPermissions;
+  debe_cambiar_password?: boolean;
 }
 
 export interface AuthContextType {
@@ -242,7 +243,6 @@ export interface AuthContextType {
   isLoading: boolean;
   permissions: UserPermissions | null;
   hasPermission: (module: string, action: string) => boolean;
-  refreshPermissions: () => Promise<void>;
   refreshUser: () => Promise<boolean>;
   token: string | null;
 }

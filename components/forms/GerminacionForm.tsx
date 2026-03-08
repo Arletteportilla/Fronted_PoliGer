@@ -173,7 +173,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
         const resultado = await germinacionService.calcularPrediccionMejorada(formDataPrediccion);
         setPrediccionData(resultado);
       } catch (error: any) {
-        console.error('Error calculando predicción automática:', error);
+        logger.error('Error calculando predicción automática:', error);
         setPrediccionData(null);
       } finally {
         setLoadingPrediccion(false);

@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { Notification } from '@/services/notification.service';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
+import { logger } from '@/services/logger';
 
 // Eliminado constantes estáticas para usar useWindowDimensions
 
@@ -62,10 +63,12 @@ export function PerfilNotificacionesTab({
   const [syncedStates, setSyncedStates] = useState<Record<number, string>>({});
 
   const reloadNotifications = async () => {
+    const tipoBackend = tipoFilter === 'recordatorios' ? 'RECORDATORIO_5_DIAS' : undefined;
     await fetchNotifications({
       solo_propias: true,
       solo_no_leidas: showOnlyUnread,
-      incluir_archivadas: includeArchived
+      incluir_archivadas: includeArchived,
+      tipo: tipoBackend,
     });
   };
 
@@ -77,7 +80,7 @@ export function PerfilNotificacionesTab({
         await onChangeStatusGerminacion(germinacionActual);
         await reloadNotifications();
       } catch (error) {
-        console.error('Error obteniendo germinación actual:', error);
+        logger.error('Error obteniendo germinación actual:', error);
         await onChangeStatusGerminacion(notificationData);
         await reloadNotifications();
       }
@@ -92,20 +95,25 @@ export function PerfilNotificacionesTab({
         await onChangeStatusPolinizacion(polinizacionActual);
         await reloadNotifications();
       } catch (error) {
-        console.error('Error obteniendo polinización actual:', error);
+        logger.error('Error obteniendo polinización actual:', error);
         await onChangeStatusPolinizacion(notificationData);
         await reloadNotifications();
       }
     }
   };
 
+  // Cuando cambia el filtro de tipo o unread, refetch con el tipo correcto del backend
   useEffect(() => {
+    const tipoBackend = tipoFilter === 'recordatorios' ? 'RECORDATORIO_5_DIAS' : undefined;
     fetchNotifications({
       solo_propias: true,
       solo_no_leidas: showOnlyUnread,
-      incluir_archivadas: includeArchived
+      incluir_archivadas: includeArchived,
+      tipo: tipoBackend,
     });
-  }, []);
+  // fetchNotifications es estable (useCallback sin deps)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipoFilter, showOnlyUnread]);
 
   // Cargar estados sincronizados desde el backend para filtrar correctamente
   useEffect(() => {
@@ -144,7 +152,7 @@ export function PerfilNotificacionesTab({
 
         setSyncedStates(estados);
       } catch (error) {
-        console.error('Error cargando estados sincronizados:', error);
+        logger.error('Error cargando estados sincronizados:', error);
       }
     };
 
@@ -152,10 +160,12 @@ export function PerfilNotificacionesTab({
   }, [notifications]);
 
   const handleRefresh = async () => {
+    const tipoBackend = tipoFilter === 'recordatorios' ? 'RECORDATORIO_5_DIAS' : undefined;
     await refreshNotifications({
       solo_no_leidas: showOnlyUnread,
       incluir_archivadas: includeArchived,
-      solo_propias: true
+      solo_propias: true,
+      tipo: tipoBackend,
     });
   };
 
@@ -173,7 +183,7 @@ export function PerfilNotificacionesTab({
       try {
         await markAsRead(notification.id);
       } catch (error) {
-        console.error('Error marcando como leída:', error);
+        logger.error('Error marcando como leída:', error);
       }
     }
   };
@@ -501,7 +511,7 @@ function NotificationCard({
           }
         }
       } catch (error) {
-        console.error('Error cargando estado actual:', error);
+        logger.error('Error cargando estado actual:', error);
       }
     };
 

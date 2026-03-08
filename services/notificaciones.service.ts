@@ -132,7 +132,7 @@ export const notificacionesService = {
       const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
       return notifications;
     } catch (error) {
-      logger.error('❌ Error obteniendo notificaciones:', error);
+      logger.error(' Error obteniendo notificaciones:', error);
       throw error;
     }
   },
@@ -145,7 +145,7 @@ export const notificacionesService = {
       const response = await api.get(`notifications/${id}/`);
       return mapNotification(response.data);
     } catch (error) {
-      logger.error('❌ Error obteniendo notificación:', error);
+      logger.error(' Error obteniendo notificación:', error);
       throw error;
     }
   },
@@ -158,7 +158,7 @@ export const notificacionesService = {
       await api.post(`notifications/${id}/marcar-leida/`);
       logger.success(' Notificación marcada como leída');
     } catch (error) {
-      logger.error('❌ Error marcando notificación como leída:', error);
+      logger.error(' Error marcando notificación como leída:', error);
       throw error;
     }
   },
@@ -172,7 +172,7 @@ export const notificacionesService = {
       logger.success(' Todas las notificaciones marcadas como leídas:', response.data);
       return response.data.count || 0;
     } catch (error) {
-      logger.error('❌ Error marcando todas como leídas:', error);
+      logger.error(' Error marcando todas como leídas:', error);
       throw error;
     }
   },
@@ -186,7 +186,7 @@ export const notificacionesService = {
       logger.success(' Estado de favorita cambiado:', response.data.favorita);
       return response.data.favorita;
     } catch (error) {
-      logger.error('❌ Error cambiando favorita:', error);
+      logger.error(' Error cambiando favorita:', error);
       throw error;
     }
   },
@@ -199,7 +199,7 @@ export const notificacionesService = {
       await api.post(`notifications/${id}/archivar/`);
       logger.success(' Notificación archivada');
     } catch (error) {
-      logger.error('❌ Error archivando notificación:', error);
+      logger.error(' Error archivando notificación:', error);
       throw error;
     }
   },
@@ -212,7 +212,7 @@ export const notificacionesService = {
       await api.delete(`notifications/${id}/`);
       logger.success(' Notificación eliminada');
     } catch (error) {
-      logger.error('❌ Error eliminando notificación:', error);
+      logger.error(' Error eliminando notificación:', error);
       throw error;
     }
   },
@@ -225,7 +225,7 @@ export const notificacionesService = {
       const response = await api.get('notifications/estadisticas/');
       return response.data;
     } catch (error) {
-      logger.error('❌ Error obteniendo estadísticas:', error);
+      logger.error(' Error obteniendo estadísticas:', error);
       throw error;
     }
   },
@@ -239,7 +239,7 @@ export const notificacionesService = {
       logger.success(' Alertas obtenidas:', response.data);
       return response.data.alertas || [];
     } catch (error) {
-      logger.error('❌ Error obteniendo alertas:', error);
+      logger.error(' Error obteniendo alertas:', error);
       throw error;
     }
   },
@@ -263,7 +263,7 @@ export const notificacionesService = {
       const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
       return notifications;
     } catch (error) {
-      logger.error('❌ Error obteniendo recordatorios 5 días:', error);
+      logger.error(' Error obteniendo recordatorios 5 días:', error);
       return [];
     }
   },

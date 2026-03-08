@@ -74,7 +74,7 @@ class RBACService {
       return users;
       
     } catch (error: any) {
-      logger.error('❌ Error fetching users:', error);
+      logger.error(' Error fetching users:', error);
       logger.error('Error details:', {
         message: error.message,
         status: error.response?.status,
@@ -116,7 +116,7 @@ class RBACService {
       return allUsers;
       
     } catch (error) {
-      logger.error('❌ Error in paginated fetch:', error);
+      logger.error(' Error in paginated fetch:', error);
       throw error;
     }
   }
@@ -126,7 +126,7 @@ class RBACService {
       const response = await api.post('user-management/', userData);
       return response.data;
     } catch (error: any) {
-      logger.error('❌ rbacService.createUser - Error:', error);
+      logger.error(' rbacService.createUser - Error:', error);
       throw error;
     }
   }
@@ -141,7 +141,7 @@ class RBACService {
       const endpoint = `user-management/${userId}/`;
       await api.delete(endpoint);
     } catch (error: any) {
-      logger.error('❌ rbacService.deleteUser - Error:', error);
+      logger.error(' rbacService.deleteUser - Error:', error);
       throw error;
     }
   }

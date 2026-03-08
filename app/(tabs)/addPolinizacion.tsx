@@ -123,7 +123,7 @@ export default function AddPolinizacionScreen() {
 
     setIsPredicting(true);
     try {
-      logger.info('🌸 Generando predicción de polinización...');
+      logger.info(' Generando predicción de polinización...');
       
       const datosPrediccion = {
         especie: especie.trim(),
@@ -150,7 +150,7 @@ export default function AddPolinizacionScreen() {
       toast.success(`Predicción generada: ${resultado.dias_estimados} días hasta maduración`);
 
     } catch (error: any) {
-      logger.error('❌ Error generando predicción:', error);
+      logger.error(' Error generando predicción:', error);
 
       let errorMessage = 'No se pudo generar la predicción.';
 

@@ -55,7 +55,7 @@ export const useGerminaciones = (user: any) => {
       const codes = await germinacionService.getCodes();
       setCodigosDisponibles(codes);
     } catch (error) {
-      logger.error('❌ useGerminaciones: Error cargando códigos:', error);
+      logger.error(' useGerminaciones: Error cargando códigos:', error);
       setCodigosDisponibles([]);
     }
   }, []);
@@ -71,7 +71,7 @@ export const useGerminaciones = (user: any) => {
       setEspeciesDisponibles(especiesUnicas);
       
     } catch (error) {
-      logger.error('❌ Error cargando códigos con especies:', error);
+      logger.error(' Error cargando códigos con especies:', error);
       setCodigosConEspecies([]);
       setEspeciesDisponibles([]);
     }
@@ -90,7 +90,7 @@ export const useGerminaciones = (user: any) => {
       setNivelesDisponibles(nivelesUnicos);
 
     } catch (error) {
-      logger.error('❌ useGerminaciones: Error cargando perchas y niveles:', error);
+      logger.error(' useGerminaciones: Error cargando perchas y niveles:', error);
       setPerchasDisponibles([]);
       setNivelesDisponibles([]);
     }
@@ -129,7 +129,7 @@ export const useGerminaciones = (user: any) => {
       } else {
       }
     } catch (error) {
-      logger.error('❌ Error en handleCodigoSelection:', error);
+      logger.error(' Error en handleCodigoSelection:', error);
     }
   }, []);
 
@@ -204,13 +204,13 @@ export const useGerminaciones = (user: any) => {
 
 
     } catch (error: any) {
-      logger.error('❌ Error loading germinaciones', error);
+      logger.error(' Error loading germinaciones', error);
       if (error.response) {
-        logger.error('❌ Error response:', error.response.status, error.response.data);
+        logger.error(' Error response:', error.response.status, error.response.data);
       } else if (error.request) {
-        logger.error('❌ Error request:', error.request);
+        logger.error(' Error request:', error.request);
       } else {
-        logger.error('❌ Error message:', error.message);
+        logger.error(' Error message:', error.message);
       }
 
       if (error.response?.status === 401) {
@@ -311,7 +311,7 @@ export const useGerminaciones = (user: any) => {
 
       return true;
     } catch (error: any) {
-      logger.error('❌ Error creating germinacion:', error);
+      logger.error(' Error creating germinacion:', { codigo: form.codigo, especie: form.especie_variedad, error });
 
       let errorMessage = 'No se pudo crear la germinación';
 

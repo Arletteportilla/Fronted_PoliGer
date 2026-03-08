@@ -18,4 +18,12 @@ export const authService = {
     const response = await api.post('token/refresh/', { refresh: refreshToken });
     return response.data;
   },
+
+  cambiarPasswordInicial: async (passwordActual: string, passwordNuevo: string) => {
+    const response = await api.post('auth/cambiar-password-inicial/', {
+      password_actual: passwordActual,
+      password_nuevo: passwordNuevo,
+    });
+    return response.data;
+  },
 };

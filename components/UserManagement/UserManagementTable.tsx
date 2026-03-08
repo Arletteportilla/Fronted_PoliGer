@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useConfirmation } from '@/hooks/useConfirmation';
+import { useToast } from '@/contexts/ToastContext';
 import type { UserWithProfile } from '@/types/index';
 import { logger } from '@/services/logger';
 
@@ -68,6 +70,8 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
   currentUser
 }) => {
   const { colors: themeColors } = useTheme();
+  const { showConfirmation } = useConfirmation();
+  const toast = useToast();
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 768;
   const styles = useMemo(() => createStyles(themeColors, isSmallScreen), [themeColors, isSmallScreen]);
@@ -122,88 +126,29 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
 
   // Manejar eliminación con confirmación
   const handleDeleteUser = async (user: UserWithProfile) => {
-    logger.debug(' handleDeleteUser called for user:', user.id, user.username);
-    logger.info('👤 Current user:', currentUser?.id, currentUser?.username);
-    logger.info('🚫 Is same user?', user.id === currentUser?.id);
-
     const userName = user.first_name && user.last_name
       ? `${user.first_name} ${user.last_name}`
       : user.username;
 
-    logger.info('💬 Mostrando confirmación para:', userName);
+    const confirmed = await showConfirmation(
+      'Eliminar usuario',
+      `¿Estás seguro de eliminar al usuario "${userName}"?\n\nEsta acción no se puede deshacer.`,
+      'Eliminar',
+      'Cancelar'
+    );
 
-    // Usar window.confirm para web (compatible con React Native Web)
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm(
-        `¿Estás seguro de eliminar al usuario "${userName}"?\n\nEsta acción no se puede deshacer.`
-      );
+    if (!confirmed) return;
 
-      if (!confirmed) {
-        logger.error(' Eliminación cancelada por el usuario');
-        return;
-      }
-
-      // Usuario confirmó la eliminación
-      try {
-        logger.info('🗑️ CONFIRMADO - Eliminando usuario:', user.id, userName);
-        logger.info('📞 Llamando a onDeleteUser...');
-        await onDeleteUser(user);
-        logger.success(' onDeleteUser completado exitosamente');
-        alert(`Usuario "${userName}" eliminado correctamente`);
-      } catch (error: any) {
-        logger.error('❌ Error al eliminar usuario:', error);
-        logger.error('📊 Error completo:', {
-          message: error.message,
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          url: error.config?.url,
-          method: error.config?.method
-        });
-        alert(
-          'Error al eliminar: ' + (
-            error.response?.data?.detail ||
-            error.response?.data?.error ||
-            error.message ||
-            'No se pudo eliminar el usuario. Por favor, intenta de nuevo.'
-          )
-        );
-      }
-    } else {
-      // Para móvil, usar Alert.alert
-      Alert.alert(
-        '¿Estás seguro?',
-        `¿Deseas eliminar al usuario "${userName}"? Esta acción no se puede deshacer.`,
-        [
-          {
-            text: 'Cancelar',
-            style: 'cancel',
-            onPress: () => logger.error(' Eliminación cancelada por el usuario')
-          },
-          {
-            text: 'Eliminar',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                logger.info('🗑️ CONFIRMADO - Eliminando usuario:', user.id, userName);
-                logger.info('📞 Llamando a onDeleteUser...');
-                await onDeleteUser(user);
-                logger.success(' onDeleteUser completado exitosamente');
-                Alert.alert('Éxito', `Usuario "${userName}" eliminado correctamente`);
-              } catch (error: any) {
-                logger.error('❌ Error al eliminar usuario:', error);
-                Alert.alert(
-                  'Error al eliminar',
-                  error.response?.data?.detail ||
-                  error.response?.data?.error ||
-                  error.message ||
-                  'No se pudo eliminar el usuario. Por favor, intenta de nuevo.'
-                );
-              }
-            },
-          },
-        ],
-        { cancelable: true }
+    try {
+      await onDeleteUser(user);
+      toast.success(`Usuario "${userName}" eliminado correctamente`);
+    } catch (error: any) {
+      logger.error(' Error al eliminar usuario:', error);
+      toast.error(
+        error.response?.data?.detail ||
+        error.response?.data?.error ||
+        error.message ||
+        'No se pudo eliminar el usuario. Por favor, intenta de nuevo.'
       );
     }
   };
@@ -599,7 +544,7 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                         <TouchableOpacity
                           style={styles.cardActionButton}
                           onPress={() => {
-                            logger.info('🗑️ DELETE BUTTON CLICKED for user:', user.id, user.username);
+                            logger.info(' DELETE BUTTON CLICKED for user:', user.id, user.username);
                             handleDeleteUser(user);
                           }}
                         >

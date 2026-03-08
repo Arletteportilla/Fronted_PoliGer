@@ -125,7 +125,7 @@ class PolinizacionMLService {
       return response.data;
 
     } catch (error: any) {
-      logger.error('❌ [ML] Error en predicción:', error);
+      logger.error(' [ML] Error en predicción:', error);
       throw this.procesarError(error);
     }
   }
@@ -149,7 +149,7 @@ class PolinizacionMLService {
       return response.data;
 
     } catch (error: any) {
-      logger.error('❌ [ML] Error obteniendo info del modelo:', error);
+      logger.error(' [ML] Error obteniendo info del modelo:', error);
       throw this.procesarError(error);
     }
   }

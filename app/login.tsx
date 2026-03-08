@@ -1,23 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { authService } from '@/services/auth.service';
-import * as SecureStore from '@/services/secureStore';
 import { logger } from '@/services/logger';
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showTokenCleaner, setShowTokenCleaner] = useState(false);
   const [hasError, setHasError] = useState(false);
   const { login } = useAuth();
   const toast = useToast();
-  const router = useRouter();
-  const colorScheme = useColorScheme();
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -32,46 +25,11 @@ const LoginScreen = () => {
       await login(username, password);
     } catch (error: any) {
       logger.error('Error en login:', error);
-
-      let errorTitle = 'Error de autenticación';
-      let errorMessage = 'No se pudo iniciar sesión. Por favor intente nuevamente.';
-
-      // Manejar diferentes tipos de errores
-      if (error.response) {
-        const status = error.response.status;
-        const data = error.response.data;
-
-        if (status === 401) {
-          errorTitle = 'Credenciales incorrectas';
-          errorMessage = 'El usuario o la contraseña que ingresaste son incorrectos.\n\nPor favor verifica tus credenciales e intenta nuevamente.';
-        } else if (status === 400) {
-          errorTitle = 'Datos inválidos';
-          errorMessage = data?.detail || data?.message || 'Los datos ingresados no son válidos. Por favor revisa e intenta nuevamente.';
-        } else if (status === 403) {
-          errorTitle = 'Acceso denegado';
-          errorMessage = 'Tu cuenta no tiene permisos para acceder al sistema. Contacta al administrador.';
-        } else if (status === 500) {
-          errorTitle = 'Error del servidor';
-          errorMessage = 'Ocurrió un error en el servidor. Por favor intenta más tarde.';
-        } else if (data?.detail) {
-          errorMessage = data.detail;
-        }
-      } else if (error.message) {
-        if (error.message.includes('Network')) {
-          errorTitle = 'Error de conexión';
-          errorMessage = 'No se pudo conectar con el servidor.\n\nVerifica tu conexión a internet e intenta nuevamente.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
       setHasError(true);
-
       // Limpiar usuario y contraseña por seguridad
       setUsername('');
       setPassword('');
-
-      // El AuthContext ya muestra el toast de error, no necesitamos duplicar el mensaje
+      // El AuthContext ya muestra el toast de error
     } finally {
       setIsLoading(false);
     }
@@ -257,21 +215,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     letterSpacing: 1,
-    textAlign: 'center',
-  },
-  cleanButton: {
-    marginTop: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    alignItems: 'center',
-    opacity: 0.9,
-  },
-  cleanButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
     textAlign: 'center',
   },
 });

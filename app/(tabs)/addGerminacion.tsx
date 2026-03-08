@@ -144,7 +144,7 @@ export default function AddGerminacionScreen() {
     setIsLoading(true);
 
     // Log para debugging
-    logger.info('📊 Guardando germinación con predicción:', prediccionML);
+    logger.info(' Guardando germinación con predicción:', prediccionML);
 
     try {
       const formData: any = {
@@ -170,13 +170,13 @@ export default function AddGerminacionScreen() {
         formData.prediccion_fecha_estimada = prediccionML.fecha_estimada_germinacion;
         formData.prediccion_confianza = prediccionML.confianza;
         formData.prediccion_tipo = prediccionML.modelo || 'ML';
-        logger.info('✅ Incluyendo predicción en formData:', {
+        logger.info(' Incluyendo predicción en formData:', {
           dias: prediccionML.dias_estimados,
           fecha: prediccionML.fecha_estimada_germinacion,
           confianza: prediccionML.confianza
         });
       } else {
-        logger.warn('⚠️ No hay predicción ML disponible al guardar');
+        logger.warn(' No hay predicción ML disponible al guardar');
       }
 
 

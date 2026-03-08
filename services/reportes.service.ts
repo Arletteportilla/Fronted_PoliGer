@@ -19,7 +19,6 @@ const downloadFileWeb = async (url: string, fileName: string, token: string) => 
 
     // Verificar que la respuesta sea válida
     const contentType = response.headers['content-type'] || response.headers['Content-Type'];
-    logger.info(`Content-Type recibido: ${contentType}, tamaño: ${response.data.size} bytes`);
 
     // Si el content-type es JSON, significa que el backend devolvió un error
     if (contentType && contentType.includes('application/json')) {
@@ -42,7 +41,6 @@ const downloadFileWeb = async (url: string, fileName: string, token: string) => 
       throw new Error('El archivo descargado parece estar corrupto o vacío');
     }
 
-    logger.info(`Descargando archivo: ${fileName}, tipo: ${mimeType}, tamaño: ${response.data.size} bytes`);
 
     // Crear blob con el tipo MIME correcto
     const blob = new Blob([response.data], { type: mimeType });
@@ -91,7 +89,7 @@ export const reportesService = {
    */
   descargarPDFGerminaciones: async (search?: string) => {
     try {
-      logger.info('📄 Descargando PDF de germinaciones...');
+      logger.info(' Descargando PDF de germinaciones...');
 
       // Obtener el token de autenticación
       const token = await SecureStore.secureStore.getItem('authToken');
@@ -128,7 +126,7 @@ export const reportesService = {
         );
       }
     } catch (error) {
-      logger.error('❌ Error generando PDF de germinaciones:', error);
+      logger.error(' Error generando PDF de germinaciones:', error);
       throw error;
     }
   },

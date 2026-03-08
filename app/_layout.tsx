@@ -8,36 +8,47 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { PersistentAlertProvider } from '@/contexts/PersistentAlertContext';
+import { ConfirmationProvider } from '@/contexts/ConfirmationContext';
 import '@/utils/suppressWarnings'; // Suprimir warnings innecesarios
-import { logger } from '@/services/logger';
 
 const RootLayoutNav = memo(() => {
-  const { token, isLoading } = useAuth();
+  const { token, isLoading, user } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   // TODOS los hooks deben ejecutarse antes de cualquier return condicional
   const currentPath = useMemo(() => segments.join('/') || 'root', [segments]);
-  
+
   const handleNavigation = useCallback(() => {
     if (isLoading) return;
 
-    // Si no hay token, redirigir a login (excepto si ya estamos en login)
+    // Sin token → login
     if (!token && currentPath !== 'login') {
-      logger.info('🚀 Redirecting to login - no token');
       router.replace('/login');
+      return;
     }
-    // Si hay token y estamos en login, redirigir a tabs
-    else if (token && currentPath === 'login') {
-      logger.info('🚀 Redirecting to tabs - has token');
-      router.replace('/(tabs)');
+
+    if (token) {
+      const debeCambiar = user?.debe_cambiar_password === true;
+
+      // Tiene contraseña temporal pendiente → forzar pantalla de cambio
+      if (debeCambiar && currentPath !== 'cambiar-password') {
+        router.replace('/cambiar-password' as any);
+        return;
+      }
+
+      // Ya cambió su contraseña pero sigue en esa pantalla → tabs
+      if (!debeCambiar && currentPath === 'cambiar-password') {
+        router.replace('/(tabs)');
+        return;
+      }
+
+      // Login con sesión válida → tabs
+      if (currentPath === 'login' || currentPath === 'root') {
+        router.replace('/(tabs)');
+      }
     }
-    // Si hay token y estamos en root, redirigir a tabs
-    else if (token && currentPath === 'root') {
-      logger.info('🚀 Redirecting to tabs - root with token');
-      router.replace('/(tabs)');
-    }
-  }, [token, isLoading, currentPath, router]);
+  }, [token, isLoading, user, currentPath, router]);
 
   const LoadingComponent = useMemo(() => (
     <View style={styles.loadingContainer}>
@@ -57,17 +68,11 @@ const RootLayoutNav = memo(() => {
     return LoadingComponent;
   }
 
-  if (segments[0] === '(tabs)') {
-    return (
-      <Stack>
-        <Stack.Screen name="(tabs)" options={screenOptions} />
-      </Stack>
-    );
-  }
-
   return (
     <Stack>
+      <Stack.Screen name="(tabs)" options={screenOptions} />
       <Stack.Screen name="login" options={screenOptions} />
+      <Stack.Screen name="cambiar-password" options={screenOptions} />
       <Stack.Screen name="diagnostic" options={screenOptions} />
       <Stack.Screen name="+not-found" options={screenOptions} />
     </Stack>
@@ -107,7 +112,9 @@ export default function RootLayout() {
           <AuthProvider>
             <SidebarProvider>
               <PersistentAlertProvider>
-                <RootLayoutNav />
+                <ConfirmationProvider>
+                  <RootLayoutNav />
+                </ConfirmationProvider>
               </PersistentAlertProvider>
             </SidebarProvider>
           </AuthProvider>

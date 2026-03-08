@@ -57,7 +57,7 @@ class PrediccionValidacionService {
     fechaMaduracionReal: string
   ): Promise<ValidacionPrediccionResponse> {
     try {
-      logger.info(`📊 Validando predicción de polinización ${polinizacionId}`);
+      logger.info(` Validando predicción de polinización ${polinizacionId}`);
       logger.info(`   Fecha real: ${fechaMaduracionReal}`);
 
       const response = await api.post<ValidacionPrediccionResponse>(
@@ -71,7 +71,7 @@ class PrediccionValidacionService {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error validando predicción:', error);
+      logger.error(' Error validando predicción:', error);
       throw this.procesarError(error);
     }
   }
@@ -88,7 +88,7 @@ class PrediccionValidacionService {
     precisionMinima: number = 0
   ): Promise<{ total: number; predicciones: PrediccionValidada[] }> {
     try {
-      logger.info('📊 Obteniendo predicciones validadas');
+      logger.info(' Obteniendo predicciones validadas');
 
       const response = await api.get<{ total: number; predicciones: PrediccionValidada[] }>(
         'predicciones/validadas/',
@@ -104,7 +104,7 @@ class PrediccionValidacionService {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo predicciones validadas:', error);
+      logger.error(' Error obteniendo predicciones validadas:', error);
       throw this.procesarError(error);
     }
   }
@@ -116,7 +116,7 @@ class PrediccionValidacionService {
    */
   async exportarDatosReentrenamiento(): Promise<Blob> {
     try {
-      logger.info('📥 Exportando datos para reentrenamiento');
+      logger.info(' Exportando datos para reentrenamiento');
 
       const response = await api.post(
         'predicciones/exportar-reentrenamiento/',
@@ -130,7 +130,7 @@ class PrediccionValidacionService {
 
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error exportando datos:', error);
+      logger.error(' Error exportando datos:', error);
       throw this.procesarError(error);
     }
   }

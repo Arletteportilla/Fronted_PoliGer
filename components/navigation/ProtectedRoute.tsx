@@ -64,7 +64,7 @@ export function ProtectedRoute({
   // Si el usuario está autenticado pero no tiene permisos configurados, permitir acceso
   // Esto es útil para desarrollo y cuando los permisos no están configurados en el backend
   if (user && !requiredModule && !requiredAction && !requiredPermission) {
-    logger.warn('⚠️ Usuario autenticado sin permisos configurados, permitiendo acceso');
+    logger.warn(' Usuario autenticado sin permisos configurados, permitiendo acceso');
     return <>{children}</>;
   }
   

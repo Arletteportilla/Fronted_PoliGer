@@ -82,7 +82,7 @@ export const useGerminacionesWithFilters = (): UseGerminacionesWithFiltersResult
       setHasMore(!!response.next);
 
     } catch (error) {
-      logger.error('❌ Error cargando germinaciones:', error);
+      logger.error(' Error cargando germinaciones:', error);
       setGerminaciones([]);
     } finally {
       loadingRef.current = false;

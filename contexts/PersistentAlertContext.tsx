@@ -6,6 +6,8 @@ import {
   Animated,
   TouchableOpacity,
   Dimensions,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -16,6 +18,7 @@ import { useAuth } from './AuthContext';
 import { RecordatoriosModal } from '@/components/modals/RecordatoriosModal';
 import { CambiarEstadoModal } from '@/components/modals/CambiarEstadoModal';
 import { FinalizarModal } from '@/components/modals/FinalizarModal';
+import { logger } from '@/services/logger';
 
 interface PersistentAlertContextType {
   alerts: Notification[];
@@ -84,7 +87,7 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
       const recordatorios = await notificacionesService.getRecordatorios5Dias();
       setAlerts(recordatorios);
     } catch (error) {
-      console.error('Error fetching alerts:', error);
+      logger.error('Error fetching alerts:', error);
     } finally {
       setIsLoading(false);
     }
@@ -97,8 +100,22 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
     }
 
     refreshAlerts();
-    const interval = setInterval(refreshAlerts, 15000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (AppState.currentState === 'active') {
+        refreshAlerts();
+      }
+    }, 60000);
+
+    const subscription = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') {
+        refreshAlerts();
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
   }, [token, refreshAlerts]);
 
   // Mantener alertsLengthRef sincronizado para usarlo dentro de intervalos
@@ -150,7 +167,7 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
       await notificacionesService.marcarComoLeida(id);
       setAlerts(prev => prev.filter(a => a.id !== id));
     } catch (error) {
-      console.error('Error dismissing alert:', error);
+      logger.error('Error dismissing alert:', error);
       setAlerts(prev => prev.filter(a => a.id !== id));
     }
   }, []);
@@ -162,7 +179,7 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
       }
       setAlerts([]);
     } catch (error) {
-      console.error('Error dismissing all alerts:', error);
+      logger.error('Error dismissing all alerts:', error);
       setAlerts([]);
     }
   }, [alerts]);
@@ -225,7 +242,7 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
         });
       }
     } catch (error) {
-      console.error('Error fetching item for estado change:', error);
+      logger.error('Error fetching item for estado change:', error);
     }
   }, []);
 
@@ -252,7 +269,7 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
         await polinizacionService.cambiarEstadoPolinizacion(itemId, estado);
       }
     } catch (error) {
-      console.error('Error saving estado:', error);
+      logger.error('Error saving estado:', error);
     } finally {
       // Siempre dismissar el alert y re-sincronizar con el backend,
       // independientemente de si el cambio de estado tuvo éxito o falló
@@ -278,7 +295,7 @@ export const PersistentAlertProvider: React.FC<{ children: React.ReactNode }> = 
         await polinizacionService.cambiarEstadoPolinizacion(itemId, 'FINALIZADO', fecha);
       }
     } catch (error) {
-      console.error('Error finalizando:', error);
+      logger.error('Error finalizando:', error);
     } finally {
       await dismissAlert(alertId);
       refreshAlerts();

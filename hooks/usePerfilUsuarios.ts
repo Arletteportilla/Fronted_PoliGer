@@ -27,13 +27,6 @@ export function usePerfilUsuarios() {
 
   const handleCreate = useCallback(async (userData: CreateUserFormData) => {
     try {
-      
-      // Verificar token de autenticación
-      const token = await import('@/services/secureStore').then(m => m.secureStore.getItem('authToken'));
-      
-      // Verificar usuario actual
-      const { useAuth } = await import('@/contexts/AuthContext');
-      
       const result = await rbacService.createUser(userData);
       
       await fetchUsuarios();
@@ -41,11 +34,7 @@ export function usePerfilUsuarios() {
       
       return result;
     } catch (error: any) {
-      logger.error('❌ Error al crear usuario:', error);
-      logger.error('📊 Error status:', error.response?.status);
-      logger.error('📝 Error data:', error.response?.data);
-      logger.error('🔗 Error config URL:', error.config?.url);
-      logger.error('🔑 Error config headers:', error.config?.headers);
+      logger.error('Error al crear usuario:', { status: error.response?.status, data: error.response?.data, url: error.config?.url });
       throw error;
     }
   }, [fetchUsuarios]);
@@ -74,9 +63,9 @@ export function usePerfilUsuarios() {
       await fetchUsuarios();
       onSuccess?.();
     } catch (error: any) {
-      logger.error('❌ Error al eliminar usuario:', error);
-      logger.error('📊 Error response:', error.response?.data);
-      logger.error('📊 Error status:', error.response?.status);
+      logger.error(' Error al eliminar usuario:', error);
+      logger.error(' Error response:', error.response?.data);
+      logger.error(' Error status:', error.response?.status);
       throw error;
     }
   }, [fetchUsuarios]);

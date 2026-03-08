@@ -11,6 +11,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 // IMPORTS DIRECTOS - NO LAZY
 import { germinacionService } from '@/services/germinacion.service';
 import { polinizacionService } from '@/services/polinizacion.service';
+import { logger } from '@/services/logger';
 
 interface StatusCounts {
   ingresado: number;
@@ -40,7 +41,7 @@ export default function HomeScreen() {
   const { canViewGerminaciones, canViewPolinizaciones } = usePermissions();
   const { width: windowWidth } = useWindowDimensions();
   const isMobile = windowWidth < 768;
-  const styles = createStyles(themeColors, isMobile);
+  const styles = useMemo(() => createStyles(themeColors, isMobile), [themeColors, isMobile]);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -58,6 +59,10 @@ export default function HomeScreen() {
     completado: 0,
     total: 0
   });
+
+  // Datos mensuales reales para el gráfico
+  const [germinacionMonthlyData, setGerminacionMonthlyData] = useState<Array<{ mes: string; total: number }>>([]);
+  const [polinizacionMonthlyData, setPolinizacionMonthlyData] = useState<Array<{ mes: string; total: number }>>([]);
 
   // Actividades recientes
   const [itemCards, setItemCards] = useState<ItemCard[]>([]);
@@ -219,7 +224,7 @@ export default function HomeScreen() {
       setLoading(true);
 
       if (!token) {
-        console.warn('No hay token de autenticación');
+        logger.warn('No hay token de autenticación');
         throw new Error('Necesitas autenticarte para ver los datos');
       }
 
@@ -231,16 +236,18 @@ export default function HomeScreen() {
       if (canViewGerminaciones()) {
         promises.push(germinacionService.getFilterOptions());
         promiseKeys.push('germinacionStats');
+        promises.push(germinacionService.getStats());
+        promiseKeys.push('germinacionMonthlyStats');
         promises.push(germinacionService.getPaginated({ page: 1, page_size: 20 }));
         promiseKeys.push('germinacionesRecientes');
       }
 
       // Solo obtener datos de polinizaciones si el usuario tiene permiso
       if (canViewPolinizaciones()) {
-        promises.push(polinizacionService.getPaginated({ page: 1, page_size: 1000 }));
-        promiseKeys.push('polinizaciones');
-        promises.push(polinizacionService.getTotalCount());
-        promiseKeys.push('totalPolinizaciones');
+        promises.push(polinizacionService.getStats());
+        promiseKeys.push('polinizacionStats');
+        promises.push(polinizacionService.getPaginated({ page: 1, page_size: 5 }));
+        promiseKeys.push('polinizacionesRecientes');
       }
 
       const results = await Promise.allSettled(promises);
@@ -264,27 +271,33 @@ export default function HomeScreen() {
           total: estadisticasResponse?.estadisticas?.total || 0
         };
         setGerminacionStats(germinacionCounts);
+        setGerminacionMonthlyData(resultMap['germinacionMonthlyStats']?.por_mes || []);
       }
 
       // Procesar datos de germinaciones recientes
       const germinacionesRecientes = resultMap['germinacionesRecientes']?.results || [];
 
-      // Procesar datos de polinizaciones
-      const polinizaciones = resultMap['polinizaciones']?.results || [];
-      const totalPol = resultMap['totalPolinizaciones'] || 0;
+      // Procesar estadísticas de polinizaciones desde el endpoint de stats (sin cargar registros)
+      const polinizacionesRecientes = resultMap['polinizacionesRecientes']?.results || [];
 
       if (canViewPolinizaciones()) {
-        const polinizacionCounts = calculatePolinizacionStats(polinizaciones);
-        polinizacionCounts.total = totalPol;
+        const statsData = resultMap['polinizacionStats'];
+        const polinizacionCounts: StatusCounts = {
+          ingresado: 0,
+          en_proceso: statsData?.activas ?? 0,
+          completado: statsData?.cosechas ?? 0,
+          total: statsData?.total ?? 0,
+        };
         setPolinizacionStats(polinizacionCounts);
+        setPolinizacionMonthlyData(statsData?.por_mes || []);
       }
 
       // Generar tarjetas de actividades recientes
-      const cards = generateItemCards(germinacionesRecientes, polinizaciones);
+      const cards = generateItemCards(germinacionesRecientes, polinizacionesRecientes);
       setItemCards(cards);
 
     } catch (error) {
-      console.error('❌ Error cargando datos:', error);
+      logger.error(' Error cargando datos:', error);
       if (error instanceof Error && error.message.includes('autenticarte')) {
         router.replace('/login');
       }
@@ -344,28 +357,31 @@ export default function HomeScreen() {
     }
   };
 
-  // Datos simulados para el gráfico (basados en estadísticas reales)
+  // Gráfico con datos reales por mes (últimos 6 meses)
   const chartData = useMemo(() => {
-    const months = ['MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT'];
-    const germinacionesData = [
-      Math.max(1, Math.floor(germinacionStats.total * 0.12)),
-      Math.max(1, Math.floor(germinacionStats.total * 0.15)),
-      Math.max(1, Math.floor(germinacionStats.total * 0.18)),
-      Math.max(1, Math.floor(germinacionStats.total * 0.22)),
-      Math.max(1, Math.floor(germinacionStats.total * 0.16)),
-      Math.max(1, Math.floor(germinacionStats.total * 0.17))
-    ];
-    const polinizacionesData = [
-      Math.max(1, Math.floor(polinizacionStats.total * 0.14)),
-      Math.max(1, Math.floor(polinizacionStats.total * 0.19)),
-      Math.max(1, Math.floor(polinizacionStats.total * 0.16)),
-      Math.max(1, Math.floor(polinizacionStats.total * 0.20)),
-      Math.max(1, Math.floor(polinizacionStats.total * 0.15)),
-      Math.max(1, Math.floor(polinizacionStats.total * 0.16))
-    ];
-    
+    const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    const now = new Date();
+
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+      return {
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: monthNames[d.getMonth()] ?? '',
+      };
+    });
+
+    const germMap = new Map<string, number>();
+    germinacionMonthlyData.forEach(item => germMap.set(item.mes.slice(0, 7), item.total));
+
+    const polMap = new Map<string, number>();
+    polinizacionMonthlyData.forEach(item => polMap.set(item.mes.slice(0, 7), item.total));
+
+    const months = last6Months.map(m => m.label);
+    const germinacionesData = last6Months.map(m => germMap.get(m.key) ?? 0);
+    const polinizacionesData = last6Months.map(m => polMap.get(m.key) ?? 0);
+
     return { months, germinacionesData, polinizacionesData };
-  }, [germinacionStats.total, polinizacionStats.total]);
+  }, [germinacionMonthlyData, polinizacionMonthlyData]);
 
 
 
@@ -601,10 +617,12 @@ export default function HomeScreen() {
                 <View style={styles.chartWrapper}>
                   {/* Área del gráfico con barras */}
                   <View style={styles.barChartArea}>
-                    {chartData.months.map((month, index) => {
-                      const maxValue = Math.max(...chartData.germinacionesData, ...chartData.polinizacionesData);
-                      const gerHeight = maxValue > 0 ? ((chartData.germinacionesData[index] ?? 0) / maxValue) * 100 : 0;
-                      const polHeight = maxValue > 0 ? ((chartData.polinizacionesData[index] ?? 0) / maxValue) * 100 : 0;
+                    {(() => {
+                      const maxGerm = Math.max(...chartData.germinacionesData, 1);
+                      const maxPol = Math.max(...chartData.polinizacionesData, 1);
+                      return chartData.months.map((month, index) => {
+                      const gerHeight = ((chartData.germinacionesData[index] ?? 0) / maxGerm) * 100;
+                      const polHeight = ((chartData.polinizacionesData[index] ?? 0) / maxPol) * 100;
 
                       return (
                         <View key={month} style={styles.barGroup}>
@@ -647,7 +665,8 @@ export default function HomeScreen() {
                           <Text style={styles.barLabel}>{month}</Text>
                         </View>
                       );
-                    })}
+                    })
+                    })()}
                   </View>
                 </View>
 

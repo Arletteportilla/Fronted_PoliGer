@@ -89,9 +89,9 @@ export const useCRUDOperations = <T extends Record<string, any>>(
     }
 
     // Ejecutar eliminación
+    const id = item[idField];
     try {
       setLoading(true);
-      const id = item[idField];
 
       if (id === undefined || id === null) {
         throw new Error(`No se encontró el campo '${idField}' en el ítem`);
@@ -108,7 +108,7 @@ export const useCRUDOperations = <T extends Record<string, any>>(
       return true;
 
     } catch (error: any) {
-      logger.error(`Error eliminando ${entityName}:`, error);
+      logger.error(`Error eliminando ${entityName} (id=${id}):`, error);
       const errorMessage = error.response?.data?.message
         || error.message
         || `No se pudo eliminar el ${entityName}`;
@@ -130,9 +130,9 @@ export const useCRUDOperations = <T extends Record<string, any>>(
       return false;
     }
 
+    const id = item[idField];
     try {
       setLoading(true);
-      const id = item[idField];
 
       if (id === undefined || id === null) {
         throw new Error(`No se encontró el campo '${idField}' en el ítem`);
@@ -149,7 +149,7 @@ export const useCRUDOperations = <T extends Record<string, any>>(
       return true;
 
     } catch (error: any) {
-      logger.error(`Error actualizando ${entityName}:`, error);
+      logger.error(`Error actualizando ${entityName} (id=${id}):`, error);
       const errorMessage = error.response?.data?.message
         || error.message
         || `No se pudo actualizar el ${entityName}`;

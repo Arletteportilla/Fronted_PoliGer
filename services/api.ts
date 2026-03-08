@@ -127,7 +127,7 @@ api.interceptors.response.use(
         
         return api(originalRequest);
       } catch (refreshError) {
-        logger.info('Error al refrescar token:', refreshError);
+        logger.error('Error al refrescar token:', refreshError);
 
         // Si el refresh falla, limpiar tokens
         await SecureStore.secureStore.removeItem('authToken');

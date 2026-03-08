@@ -107,7 +107,7 @@ export const checkBackendHealth = async (): Promise<boolean> => {
     return response.ok;
   } catch (error) {
     if (CONFIG.DEBUG_MODE) {
-      logger.warn('⚠️ Backend no disponible:', error);
+      logger.warn(' Backend no disponible:', error);
     }
     return false;
   }

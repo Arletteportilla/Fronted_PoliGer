@@ -13,11 +13,9 @@ import { logger } from '@/services/logger';
 export interface PerfilPolinizacionesTabProps {
   loading: boolean;
   polinizaciones: Polinizacion[];
-  searchPolinizaciones: string;
-  setSearchPolinizaciones: (value: string) => void;
   setPolinizacionesPage: (page: number) => void;
   fetchData: () => Promise<void>;
-  handleBuscarPolinizaciones: () => void;
+  handleBuscarPolinizaciones: (search: string) => void;
   polinizacionesTotalPages: number;
   polinizacionesTotalCount: number;
   polinizacionesPage: number;
@@ -34,8 +32,6 @@ export interface PerfilPolinizacionesTabProps {
 export function PerfilPolinizacionesTab({
   loading,
   polinizaciones,
-  searchPolinizaciones,
-  setSearchPolinizaciones,
   setPolinizacionesPage,
   fetchData,
   handleBuscarPolinizaciones,
@@ -49,10 +45,11 @@ export function PerfilPolinizacionesTab({
   handleEditPolinizacion,
   handleDeletePolinizacion,
   onDescargarPDF,
-  onNewPolinizacion
+  onNewPolinizacion,
 }: PerfilPolinizacionesTabProps) {
   const router = useRouter();
   const { colors: themeColors } = useTheme();
+  const [inputSearch, setInputSearch] = React.useState('');
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
   const styles = createStyles(themeColors);
@@ -99,7 +96,7 @@ export function PerfilPolinizacionesTab({
           <TouchableOpacity
             style={styles.exportButton}
             onPress={() => {
-              logger.info('🔔 Botón Descargar PDF clickeado - Polinizaciones');
+              logger.info(' Botón Descargar PDF clickeado - Polinizaciones');
               onDescargarPDF();
             }}
           >
@@ -116,19 +113,19 @@ export function PerfilPolinizacionesTab({
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar por código, género, especie..."
-            value={searchPolinizaciones}
-            onChangeText={setSearchPolinizaciones}
-            onSubmitEditing={handleBuscarPolinizaciones}
+            value={inputSearch}
+            onChangeText={setInputSearch}
+            onSubmitEditing={() => handleBuscarPolinizaciones(inputSearch)}
           />
-          {searchPolinizaciones.length > 0 && (
+          {inputSearch.length > 0 && (
             <>
-              <TouchableOpacity onPress={handleBuscarPolinizaciones} style={{ marginRight: 8 }}>
+              <TouchableOpacity onPress={() => handleBuscarPolinizaciones(inputSearch)} style={{ marginRight: 8 }}>
                 <Ionicons name="search" size={20} color={themeColors.primary.main} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => {
-                setSearchPolinizaciones('');
+                setInputSearch('');
                 setPolinizacionesPage(1);
-                fetchData();
+                handleBuscarPolinizaciones('');
               }}>
                 <Ionicons name="close-circle" size={20} color={themeColors.text.tertiary} />
               </TouchableOpacity>
@@ -142,10 +139,10 @@ export function PerfilPolinizacionesTab({
         <View style={styles.listEmptyContainer}>
           <Ionicons name="leaf-outline" size={48} color={themeColors.text.tertiary} />
           <Text style={styles.listEmptyText}>
-            {searchPolinizaciones ? 'No se encontraron polinizaciones' : 'No hay polinizaciones registradas'}
+            {inputSearch ? 'No se encontraron polinizaciones' : 'No hay polinizaciones registradas'}
           </Text>
           <Text style={styles.emptySubtext}>
-            {searchPolinizaciones ? 'Intenta con otros términos de búsqueda' : 'Las polinizaciones que registres aparecerán aquí'}
+            {inputSearch ? 'Intenta con otros términos de búsqueda' : 'Las polinizaciones que registres aparecerán aquí'}
           </Text>
         </View>
       ) : (
@@ -198,6 +195,7 @@ export function PerfilPolinizacionesTab({
               const itemKey = item.numero?.toString() || item.id?.toString() || `pol-${index}`;
               const tipoColor = getTipoColor(tipo);
               const estadoColor = getEstadoColor(estadoActual);
+              const isFinalized = item.estado_polinizacion === 'FINALIZADO';
               const isLastRow = index === filteredPolinizaciones.length - 1;
 
               // Renderizado de Carta para Móvil
@@ -292,14 +290,14 @@ export function PerfilPolinizacionesTab({
                         <Ionicons name="eye-outline" size={20} color="#3B82F6" />
                       </TouchableOpacity>
                       <TouchableOpacity
-                        onPress={() => handleEditPolinizacion(item)}
-                        style={styles.actionIconButton}
+                        onPress={() => !isFinalized && handleEditPolinizacion(item)}
+                        style={[styles.actionIconButton, isFinalized && { opacity: 0.3 }]}
                       >
                         <Ionicons name="create-outline" size={20} color="#F59E0B" />
                       </TouchableOpacity>
                       <TouchableOpacity
-                        onPress={() => handleDeletePolinizacion(item)}
-                        style={styles.actionIconButton}
+                        onPress={() => !isFinalized && handleDeletePolinizacion(item)}
+                        style={[styles.actionIconButton, isFinalized && { opacity: 0.3 }]}
                       >
                         <Ionicons name="trash-outline" size={20} color="#EF4444" />
                       </TouchableOpacity>
@@ -422,14 +420,14 @@ export function PerfilPolinizacionesTab({
                           <Ionicons name="eye-outline" size={20} color="#3B82F6" />
                         </TouchableOpacity>
                         <TouchableOpacity
-                          onPress={() => handleEditPolinizacion(item)}
-                          style={styles.actionIconButton}
+                          onPress={() => !isFinalized && handleEditPolinizacion(item)}
+                          style={[styles.actionIconButton, isFinalized && { opacity: 0.3 }]}
                         >
                           <Ionicons name="create-outline" size={20} color="#F59E0B" />
                         </TouchableOpacity>
                         <TouchableOpacity
-                          onPress={() => handleDeletePolinizacion(item)}
-                          style={styles.actionIconButton}
+                          onPress={() => !isFinalized && handleDeletePolinizacion(item)}
+                          style={[styles.actionIconButton, isFinalized && { opacity: 0.3 }]}
                         >
                           <Ionicons name="trash-outline" size={20} color="#EF4444" />
                         </TouchableOpacity>

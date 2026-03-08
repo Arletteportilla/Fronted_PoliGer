@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { View, Modal, StyleSheet, Alert, ScrollView, Text, Pressable, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useEffect, useState, useMemo } from 'react';
+import { View, Modal, StyleSheet, ScrollView, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/navigation';
 import { ResponsiveLayout } from '@/components/layout';
-import { PrediccionMejoradaModal } from '@/components/modals';
+import { PrediccionMejoradaModal, GerminacionDetailsModal } from '@/components/modals';
 import { germinacionService } from '@/services/germinacion.service';
 import { reportesService } from '@/services/reportes.service';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -18,6 +18,8 @@ import { useGerminacionesWithFilters } from '@/hooks/useGerminacionesWithFilters
 import { GerminacionForm } from '@/components/forms/GerminacionForm';
 import { GerminacionesHeader, GerminacionesContent } from '@/components/germinaciones';
 import GerminacionFilters from '@/components/filters/GerminacionFilters';
+import type { Germinacion } from '@/types';
+import { logger } from '@/services/logger';
 
 export default function GerminacionesScreen() {
   const { user } = useAuth();
@@ -46,10 +48,11 @@ export default function GerminacionesScreen() {
   const germinacionesHook = useGerminaciones(user);
 
   // Local state for UI
+  const [inputSearch, setInputSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [detalle, setDetalle] = useState(null);
+  const [detalle, setDetalle] = useState<Germinacion | null>(null);
   const [tipoRegistro, setTipoRegistro] = useState<'historicos' | 'nuevos' | 'todos'>('todos');
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
@@ -72,8 +75,7 @@ export default function GerminacionesScreen() {
       germinacionesHook.loadPerchasDisponibles();
       germinacionService.getMetricasNuevos().then(setMetricas);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, germinacionesHook.loadCodigosDisponibles, germinacionesHook.loadCodigosConEspecies, germinacionesHook.loadPerchasDisponibles]);
 
   // Handle form submission
   const handleSubmit = async () => {
@@ -106,13 +108,14 @@ export default function GerminacionesScreen() {
       await refresh();
       germinacionService.getMetricasNuevos().then(setMetricas);
     } catch (error) {
-      console.error('Error cambiando estado:', error);
+      logger.error('Error cambiando estado:', error);
+      showToast('No se pudo cambiar el estado de la germinación.', 'error');
     }
   };
 
   // Manejar cambio de tipo de registro
   const handleTipoRegistroChange = (tipo: 'historicos' | 'nuevos' | 'todos') => {
-    console.log('🔄 Cambiando tipo de registro para germinaciones:', tipo);
+    logger.info(' Cambiando tipo de registro para germinaciones:', tipo);
     setTipoRegistro(tipo);
 
     const newFilters: any = {
@@ -144,14 +147,14 @@ export default function GerminacionesScreen() {
       await reportesService.generarReporteGerminaciones('pdf', filtros);
       showToast('PDF descargado exitosamente', 'success');
     } catch (error) {
-      console.error('Error descargando PDF:', error);
+      logger.error('Error descargando PDF:', error);
       showToast('Error al descargar el PDF', 'error');
     } finally {
       setDownloading(false);
     }
   };
 
-  const styles = createStyles(themeColors);
+  const styles = useMemo(() => createStyles(themeColors), [themeColors]);
 
   return (
     <ProtectedRoute requiredModule="germinaciones" requiredAction="ver">
@@ -212,13 +215,15 @@ export default function GerminacionesScreen() {
                 style={styles.searchInput}
                 placeholder="Buscar..."
                 placeholderTextColor={themeColors.text.disabled}
-                value={filters.search || ''}
-                onChangeText={(text) => setFilters({ ...filters, search: text })}
+                value={inputSearch}
+                onChangeText={setInputSearch}
+                onSubmitEditing={() => setFilters({ ...filters, search: inputSearch })}
+                returnKeyType="search"
               />
-              {filters.search && (
+              {inputSearch && (
                 <TouchableOpacity
                   style={styles.clearSearchButton}
-                  onPress={() => setFilters({ ...filters, search: '' })}
+                  onPress={() => { setInputSearch(''); setFilters({ ...filters, search: '' }); }}
                 >
                   <Ionicons name="close-circle" size={20} color={themeColors.text.disabled} />
                 </TouchableOpacity>
@@ -417,70 +422,12 @@ export default function GerminacionesScreen() {
           </View>
         </Modal>
 
-        {/* Modal de detalle */}
-        <Modal
+        <GerminacionDetailsModal
           visible={!!detalle}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setDetalle(null)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.detalleTitle}>Detalle de Germinación</Text>
-              {detalle && (
-                <ScrollView style={styles.detalleContent}>
-                  {Object.entries(detalle)
-                    .filter(([key]) => {
-                      // Campos a excluir del detalle
-                      const excludedFields = [
-                        'id',
-                        'fecha_creacion',
-                        'fecha_actualizacion',
-                        'creado_por',
-                        'polinizacion',
-                        'fecha_ultima_revision',
-                        'prediccion_dias_estimados',
-                        'prediccion_confianza',
-                        'prediccion_fecha_estimada',
-                        'prediccion_tipo',
-                        'prediccion_condiciones_climaticas',
-                        'prediccion_especie_info',
-                        'prediccion_parametros_usados',
-                        'fecha_germinacion_estimada_min',
-                        'fecha_germinacion_estimada_max',
-                        'rango_confianza_dias',
-                        'precision_calculada',
-                        'parametros_prediccion',
-                        'fecha_calculo_prediccion',
-                        'alerta_activada',
-                        'estado_seguimiento',
-                      ];
-                      return !excludedFields.includes(key);
-                    })
-                    .map(([key, value]) => (
-                      <View key={key} style={styles.detalleRow}>
-                        <Text style={styles.detalleLabel}>
-                          {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
-                        </Text>
-                        <Text style={styles.detalleValue}>
-                          {typeof value === 'string' && value.length > 50
-                            ? `${value.slice(0, 50)}...`
-                            : value === null || value === undefined
-                            ? 'N/A'
-                            : String(value)}
-                        </Text>
-                      </View>
-                    ))}
-                </ScrollView>
-              )}
-              <View style={styles.modalButtons}>
-                <Pressable style={styles.modalButton} onPress={() => setDetalle(null)}>
-                  <Text style={styles.modalButtonText}>Cerrar</Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Modal>
+          germinacion={detalle}
+          onClose={() => setDetalle(null)}
+          onCambiarEtapa={async (id, etapa) => handleChangeEstado(id, etapa)}
+        />
       </ResponsiveLayout>
     </ProtectedRoute>
   );

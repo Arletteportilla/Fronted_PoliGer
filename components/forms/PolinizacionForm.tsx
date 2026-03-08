@@ -9,12 +9,57 @@ import { polinizacionService } from '@/services/polinizacion.service';
 import { polinizacionPrediccionService } from '@/services/polinizacion-prediccion.service';
 import { useTheme } from '@/contexts/ThemeContext';
 import { validateNumericInput } from '@/utils/formValidation';
+import { logger } from '@/services/logger';
+
+export interface PolinizacionFormData {
+  id: number | null;
+  fecha_polinizacion: string;
+  fecha_maduracion: string;
+  clima: string;
+  ubicacion: string;
+  responsable: string;
+  cantidad_solicitada: string;
+  cantidad_disponible: string;
+  cantidad_semilla: string;
+  tipo_polinizacion: string;
+  observaciones: string;
+  etapa_actual: string;
+  estado: string;
+  madre_codigo: string;
+  madre_genero: string;
+  madre_especie: string;
+  madre_clima: string;
+  padre_codigo: string;
+  padre_genero: string;
+  padre_especie: string;
+  padre_clima: string;
+  nueva_codigo: string;
+  nueva_genero: string;
+  nueva_especie: string;
+  nueva_clima: string;
+  planta_madre_codigo: string;
+  planta_madre_genero: string;
+  planta_madre_especie: string;
+  planta_padre_codigo: string;
+  planta_padre_genero: string;
+  planta_padre_especie: string;
+  nueva_planta_codigo: string;
+  nueva_planta_genero: string;
+  nueva_planta_especie: string;
+  vivero: string;
+  mesa: string;
+  pared: string;
+  ubicacion_tipo: string;
+  ubicacion_nombre: string;
+  cantidad_capsulas: number;
+  cantidad: number;
+}
 
 interface PolinizacionFormProps {
   visible: boolean;
   onClose: () => void;
-  form: any;
-  setForm: (form: any) => void;
+  form: PolinizacionFormData;
+  setForm: React.Dispatch<React.SetStateAction<PolinizacionFormData>>;
   onSave: () => void;
   onPrediccion: () => void;
   saving: boolean;
@@ -133,11 +178,11 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         if (Array.isArray(codigos)) {
           setCodigosDisponibles(codigos);
         } else {
-          console.warn('getCodigosConEspecies no retornó un array:', codigos);
+          logger.warn('getCodigosConEspecies no retornó un array:', codigos);
           setCodigosDisponibles([]);
         }
       } catch (error) {
-        console.error('Error cargando códigos:', error);
+        logger.error('Error cargando códigos:', error);
         setCodigosDisponibles([]);
       }
     };
@@ -153,7 +198,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
         setOpcionesMesas(response.mesas.opciones || []);
         setOpcionesParedes(response.paredes.opciones || []);
       } catch (error) {
-        console.error('Error cargando opciones de ubicación:', error);
+        logger.error('Error cargando opciones de ubicación:', error);
       }
     };
     cargarOpcionesUbicacion();
@@ -166,7 +211,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
     }
     // Asegurarse de que codigosDisponibles es un array
     if (!Array.isArray(codigosDisponibles)) {
-      console.warn('codigosDisponibles no es un array:', codigosDisponibles);
+      logger.warn('codigosDisponibles no es un array:', codigosDisponibles);
       return [];
     }
     return codigosDisponibles
@@ -332,7 +377,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
       const info = await polinizacionService.buscarPlantaInfo(codigo.trim());
 
       if (info) {
-        console.log(`✅ Información encontrada para ${tipo}:`, info);
+        logger.info(` Información encontrada para ${tipo}:`, info);
 
         if (tipo === 'madre') {
           setForm((f: any) => ({
@@ -357,10 +402,10 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
           }));
         }
       } else {
-        console.log(`⚠️ No se encontró información para código: ${codigo}`);
+        logger.info(` No se encontró información para código: ${codigo}`);
       }
     } catch (error) {
-      console.error(`❌ Error buscando información de planta ${tipo}:`, error);
+      logger.error(` Error buscando información de planta ${tipo}:`, error);
     } finally {
       setBuscandoPlanta(null);
     }
@@ -458,11 +503,12 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
     // Calcular predicción después de 1 segundo de inactividad
     prediccionTimeoutRef.current = setTimeout(async () => {
       try {
+        const ubicacion = form.vivero || form.mesa;
         const formDataPrediccion = {
           especie: form.madre_especie,
           clima: form.madre_clima,
-          ubicacion: form.vivero || form.mesa || undefined,
           fecha_polinizacion: form.fecha_polinizacion,
+          ...(ubicacion ? { ubicacion } : {}),
         };
 
         const resultado = await polinizacionPrediccionService.generarPrediccionInicial(formDataPrediccion);
@@ -479,7 +525,7 @@ export const PolinizacionForm: React.FC<PolinizacionFormProps> = ({
 
         setPrediccionData(resultadoAdaptado);
       } catch (error: any) {
-        console.error('❌ Error calculando predicción automática:', error);
+        logger.error(' Error calculando predicción automática:', error);
         setPrediccionData(null);
       } finally {
         setLoadingPrediccion(false);

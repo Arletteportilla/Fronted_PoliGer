@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { polinizacionService } from '@/services/polinizacion.service';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -48,7 +47,6 @@ export const usePolinizaciones = () => {
         return;
       }
 
-      logger.start(' Cargando polinizaciones...', showOnlyMine ? 'Solo mías' : 'Todas', 'Página:', page);
       
       let data;
       let paginationInfo = null;
@@ -65,7 +63,7 @@ export const usePolinizaciones = () => {
         setHasPrevious(paginationInfo.hasPrevious);
         setCurrentPage(paginationInfo.currentPage);
       } else {
-        const paginatedData = await polinizacionService.getPaginated({ page: 1, page_size: 1000 });
+        const paginatedData = await polinizacionService.getPaginated({ page: 1, page_size: pageSize });
         data = paginatedData.results || [];
       }
       
@@ -84,7 +82,7 @@ export const usePolinizaciones = () => {
         setPolinizaciones([]);
       }
     } catch (error) {
-      logger.error('❌ Error loading polinizaciones', error);
+      logger.error(' Error loading polinizaciones', error);
 
       if ((error as any).response?.status === 401) {
         toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -216,7 +214,7 @@ export const usePolinizaciones = () => {
 
       return prediccionConFecha;
     } catch (error: any) {
-      logger.error('❌ Error generando predicción ML:', error);
+      logger.error(' Error generando predicción ML:', error);
 
       let errorMessage = 'No se pudo generar la predicción.';
       if (error.message?.includes('timeout')) {
@@ -301,7 +299,7 @@ export const usePolinizaciones = () => {
       loadPolinizaciones();
       return true;
     } catch (error) {
-      logger.error('Error saving polinización:', error);
+      logger.error('Error saving polinización:', { id: form.id, codigo: form.codigo, isEdit, error });
       toast.error(`No se pudo ${isEdit ? 'actualizar' : 'guardar'} la polinización`);
       return false;
     } finally {

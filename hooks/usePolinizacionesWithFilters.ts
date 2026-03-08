@@ -81,7 +81,7 @@ export const usePolinizacionesWithFilters = (): UsePolinizacionesWithFiltersResu
       setHasMore(response.hasNext);
 
     } catch (error) {
-      logger.error('❌ Error cargando polinizaciones:', error);
+      logger.error(' Error cargando polinizaciones:', error);
       setPolinizaciones([]);
     } finally {
       loadingRef.current = false;

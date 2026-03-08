@@ -194,6 +194,65 @@ export function PerfilResumen({
         )}
       </View>
 
+      {/* Sección: Últimas Alertas */}
+      {recentNotifications.length > 0 && (
+        <View style={styles.activeListSection}>
+          <View style={styles.activeListCard}>
+            <View style={styles.activeListHeader}>
+              <View style={styles.activeListTitleContainer}>
+                <View style={[styles.activeListIcon, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}>
+                  <Ionicons name="notifications" size={20} color="#EF4444" />
+                </View>
+                <Text style={styles.activeListTitle}>Últimas Alertas</Text>
+              </View>
+            </View>
+
+            {recentNotifications.map((notif, index) => {
+              const iconName = notificationService.getNotificationIcon(notif.tipo);
+              const color = notificationService.getNotificationColor(notif.tipo);
+
+              return (
+                <TouchableOpacity
+                  key={notif.id || index}
+                  style={styles.activeListItem}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.activeListItemIcon, { backgroundColor: `${color}20` }]}>
+                    <Ionicons name={iconName as any} size={18} color={color} />
+                  </View>
+
+                  <View style={styles.activeListItemContent}>
+                    <Text style={styles.activeListItemCode} numberOfLines={1}>
+                      {notif.titulo}
+                    </Text>
+
+                    <Text style={[styles.activeListItemDaysText, { marginTop: 2 }]} numberOfLines={2}>
+                      {notif.mensaje}
+                    </Text>
+
+                    <View style={styles.activeListItemMeta}>
+                      <View style={styles.activeListItemDays}>
+                        <Ionicons name="time-outline" size={12} color="#6B7280" />
+                        <Text style={styles.activeListItemDaysText}>
+                          {new Date(notif.fecha_creacion).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+
+            <TouchableOpacity
+              style={styles.viewHistoryButton}
+              onPress={onViewAllNotifications}
+            >
+              <Text style={styles.viewHistoryText}>Ver Todas las Notificaciones</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Nueva Sección: Listas Activas (Side-by-Side) */}
       {(canViewPolinizaciones || canViewGerminaciones) && (
         <View style={styles.activeListSection}>
@@ -207,12 +266,6 @@ export function PerfilResumen({
                       <Ionicons name="flower" size={20} color="#F57C00" />
                     </View>
                     <Text style={styles.activeListTitle}>Polinizaciones Activas</Text>
-                  </View>
-                  <View style={styles.activeListEfficiency}>
-                    <View style={styles.efficiencyBar}>
-                      <View style={[styles.efficiencyFill, { width: `${exitoPromedio}%`, backgroundColor: '#F57C00' }]} />
-                    </View>
-                    <Text style={styles.efficiencyText}>{exitoPromedio}% Eficiencia</Text>
                   </View>
                 </View>
 
@@ -229,6 +282,11 @@ export function PerfilResumen({
                       </View>
 
                       <View style={styles.activeListItemContent}>
+                        {(pol.nueva_especie || pol.madre_especie || pol.especie) && (
+                          <Text style={styles.activeListItemSpecies} numberOfLines={1}>
+                            {pol.nueva_especie || pol.madre_especie || pol.especie}
+                          </Text>
+                        )}
                         <Text style={styles.activeListItemCode}>{pol.codigo || `POL-${pol.numero}`}</Text>
 
                         <View style={styles.activeListItemMeta}>
@@ -284,6 +342,11 @@ export function PerfilResumen({
                       </View>
 
                       <View style={styles.activeListItemContent}>
+                        {(germ.especie_variedad || germ.especie) && (
+                          <Text style={styles.activeListItemSpecies} numberOfLines={1}>
+                            {germ.especie_variedad || germ.especie}
+                          </Text>
+                        )}
                         <Text style={styles.activeListItemCode}>{germ.codigo || `GER-${germ.id}`}</Text>
 
                         <View style={styles.activeListItemMeta}>
@@ -317,68 +380,6 @@ export function PerfilResumen({
         </View>
       )}
 
-
-      {/* Sección: Últimas Alertas */}
-      {
-        recentNotifications.length > 0 && (
-          <View style={styles.activeListSection}>
-            <View style={styles.activeListCard}>
-              <View style={styles.activeListHeader}>
-                <View style={styles.activeListTitleContainer}>
-                  <View style={[styles.activeListIcon, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}>
-                    <Ionicons name="notifications" size={20} color="#EF4444" />
-                  </View>
-                  <Text style={styles.activeListTitle}>Últimas Alertas</Text>
-                </View>
-              </View>
-
-              {recentNotifications.map((notif, index) => {
-                const iconName = notificationService.getNotificationIcon(notif.tipo);
-                const color = notificationService.getNotificationColor(notif.tipo);
-
-                return (
-                  <TouchableOpacity
-                    key={notif.id || index}
-                    style={styles.activeListItem}
-                    activeOpacity={0.7}
-                  // No action defined yet for clicking a notification in summary
-                  >
-                    <View style={[styles.activeListItemIcon, { backgroundColor: `${color}20` }]}>
-                      <Ionicons name={iconName as any} size={18} color={color} />
-                    </View>
-
-                    <View style={styles.activeListItemContent}>
-                      <Text style={styles.activeListItemCode} numberOfLines={1}>
-                        {notif.titulo}
-                      </Text>
-
-                      <Text style={[styles.activeListItemDaysText, { marginTop: 2 }]} numberOfLines={2}>
-                        {notif.mensaje}
-                      </Text>
-
-                      <View style={styles.activeListItemMeta}>
-                        <View style={styles.activeListItemDays}>
-                          <Ionicons name="time-outline" size={12} color="#6B7280" />
-                          <Text style={styles.activeListItemDaysText}>
-                            {new Date(notif.fecha_creacion).toLocaleDateString()}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-
-              <TouchableOpacity
-                style={styles.viewHistoryButton}
-                onPress={onViewAllNotifications}
-              >
-                <Text style={styles.viewHistoryText}>Ver Todas las Notificaciones</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )
-      }
 
       {/* Mensaje si no hay datos */}
       {

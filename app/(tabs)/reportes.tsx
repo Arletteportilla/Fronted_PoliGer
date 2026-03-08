@@ -37,12 +37,10 @@ export default function ReportesScreen() {
       ]);
 
       if (germinacionesResult.status === 'fulfilled') {
-        logger.info('Estadísticas de germinaciones:', germinacionesResult.value);
         setGStats(germinacionesResult.value);
       }
 
       if (polinizacionesResult.status === 'fulfilled') {
-        logger.info('Estadísticas de polinizaciones:', polinizacionesResult.value);
         setPStats(polinizacionesResult.value);
       }
 

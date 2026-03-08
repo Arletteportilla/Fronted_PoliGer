@@ -101,7 +101,7 @@ export const RecentRecordsTable: React.FC<RecentRecordsTableProps> = ({
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderText, styles.colId]}>CÓDIGO</Text>
             <Text style={[styles.tableHeaderText, styles.colTipo]}>TIPO</Text>
-            <Text style={[styles.tableHeaderText, styles.colPlanta]}>PLANTA MADRE</Text>
+            <Text style={[styles.tableHeaderText, styles.colPlanta]}>ESPECIE</Text>
             <Text style={[styles.tableHeaderText, styles.colFecha]}>FECHA</Text>
             <Text style={[styles.tableHeaderText, styles.colEstado]}>ESTADO</Text>
           </View>

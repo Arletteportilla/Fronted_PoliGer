@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -78,14 +78,14 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
   tasaExito,
   cosechasRealizadas,
   search,
-  activeFiltersCount,
+  activeFiltersCount: _activeFiltersCount,
   tipoRegistro = 'todos',
   fechaDesde = '',
   fechaHasta = '',
   downloading = false,
   onSearchChange,
   onClearSearch,
-  onShowFilters,
+  onShowFilters: _onShowFilters,
   onFechaDesdeChange,
   onFechaHastaChange,
   onTipoRegistroChange,
@@ -97,6 +97,7 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
+  const [localSearch, setLocalSearch] = useState(search);
 
   return (
     <>
@@ -138,13 +139,15 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
             style={styles.searchInput}
             placeholder="Buscar..."
             placeholderTextColor={themeColors.text.disabled}
-            value={search}
-            onChangeText={onSearchChange}
+            value={localSearch}
+            onChangeText={setLocalSearch}
+            onSubmitEditing={() => onSearchChange(localSearch)}
+            returnKeyType="search"
           />
-          {search && (
+          {localSearch && (
             <TouchableOpacity
               style={styles.clearSearchButton}
-              onPress={onClearSearch}
+              onPress={() => { setLocalSearch(''); onClearSearch(); }}
             >
               <Ionicons name="close-circle" size={20} color={themeColors.text.disabled} />
             </TouchableOpacity>

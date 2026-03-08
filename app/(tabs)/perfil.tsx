@@ -35,6 +35,7 @@ import {
 import { createStyles } from '@/utils/Perfil/styles';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { Polinizacion, Germinacion, EstadisticasUsuario } from '@/types/index';
+import { logger } from '@/services/logger';
 
 export default function PerfilScreen() {
   const { user, forceLogout, refreshUser } = useAuth();
@@ -64,7 +65,10 @@ export default function PerfilScreen() {
     usuario: user?.username || 'Usuario'
   });
 
-  // Estados para búsqueda
+  // Estado del input (local, no dispara fetch)
+  const [inputSearchPolinizaciones, setInputSearchPolinizaciones] = useState('');
+  const [inputSearchGerminaciones, setInputSearchGerminaciones] = useState('');
+  // Estado comprometido que sí dispara el fetch (solo cambia al buscar o limpiar)
   const [searchPolinizaciones, setSearchPolinizaciones] = useState('');
   const [searchGerminaciones, setSearchGerminaciones] = useState('');
 
@@ -77,10 +81,6 @@ export default function PerfilScreen() {
   const [germinacionesPage, setGerminacionesPage] = useState(1);
   const [germinacionesTotalPages, setGerminacionesTotalPages] = useState(1);
   const [germinacionesTotalCount, setGerminacionesTotalCount] = useState(0);
-
-  // Estado para modal de creación de usuario
-
-  // Estado para modal de edición de usuario
 
   // Modales de polinizaciones (usando useModalState)
   const [_polinizacionDetailsModal, polinizacionDetailsControls] = useModalState<Polinizacion>();
@@ -248,7 +248,7 @@ export default function PerfilScreen() {
             misPolinizaciones = Array.isArray(result.results) ? result.results : [];
           }
         } catch (error) {
-          console.error('Error obteniendo polinizaciones:', error);
+          logger.error('Error obteniendo polinizaciones:', error);
           misPolinizaciones = [];
         }
       }
@@ -278,7 +278,7 @@ export default function PerfilScreen() {
             misGerminaciones = Array.isArray(result.results) ? result.results : [];
           }
         } catch (error) {
-          console.error('Error obteniendo germinaciones:', error);
+          logger.error('Error obteniendo germinaciones:', error);
           misGerminaciones = [];
         }
       }
@@ -288,7 +288,7 @@ export default function PerfilScreen() {
         try {
           stats = await estadisticasService.getEstadisticasUsuario();
         } catch (error) {
-          console.error('Error obteniendo estadísticas:', error);
+          logger.error('Error obteniendo estadísticas:', error);
           stats = null;
         }
       }
@@ -326,7 +326,7 @@ export default function PerfilScreen() {
       }
 
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logger.error('Error fetching data:', error);
       Alert.alert('Error', 'No se pudieron cargar los datos');
     } finally {
       setLoading(false);
@@ -337,6 +337,8 @@ export default function PerfilScreen() {
   useEffect(() => {
     setPolinizacionesPage(1);
     setGerminacionesPage(1);
+    setInputSearchPolinizaciones('');
+    setInputSearchGerminaciones('');
     setSearchPolinizaciones('');
     setSearchGerminaciones('');
   }, [tab]);
@@ -349,52 +351,54 @@ export default function PerfilScreen() {
   }, [tab, user?.id, fetchData]);
 
   // Funciones de búsqueda optimizadas con paginación
-  const handleBuscarPolinizaciones = useCallback(async () => {
+  const handleBuscarPolinizaciones = useCallback(async (search: string) => {
     if (!user) return;
 
+    setSearchPolinizaciones(search);
     try {
       setLoading(true);
-      setPolinizacionesPage(1); // Reset a página 1 al buscar
+      setPolinizacionesPage(1);
       const result = await polinizacionService.getMisPolinizacionesPaginated({
         page: 1,
         page_size: 20,
-        ...(searchPolinizaciones && { search: searchPolinizaciones }),
-        dias_recientes: 0 // 0 = ver todas las polinizaciones sin filtro de fecha
+        ...(search && { search }),
+        dias_recientes: 0
       });
       setPolinizaciones(Array.isArray(result.results) ? result.results : []);
       setPolinizacionesTotalPages(result.totalPages);
       setPolinizacionesTotalCount(result.count);
     } catch (error) {
-      console.error('Error buscando polinizaciones:', error);
+      logger.error('Error buscando polinizaciones:', error);
       Alert.alert('Error', 'No se pudieron buscar las polinizaciones');
     } finally {
       setLoading(false);
     }
-  }, [user, searchPolinizaciones]);
+  }, [user]);
 
-  const handleBuscarGerminaciones = useCallback(async () => {
+  const handleBuscarGerminaciones = useCallback(async (search: string) => {
     if (!user) return;
 
+    setSearchGerminaciones(search);
     try {
       setLoading(true);
-      setGerminacionesPage(1); // Reset a página 1 al buscar
+      setGerminacionesPage(1);
       const result = await germinacionService.getMisGerminacionesPaginated({
         page: 1,
         page_size: 20,
-        ...(searchGerminaciones && { search: searchGerminaciones }),
-        dias_recientes: 0, // 0 = ver todas las germinaciones sin filtro de fecha
-        excluir_importadas: true // Solo mostrar las germinaciones creadas por el usuario
+        ...(search && { search }),
+        dias_recientes: 0,
+        excluir_importadas: true
       });
       setGerminaciones(Array.isArray(result.results) ? result.results : []);
       setGerminacionesTotalPages(result.totalPages);
       setGerminacionesTotalCount(result.count);
     } catch (error) {
-      console.error('Error buscando germinaciones:', error);
+      logger.error('Error buscando germinaciones:', error);
       Alert.alert('Error', 'No se pudieron buscar las germinaciones');
     } finally {
       setLoading(false);
     }
-  }, [user, searchGerminaciones]);
+  }, [user, inputSearchGerminaciones]);
 
   // Funciones de paginación para polinizaciones
   const handlePolinizacionesPageChange = useCallback((page: number) => {
@@ -521,8 +525,8 @@ export default function PerfilScreen() {
           }
         }
       } catch (error: any) {
-        console.error(`❌ Error descargando PDF de ${tipo}:`, error);
-        console.error('❌ Error details:', {
+        logger.error(` Error descargando PDF de ${tipo}:`, error);
+        logger.error(' Error details:', {
           message: error.message,
           response: error.response?.data,
           status: error.response?.status
@@ -557,7 +561,8 @@ export default function PerfilScreen() {
       'Descargar PDF',
       `¿Deseas descargar el PDF de tus ${tipo}${searchText}?`,
       'Descargar',
-      'Cancelar'
+      'Cancelar',
+      'download'
     );
 
     if (confirmed) {
@@ -663,7 +668,7 @@ export default function PerfilScreen() {
       const germinacionActualizada = await germinacionService.getById(item.id);
       germinacionDetailsControls.open(germinacionActualizada);
     } catch (error) {
-      console.error('Error cargando germinación:', error);
+      logger.error('Error cargando germinación:', error);
       // Si falla, usar los datos en caché
       germinacionDetailsControls.open(item);
     }
@@ -722,7 +727,7 @@ export default function PerfilScreen() {
       const mensaje = mensajes[nuevaEtapa] || 'Estado de germinación actualizado correctamente';
       toast.success(mensaje);
     } catch (error: any) {
-      console.error('Error cambiando etapa:', error);
+      logger.error('Error cambiando etapa:', error);
       toast.error(error.response?.data?.message || 'No se pudo cambiar la etapa de la germinación');
     } finally {
       setLoading(false);
@@ -735,7 +740,7 @@ export default function PerfilScreen() {
       const germinacionActualizada = await germinacionService.getById(item.id);
       changeStatusGerminacionControls.open(germinacionActualizada);
     } catch (error) {
-      console.error('Error cargando germinación:', error);
+      logger.error('Error cargando germinación:', error);
       // Si falla, usar los datos en caché
       changeStatusGerminacionControls.open(item);
     }
@@ -790,7 +795,7 @@ export default function PerfilScreen() {
 
       toast.success('Germinación finalizada exitosamente');
     } catch (error: any) {
-      console.error('Error finalizando germinación:', error);
+      logger.error('Error finalizando germinación:', error);
       toast.error(error.response?.data?.error || 'No se pudo finalizar la germinación');
     } finally {
       setLoading(false);
@@ -854,7 +859,7 @@ export default function PerfilScreen() {
 
       toast.success('Estado de polinización actualizado correctamente');
     } catch (error: any) {
-      console.error('Error cambiando estado de polinización:', error);
+      logger.error('Error cambiando estado de polinización:', error);
       toast.error(error.response?.data?.error || 'No se pudo cambiar el estado de la polinización');
     } finally {
       setLoading(false);
@@ -902,7 +907,7 @@ export default function PerfilScreen() {
 
           toast.success(mensajeValidacion);
         } catch (validacionError) {
-          console.warn('⚠️ No se pudo validar la predicción:', validacionError);
+          logger.warn(' No se pudo validar la predicción:', validacionError);
           // No bloquear el flujo si falla la validación
           toast.success('Polinización finalizada exitosamente');
         }
@@ -941,7 +946,7 @@ export default function PerfilScreen() {
       await fetchData();
 
     } catch (error: any) {
-      console.error('Error finalizando polinización:', error);
+      logger.error('Error finalizando polinización:', error);
       toast.error(error.response?.data?.error || 'No se pudo finalizar la polinización');
     } finally {
       setLoading(false);
@@ -996,8 +1001,6 @@ export default function PerfilScreen() {
             <PerfilPolinizacionesTab
               loading={loading}
               polinizaciones={polinizaciones}
-              searchPolinizaciones={searchPolinizaciones}
-              setSearchPolinizaciones={setSearchPolinizaciones}
               setPolinizacionesPage={setPolinizacionesPage}
               fetchData={fetchData}
               handleBuscarPolinizaciones={handleBuscarPolinizaciones}
@@ -1018,8 +1021,6 @@ export default function PerfilScreen() {
             <PerfilGerminacionesTab
               loading={loading}
               germinaciones={germinaciones}
-              searchGerminaciones={searchGerminaciones}
-              setSearchGerminaciones={setSearchGerminaciones}
               setGerminacionesPage={setGerminacionesPage}
               fetchData={fetchData}
               handleBuscarGerminaciones={handleBuscarGerminaciones}
@@ -1032,7 +1033,6 @@ export default function PerfilScreen() {
               handleViewGerminacion={handleViewGerminacion}
               handleEditGerminacion={handleEditGerminacion}
               handleDeleteGerminacion={handleDeleteGerminacion}
-              handleOpenChangeStatus={handleOpenChangeStatus}
               onDescargarPDF={() => handleDescargarPDF('germinaciones')}
               onNewGerminacion={() => setShowNewGerminacionForm(true)}
             />

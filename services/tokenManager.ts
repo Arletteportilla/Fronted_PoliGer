@@ -58,14 +58,14 @@ class TokenManager {
   // Limpiar todos los tokens
   async clearTokens(): Promise<void> {
     try {
-      logger.info('🧹 TokenManager: Limpiando tokens almacenados...');
+      logger.info(' TokenManager: Limpiando tokens almacenados...');
       await Promise.all([
         SecureStore.secureStore.removeItem('authToken'),
         SecureStore.secureStore.removeItem('refreshToken')
       ]);
       logger.success(' TokenManager: Tokens limpiados exitosamente');
     } catch (error) {
-      logger.error('❌ TokenManager: Error al limpiar tokens:', error);
+      logger.error(' TokenManager: Error al limpiar tokens:', error);
       // Error silencioso
     }
   }
@@ -97,7 +97,7 @@ class TokenManager {
       }
 
       // Crear una nueva instancia de axios para evitar el interceptor
-      const axios = require('axios');
+      const { default: axios } = await import('axios');
       const refreshApi = axios.create({
         baseURL: CONFIG.API_BASE_URL,
         headers: {

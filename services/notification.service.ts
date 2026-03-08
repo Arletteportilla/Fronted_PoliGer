@@ -48,10 +48,12 @@ class NotificationService {
     solo_no_leidas?: boolean;
     incluir_archivadas?: boolean;
     solo_propias?: boolean;  // Forzar solo las notificaciones del usuario actual (útil para perfil)
-  } = {}): Promise<Notification[] | NotificationResponse> {
+    tipo?: string;
+    page_size?: number;
+  } = {}): Promise<{ notifications: Notification[]; total: number }> {
     try {
 
-      const queryParams: any = {};
+      const queryParams: any = { page_size: params.page_size ?? 100 };
       if (params.solo_no_leidas) {
         queryParams.solo_no_leidas = 'true';
       }
@@ -60,6 +62,9 @@ class NotificationService {
       }
       if (params.solo_propias) {
         queryParams.solo_propias = 'true';
+      }
+      if (params.tipo) {
+        queryParams.tipo = params.tipo;
       }
 
       const response = await api.get('notifications/', {
@@ -70,12 +75,19 @@ class NotificationService {
 
       // Manejar respuesta paginada del backend (tiene 'results')
       if (data && data.results && Array.isArray(data.results)) {
-        return data.results;
+        return { notifications: data.results, total: data.count ?? data.results.length };
       }
 
-      return data;
+      // Respuesta directa como array
+      if (Array.isArray(data)) {
+        return { notifications: data, total: data.length };
+      }
+
+      // Respuesta admin con notificaciones
+      const list = data.notificaciones ?? [];
+      return { notifications: list, total: list.length };
     } catch (error: any) {
-      logger.error('❌ Error obteniendo notificaciones:', error);
+      logger.error(' Error obteniendo notificaciones:', error);
       throw error;
     }
   }
@@ -87,7 +99,7 @@ class NotificationService {
     try {
       await api.post(`notifications/${notificationId}/marcar-leida/`);
     } catch (error: any) {
-      logger.error('❌ Error marcando notificación como leída:', error);
+      logger.error(' Error marcando notificación como leída:', error);
       throw error;
     }
   }
@@ -100,7 +112,7 @@ class NotificationService {
       const response = await api.post('notifications/marcar-todas-leidas/');
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error marcando todas las notificaciones como leídas:', error);
+      logger.error(' Error marcando todas las notificaciones como leídas:', error);
       throw error;
     }
   }
@@ -115,7 +127,7 @@ class NotificationService {
       
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error cambiando estado de favorita:', error);
+      logger.error(' Error cambiando estado de favorita:', error);
       throw error;
     }
   }
@@ -129,7 +141,7 @@ class NotificationService {
       await api.post(`notifications/${notificationId}/archivar/`);
       
     } catch (error: any) {
-      logger.error('❌ Error archivando notificación:', error);
+      logger.error(' Error archivando notificación:', error);
       throw error;
     }
   }
@@ -144,7 +156,7 @@ class NotificationService {
       
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo estadísticas:', error);
+      logger.error(' Error obteniendo estadísticas:', error);
       throw error;
     }
   }
@@ -159,7 +171,7 @@ class NotificationService {
       
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo alertas:', error);
+      logger.error(' Error obteniendo alertas:', error);
       throw error;
     }
   }
@@ -176,7 +188,7 @@ class NotificationService {
       
       return response.data;
     } catch (error: any) {
-      logger.error('❌ Error obteniendo registros pendientes:', error);
+      logger.error(' Error obteniendo registros pendientes:', error);
       throw error;
     }
   }
