@@ -5,9 +5,9 @@
 
 // Colores primarios del sistema (no cambian con el tema)
 export const PRIMARY = {
-  main: '#e9ad14',       // Amarillo/dorado principal
-  dark: '#c89512',       // Variante oscura
-  light: '#f9c54d',      // Variante clara
+  main: '#182d49',       // Azul navy principal (brand color)
+  dark: '#0f1f35',       // Variante oscura
+  light: '#e8edf3',      // Variante clara (tint suave)
   contrast: '#ffffff',   // Color de contraste (texto sobre primario)
 };
 
@@ -47,21 +47,27 @@ const TEXT_DARK = {
 
 // Colores de acento y estado (no cambian mucho con el tema)
 export const ACCENT = {
-  primary: '#182d49',    // Azul oscuro principal
-  secondary: '#3B82F6',  // Azul estándar
-  tertiary: '#60A5FA',   // Azul claro
+  primary: '#182d49',    // Azul navy principal
+  secondary: '#182d49',  // Azul navy oscuro
+  tertiary: '#e8edf3',   // Tint azul suave
 };
 
 // Colores de estado (success, warning, error, info)
 export const STATUS = {
   success: '#10B981',    // Verde para éxito
+  successDark: '#059669',
   successLight: '#d1fae5',
   warning: '#F59E0B',    // Amarillo/naranja advertencia
+  warningDark: '#D97706',
   warningLight: '#FEF3C7',
   error: '#EF4444',      // Rojo error
+  errorDark: '#DC2626',
   errorLight: '#FEE2E2',
   info: '#182d49',       // Azul oscuro para info
+  infoDark: '#0f1f35',
   infoLight: '#e0e7ff',
+  orange: '#f97316',     // Naranja (proceso avanzado)
+  orangeLight: '#ffedd5',
 };
 
 // Colores de botones y elementos interactivos - Tema Claro
@@ -69,7 +75,7 @@ const INTERACTIVE_LIGHT = {
   hover: '#f0f0f0',      // Hover general
   pressed: '#e0e0e0',    // Pressed general
   disabled: '#e5e7eb',   // Deshabilitado
-  focus: '#3B82F6',      // Focus
+  focus: '#182d49',      // Focus
 };
 
 // Colores de botones y elementos interactivos - Tema Oscuro
@@ -132,16 +138,56 @@ export const MODULE = {
   },
 };
 
+// Colores de variantes del modal de confirmación
+export const CONFIRMATION_VARIANTS = {
+  danger: {
+    bg: '#EF4444',
+    hover: '#DC2626',
+    iconBg: '#FEE2E2',
+    iconColor: '#EF4444',
+    icon: 'trash-outline' as const,
+  },
+  warning: {
+    bg: '#F59E0B',
+    hover: '#D97706',
+    iconBg: '#FEF3C7',
+    iconColor: '#F59E0B',
+    icon: 'warning-outline' as const,
+  },
+  info: {
+    bg: '#182d49',
+    hover: '#0f1f34',
+    iconBg: '#e0e7ff',
+    iconColor: '#182d49',
+    icon: 'information-circle-outline' as const,
+  },
+  download: {
+    bg: '#10B981',
+    hover: '#059669',
+    iconBg: '#D1FAE5',
+    iconColor: '#10B981',
+    icon: 'document-text-outline' as const,
+  },
+};
+
+// Colores de la barra de progreso de estados
+export const PROGRESS_STATES = {
+  inicial:           { color: '#182d49', light: '#e8edf3' },
+  enProcesoTemprano: { color: '#F59E0B', light: '#FEF3C7' },
+  enProcesoAvanzado: { color: '#f97316', light: '#ffedd5' },
+  finalizado:        { color: '#10B981', light: '#d1fae5' },
+};
+
 // Colores de estados de cápsula
 export const CAPSULA_STATES = {
   CERRADA: '#6B7280',
-  ABIERTA: '#10B981',
+  ABIERTA: '#28e86e',
   SEMIABIERTA: '#F59E0B',
 };
 
 // Colores de climas
 export const CLIMA = {
-  I: '#3B82F6',    // Intermedio - Azul
+  I: '#182d49',    // Intermedio - Azul
   IW: '#8B5CF6',   // Intermedio-Cálido - Púrpura
   IC: '#06B6D4',   // Intermedio-Frío - Cyan
   W: '#EF4444',    // Cálido - Rojo
@@ -150,6 +196,8 @@ export const CLIMA = {
 
 // Colores para gráficos y visualizaciones
 export const CHART = {
+  polinizaciones: STATUS.warning,    // Naranja/ámbar para polinizaciones
+  germinaciones: PRIMARY.main,       // Azul navy oscuro para germinaciones
   colors: [
     '#e9ad14',  // Amarillo/dorado principal
     '#182d49',  // Azul oscuro
@@ -167,7 +215,7 @@ export const CHART = {
 // Colores especiales
 export const SPECIAL = {
   star: '#fbbf24',       // Estrella/favorito
-  link: '#3B82F6',       // Enlaces
+  link: '#182d49',       // Enlaces
   highlight: '#FEF3C7',  // Resaltado
   overlay: 'rgba(0, 0, 0, 0.5)', // Overlay general
 };
@@ -184,6 +232,8 @@ export function getColors(theme: 'light' | 'dark' = 'light') {
     border: theme === 'dark' ? BORDER_DARK : BORDER_LIGHT,
     shadow: SHADOW,
     module: MODULE,
+    confirmationVariants: CONFIRMATION_VARIANTS,
+    progressStates: PROGRESS_STATES,
     capsulaStates: CAPSULA_STATES,
     clima: CLIMA,
     chart: CHART,

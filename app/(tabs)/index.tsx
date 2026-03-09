@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { StyleSheet, ScrollView, ActivityIndicator, View, Text, TouchableOpacity, RefreshControl, FlatList, useWindowDimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { Germinacion, Polinizacion } from '@/types';
@@ -100,8 +100,8 @@ export default function HomeScreen() {
   const getGerminacionStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'INGRESADO': return '#F59E0B';
-      case 'EN_PROCESO': return '#3B82F6';
-      case 'LISTA': return '#10B981';
+      case 'EN_PROCESO': return '#182d49';
+      case 'LISTA': return themeColors.status.success;
       case 'CANCELADO': return '#EF4444';
       default: return '#6B7280';
     }
@@ -114,8 +114,8 @@ export default function HomeScreen() {
   }, []);
 
   const getPolinizacionStatusColor = useCallback((polinizacion: any) => {
-    if (polinizacion.fechamad) return '#10B981';
-    if (polinizacion.fechapol) return '#3B82F6';
+    if (polinizacion.fechamad) return themeColors.status.success;
+    if (polinizacion.fechapol) return '#182d49';
     return '#F59E0B';
   }, []);
 
@@ -543,11 +543,11 @@ export default function HomeScreen() {
                 onPress={() => router.push('/(tabs)/polinizaciones')}
               >
                 <View style={styles.metricCardHeader}>
-                  <View style={[styles.metricIcon, { backgroundColor: themeColors.accent.tertiary }]}>
-                    <Ionicons name="flower" size={20} color={themeColors.accent.primary} />
+                  <Text style={styles.metricLabel}>Total Polinizaciones</Text>
+                  <View style={[styles.metricIcon, { backgroundColor: themeColors.module.polinizacion.light }]}>
+                    <Ionicons name="flower" size={20} color={themeColors.module.polinizacion.primary} />
                   </View>
                 </View>
-                <Text style={styles.metricLabel}>Total Polinizaciones</Text>
                 <Text style={styles.metricValue}>{polinizacionStats.total.toLocaleString()}</Text>
               </TouchableOpacity>
             )}
@@ -559,11 +559,11 @@ export default function HomeScreen() {
                 onPress={() => router.push('/(tabs)/germinaciones')}
               >
                 <View style={styles.metricCardHeader}>
-                  <View style={[styles.metricIcon, { backgroundColor: themeColors.primary.light }]}>
-                    <Ionicons name="leaf" size={20} color={themeColors.primary.main} />
+                  <Text style={styles.metricLabel}>Total Germinaciones</Text>
+                  <View style={[styles.metricIcon, { backgroundColor: themeColors.status.successLight }]}>
+                    <FontAwesome6 name="seedling" size={20} color={themeColors.status.success} />
                   </View>
                 </View>
-                <Text style={styles.metricLabel}>Total Germinaciones</Text>
                 <Text style={styles.metricValue}>{germinacionStats.total.toLocaleString()}</Text>
               </TouchableOpacity>
             )}
@@ -571,11 +571,11 @@ export default function HomeScreen() {
             {/* Tasa de Éxito - basada en datos disponibles según permisos */}
             <TouchableOpacity style={[styles.metricCard, styles.metricCardSuccess]}>
               <View style={styles.metricCardHeader}>
+                <Text style={styles.metricLabel}>Tasa de Éxito</Text>
                 <View style={[styles.metricIcon, { backgroundColor: themeColors.primary.light }]}>
-                  <Ionicons name="checkmark-circle" size={20} color={themeColors.primary.dark} />
+                  <Ionicons name="checkmark-circle" size={20} color={themeColors.primary.main} />
                 </View>
               </View>
-              <Text style={styles.metricLabel}>Tasa de Éxito</Text>
               <Text style={styles.metricValue}>
                 {(() => {
                   const totalCompletados = (canViewGerminaciones() ? germinacionStats.completado : 0) + (canViewPolinizaciones() ? polinizacionStats.completado : 0);
@@ -588,11 +588,11 @@ export default function HomeScreen() {
             {/* Acciones Pendientes - ingresado + en_proceso según permisos */}
             <TouchableOpacity style={[styles.metricCard, styles.metricCardPending]}>
               <View style={styles.metricCardHeader}>
+                <Text style={styles.metricLabel}>Acciones Pendientes</Text>
                 <View style={[styles.metricIcon, { backgroundColor: themeColors.status.warningLight }]}>
                   <Ionicons name="time" size={20} color={themeColors.status.warning} />
                 </View>
               </View>
-              <Text style={styles.metricLabel}>Acciones Pendientes</Text>
               <Text style={styles.metricValue}>
                 {(canViewGerminaciones() ? germinacionStats.ingresado + germinacionStats.en_proceso : 0) + (canViewPolinizaciones() ? polinizacionStats.ingresado + polinizacionStats.en_proceso : 0)}
               </Text>
@@ -704,14 +704,13 @@ export default function HomeScreen() {
                   return (
                     <View key={`activity-${index}`} style={styles.activityItem}>
                       <View style={[
-                        styles.activityIcon, 
+                        styles.activityIcon,
                         { backgroundColor: isGerminacion ? themeColors.primary.light : themeColors.accent.tertiary }
                       ]}>
-                        <Ionicons 
-                          name={isGerminacion ? "leaf" : "flower"} 
-                          size={12} 
-                          color={isGerminacion ? themeColors.primary.main : themeColors.accent.primary} 
-                        />
+                        {isGerminacion
+                          ? <FontAwesome6 name="seedling" size={12} color={themeColors.primary.main} />
+                          : <Ionicons name="flower" size={12} color={themeColors.accent.primary} />
+                        }
                       </View>
                       <View style={styles.activityContent}>
                         <Text style={styles.activityItemTitle}>
@@ -861,15 +860,14 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    justifyContent: 'space-between',
   },
   metricCard: {
     backgroundColor: colors.background.primary,
     borderRadius: 16,
-    padding: isMobile ? 14 : 16,
+    padding: isMobile ? 12 : 16,
     flex: 1,
-    minWidth: isMobile ? 120 : 140,
-    maxWidth: '48%',
+    minWidth: isMobile ? '46%' : 180,
+    maxWidth: isMobile ? '48%' : '23%',
     shadowColor: colors.shadow.color,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -890,20 +888,16 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   metricCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 12,
   },
   metricIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: isMobile ? 34 : 40,
+    height: isMobile ? 34 : 40,
+    borderRadius: isMobile ? 17 : 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    flexShrink: 0,
   },
   metricBadge: {
     flexDirection: 'row',
@@ -921,20 +915,22 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     fontWeight: '700',
   },
   metricLabel: {
-    fontSize: 12,
+    flex: 1,
+    fontSize: isMobile ? 10 : 12,
     color: colors.text.tertiary,
     fontWeight: '600',
-    marginBottom: 8,
-    lineHeight: 16,
+    lineHeight: 14,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    paddingRight: 6,
   },
   metricValue: {
-    fontSize: 28,
+    fontSize: isMobile ? 22 : 28,
     fontWeight: '900',
     color: colors.text.primary,
     letterSpacing: -1,
-    marginBottom: 12,
+    marginBottom: 8,
+    marginTop: 4,
   },
   metricProgress: {
     marginTop: 6,

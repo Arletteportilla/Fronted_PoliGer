@@ -11,11 +11,6 @@ interface MonthlyActivityChartProps {
   title?: string;
 }
 
-const COLORS = {
-  polinizaciones: '#F59E0B',
-  germinaciones: '#4CAF50',
-};
-
 export const MonthlyActivityChart: React.FC<MonthlyActivityChartProps> = ({
   dataPolinizaciones = [],
   dataGerminaciones = [],
@@ -109,11 +104,11 @@ export const MonthlyActivityChart: React.FC<MonthlyActivityChartProps> = ({
       {/* Leyenda */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: COLORS.polinizaciones }]} />
+          <View style={[styles.legendDot, { backgroundColor: themeColors.chart.polinizaciones }]} />
           <Text style={styles.legendText}>Polinizaciones</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: COLORS.germinaciones }]} />
+          <View style={[styles.legendDot, { backgroundColor: themeColors.chart.germinaciones }]} />
           <Text style={styles.legendText}>Germinaciones</Text>
         </View>
       </View>
@@ -169,7 +164,7 @@ export const MonthlyActivityChart: React.FC<MonthlyActivityChartProps> = ({
                   y={chartHeight - padding.bottom - polBarHeight}
                   width={barWidth}
                   height={Math.max(polBarHeight, 0)}
-                  fill={COLORS.polinizaciones}
+                  fill={themeColors.chart.polinizaciones}
                   rx="4"
                   ry="4"
                 />
@@ -179,7 +174,7 @@ export const MonthlyActivityChart: React.FC<MonthlyActivityChartProps> = ({
                   y={chartHeight - padding.bottom - germBarHeight}
                   width={barWidth}
                   height={Math.max(germBarHeight, 0)}
-                  fill={COLORS.germinaciones}
+                  fill={themeColors.chart.germinaciones}
                   rx="4"
                   ry="4"
                 />

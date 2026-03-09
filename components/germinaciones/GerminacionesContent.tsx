@@ -62,7 +62,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
   // Función para obtener color de fondo del estado (versión clara)
   const getEstadoBgColor = (estado: string) => {
     const estadoLower = estado?.toLowerCase() || '';
-    if (estadoLower === 'completado' || estadoLower === 'finalizado' || estadoLower === 'lista' || estadoLower === 'listo') return '#D1FAE5';
+    if (estadoLower === 'completado' || estadoLower === 'finalizado' || estadoLower === 'lista' || estadoLower === 'listo') return themeColors.status.successLight;
     if (estadoLower === 'en proceso' || estadoLower === 'en_proceso' || estadoLower === 'pendiente' || estadoLower === 'en_proceso_temprano' || estadoLower === 'en_proceso_avanzado') return '#FEF3C7';
     if (estadoLower === 'en desarrollo') return '#FEF3C7';
     if (estadoLower === 'ingresado' || estadoLower === 'inicial') return '#E5E7EB';
@@ -155,7 +155,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                       {diasFaltantes !== null && (
                         <Text style={{
                           fontSize: 10, fontWeight: '700',
-                          color: diasFaltantes > 0 ? '#F59E0B' : diasFaltantes === 0 ? '#10B981' : '#EF4444'
+                          color: diasFaltantes > 0 ? '#F59E0B' : diasFaltantes === 0 ? themeColors.status.success : '#EF4444'
                         }}>
                           {diasFaltantes > 0 ? `${diasFaltantes}d` : diasFaltantes === 0 ? 'Hoy' : 'Venc.'}
                         </Text>
@@ -276,7 +276,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                                   {diasFaltantes}d restantes
                                 </Text>
                               ) : diasFaltantes === 0 ? (
-                                <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
+                                <Text style={{ fontSize: 9, color: themeColors.status.success, fontWeight: '600' }}>
                                   Hoy
                                 </Text>
                               ) : (
@@ -305,7 +305,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                         onPress={() => onItemPress?.(item)}
                         style={styles.actionIconButton}
                       >
-                        <Ionicons name="eye-outline" size={20} color="#3B82F6" />
+                        <Ionicons name="eye-outline" size={20} color="#182d49" />
                       </TouchableOpacity>
                     </View>
                   </View>

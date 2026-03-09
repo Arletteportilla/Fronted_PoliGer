@@ -25,11 +25,12 @@ export const SpeciesDonutChart: React.FC<SpeciesDonutChartProps> = ({
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
   
+  const chartPalette = themeColors.chart.colors;
   const defaultData = data || [
-    { name: 'Cattleya', percentage: 35, color: themeColors.primary.main },
-    { name: 'Dracula', percentage: 25, color: themeColors.accent.primary },
-    { name: 'Masdevallia', percentage: 25, color: themeColors.primary.dark },
-    { name: 'Otros', percentage: 15, color: themeColors.text.tertiary },
+    { name: 'Cattleya',    percentage: 35, color: chartPalette[1] },  // navy
+    { name: 'Dracula',     percentage: 25, color: chartPalette[2] },  // amber
+    { name: 'Masdevallia', percentage: 25, color: chartPalette[4] },  // purple
+    { name: 'Otros',       percentage: 15, color: themeColors.text.disabled },
   ];
   const size = 180;
   const strokeWidth = 30;

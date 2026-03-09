@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, StyleSheet, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { SimpleCalendarPicker } from '@/components/common';
@@ -43,7 +43,9 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   useOwnModal = true, // Por defecto usa su propio Modal
 }) => {
   const { colors: themeColors } = useTheme();
-  const styles = createStyles(themeColors);
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobile = windowWidth < 768;
+  const styles = createStyles(themeColors, isMobile);
   
   const [showClimaPicker, setShowClimaPicker] = useState(false);
   const [showEstadoCapsula, setShowEstadoCapsula] = useState(false);
@@ -302,7 +304,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
                             <Ionicons
                               name="checkmark-circle"
                               size={18}
-                              color="#10B981"
+                              color={themeColors.status.success}
                             />
                             <Text style={styles.validationTextSuccess}>
                               {codigoValidation.mensaje}
@@ -774,7 +776,7 @@ export const GerminacionForm: React.FC<GerminacionFormProps> = ({
   return formContent;
 };
 
-const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>, isMobile: boolean) => StyleSheet.create({
   popupOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -869,12 +871,12 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flex: 1,
   },
   inputRow: {
-    flexDirection: 'row',
+    flexDirection: isMobile ? 'column' : 'row',
     gap: 12,
     marginBottom: 12,
   },
   inputColumn: {
-    flex: 1,
+    flex: isMobile ? undefined : 1,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -1011,7 +1013,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   },
   validationTextSuccess: {
     fontSize: 13,
-    color: '#10B981',
+    color: colors.status.success,
     fontWeight: '600',
   },
   validationTextError: {
@@ -1021,7 +1023,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   },
   validationTextInfo: {
     fontSize: 13,
-    color: '#3B82F6',
+    color: '#182d49',
     fontWeight: '600',
   },
   // Estilos para panel lateral

@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -109,7 +109,7 @@ export const CambiarEstadoModal: React.FC<CambiarEstadoModalProps> = ({
                     onClose();
                   }}
                 >
-                  <Ionicons name="play-circle" size={20} color="#ffffff" />
+                  <FontAwesome6 name="seedling" size={20} color="#ffffff" />
                   <Text style={styles.stateButtonText}>Proceso Temprano</Text>
                 </TouchableOpacity>
               )}
@@ -264,7 +264,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     backgroundColor: '#f59e0b',
   },
   stateButtonFinish: {
-    backgroundColor: '#10b981',
+    backgroundColor: colors.status.success,
   },
   stateButtonText: {
     color: '#ffffff',

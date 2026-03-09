@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useSidebar, SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from '@/contexts/SidebarContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -64,15 +64,27 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ currentTab }) => {
             onPress={() => handleTabPress(tab.route)}
           >
             <View style={styles.tabIconContainer}>
-              <Ionicons
-                name={tab.icon as any}
-                size={20}
-                color={
-                  currentTab === tab.id 
-                    ? (isCollapsed ? themeColors.background.primary : themeColors.primary.main)
-                    : themeColors.text.tertiary
-                }
-              />
+              {tab.id === 'germinaciones' ? (
+                <FontAwesome6
+                  name="seedling"
+                  size={20}
+                  color={
+                    currentTab === tab.id
+                      ? (isCollapsed ? themeColors.background.primary : themeColors.primary.main)
+                      : themeColors.text.tertiary
+                  }
+                />
+              ) : (
+                <Ionicons
+                  name={tab.icon as any}
+                  size={20}
+                  color={
+                    currentTab === tab.id
+                      ? (isCollapsed ? themeColors.background.primary : themeColors.primary.main)
+                      : themeColors.text.tertiary
+                  }
+                />
+              )}
             </View>
             {!isCollapsed && (
               <Text style={[

@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { germinacionService } from '@/services/germinacion.service';
 import { logger } from '@/services/logger';
+import { STATUS } from '@/utils/colors';
 
 export interface GerminacionFilterParams {
   search?: string | undefined;
@@ -364,7 +365,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#10b981',
+    color: STATUS.success,
   },
   statLabel: {
     fontSize: 12,
@@ -415,8 +416,8 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
   },
   chipActive: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    backgroundColor: STATUS.success,
+    borderColor: STATUS.success,
   },
   chipText: {
     fontSize: 14,
@@ -460,7 +461,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: '#10b981',
+    backgroundColor: STATUS.success,
     gap: 8,
   },
   applyButtonText: {

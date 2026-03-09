@@ -1,7 +1,7 @@
 import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { createStyles } from '@/utils/Perfil/styles';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import type { EstadisticasUsuario, Polinizacion, Germinacion } from '@/types/index';
 import type { Notification } from '@/services/notification.service';
 import { getEstadoColor } from '@/utils/colorHelpers';
@@ -134,7 +134,7 @@ export function PerfilResumen({
                 }}
                 onPress={onDownloadPolinizacionesPDF}
               >
-                <Ionicons name="document-text" size={16} color="#F57C00" />
+                <FontAwesome6 name="file-pdf" size={16} color="#F57C00" />
                 <Text style={{ fontSize: 13, fontWeight: '600', color: '#F57C00', marginLeft: 6 }}>
                   Descargar PDF
                 </Text>
@@ -147,7 +147,7 @@ export function PerfilResumen({
         {canViewGerminaciones && (
           <View style={[styles.statCard, { backgroundColor: themeColors.background.secondary }]}>
             <View style={[styles.statIconContainer, { backgroundColor: '#E8F5E9' }]}>
-              <Ionicons name="leaf" size={24} color="#4CAF50" />
+              <FontAwesome6 name="seedling" size={24} color="#4CAF50" />
             </View>
             <Text style={styles.statLabel}>Germinaciones</Text>
             <Text style={styles.statValue}>{estadisticas.total_germinaciones}</Text>
@@ -170,7 +170,7 @@ export function PerfilResumen({
                 }}
                 onPress={onDownloadGerminacionesPDF}
               >
-                <Ionicons name="document-text" size={16} color="#4CAF50" />
+                <FontAwesome6 name="file-pdf" size={16} color="#4CAF50" />
                 <Text style={{ fontSize: 13, fontWeight: '600', color: '#4CAF50', marginLeft: 6 }}>
                   Descargar PDF
                 </Text>
@@ -182,8 +182,8 @@ export function PerfilResumen({
         {/* Tarjeta de Éxito Promedio - Solo si tiene permiso de polinizaciones */}
         {canViewPolinizaciones && (
           <View style={[styles.statCard, { backgroundColor: themeColors.background.secondary }]}>
-            <View style={[styles.statIconContainer, { backgroundColor: '#E3F2FD' }]}>
-              <Ionicons name="trending-up" size={24} color="#2196F3" />
+            <View style={[styles.statIconContainer, { backgroundColor: themeColors.primary.light }]}>
+              <Ionicons name="trending-up" size={24} color={themeColors.primary.main} />
             </View>
             <Text style={styles.statLabel}>Éxito Promedio</Text>
             <Text style={styles.statValue}>{exitoPromedio}%</Text>
@@ -322,8 +322,8 @@ export function PerfilResumen({
               <View style={styles.activeListCard}>
                 <View style={styles.activeListHeader}>
                   <View style={styles.activeListTitleContainer}>
-                    <View style={[styles.activeListIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-                      <Ionicons name="leaf" size={20} color="#10B981" />
+                    <View style={[styles.activeListIcon, { backgroundColor: themeColors.status.successLight }]}>
+                      <FontAwesome6 name="seedling" size={20} color={themeColors.status.success} />
                     </View>
                     <Text style={styles.activeListTitle}>Germinaciones Activas</Text>
                   </View>
@@ -337,8 +337,8 @@ export function PerfilResumen({
                       onPress={() => onViewGerminacion?.(germ)}
                       activeOpacity={0.7}
                     >
-                      <View style={[styles.activeListItemIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-                        <Ionicons name="leaf-outline" size={18} color="#10B981" />
+                      <View style={[styles.activeListItemIcon, { backgroundColor: themeColors.status.successLight }]}>
+                        <FontAwesome6 name="seedling" size={18} color={themeColors.status.success} />
                       </View>
 
                       <View style={styles.activeListItemContent}>

@@ -26,7 +26,7 @@ export const getEstadoColor = (estado?: string): string => {
 
     // Estados iniciales
     'ingresado': '#6B7280',      // Gray
-    'inicial': '#3B82F6',        // Blue
+    'inicial': '#182d49',        // Blue
 
     // Estados específicos
     'maduro': '#60a5fa',         // Light Blue
@@ -47,14 +47,14 @@ export const getTipoColor = (tipo?: string): string => {
   const tipoLower = tipo?.toLowerCase() || '';
 
   const colorMap: Record<string, string> = {
-    'self': '#3B82F6',           // Blue
+    'self': '#182d49',           // Blue
     'sibling': '#8B5CF6',        // Purple
     'híbrida': '#F59E0B',        // Orange
     'hibrida': '#F59E0B',        // Orange
-    'replante': '#3b82f6',       // Blue
+    'replante': '#182d49',       // Blue
   };
 
-  return colorMap[tipoLower] || '#3B82F6'; // Default: Blue
+  return colorMap[tipoLower] || '#182d49'; // Default: Blue
 };
 
 /**
@@ -66,7 +66,7 @@ export const getClimaColor = (clima?: string): string => {
   const climaLower = clima?.toLowerCase() || '';
 
   const colorMap: Record<string, string> = {
-    'i': '#3B82F6',              // Blue - Intermedio
+    'i': '#182d49',              // Blue - Intermedio
     'iw': '#F59E0B',             // Orange - Intermedio Caliente
     'ic': '#60a5fa',             // Light Blue - Intermedio Frío
     'w': '#93c5fd',              // Very Light Blue - Frío

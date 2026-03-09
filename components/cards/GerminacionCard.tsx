@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '@/hooks/useResponsive';
+import { STATUS } from '@/utils/colors';
 import { calcularDiasRestantes, getEstadoPrediccion } from '@/utils/prediccionHelpers';
 import { ValidarPrediccionGerminacionModal } from '../modals/ValidarPrediccionGerminacionModal';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
@@ -103,7 +104,7 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
         <View style={styles.tableCell}>
           {item.tipo_polinizacion && (
             <View style={[responsiveStyles.badge, styles.tipoBadge, {
-              backgroundColor: item.tipo_polinizacion === 'SELF' ? '#3B82F6' : 
+              backgroundColor: item.tipo_polinizacion === 'SELF' ? '#182d49' : 
                                item.tipo_polinizacion === 'SIBLING' ? '#8B5CF6' : '#F59E0B'
             }]}>
               <Text style={responsiveStyles.badgeText}>{item.tipo_polinizacion}</Text>
@@ -117,7 +118,7 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
         </View>
         <View style={styles.tableCell}>
           <View style={[responsiveStyles.badge, styles.statusBadge, {
-            backgroundColor: currentStatus === 'Completado' ? '#10B981' : 
+            backgroundColor: currentStatus === 'Completado' ? STATUS.success :
                             currentStatus === 'En Proceso' ? '#F59E0B' : '#6B7280'
           }]}>
             <Text style={responsiveStyles.badgeText}>{currentStatus}</Text>
@@ -223,7 +224,7 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
                     diasRestantes !== null && diasRestantes <= 7 ? "time" : "calendar"} 
               size={16} 
               color={diasRestantes !== null && diasRestantes < 0 ? "#EF4444" : 
-                     diasRestantes !== null && diasRestantes <= 7 ? "#F59E0B" : "#10B981"} 
+                     diasRestantes !== null && diasRestantes <= 7 ? "#F59E0B" : STATUS.success}
             />
             <Text style={styles.prediccionLabel}>Germinación Estimada</Text>
           </View>
@@ -236,7 +237,7 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
                 styles.prediccionDias,
                 {
                   color: diasRestantes < 0 ? "#EF4444" : 
-                         diasRestantes <= 7 ? "#F59E0B" : "#10B981"
+                         diasRestantes <= 7 ? "#F59E0B" : STATUS.success
                 }
               ]}>
                 {diasRestantes < 0 
@@ -307,7 +308,7 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="eye-outline" size={18} color="#3B82F6" />
+            <Ionicons name="eye-outline" size={18} color="#182d49" />
             <Text style={[styles.actionButtonText, styles.actionButtonTextView]}>
               Ver
             </Text>
@@ -461,7 +462,7 @@ const styles = StyleSheet.create({
   climaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#182d49',
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 10,
@@ -533,7 +534,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#10B981',
+    borderLeftColor: STATUS.success,
   },
   prediccionHeader: {
     flexDirection: 'row',
@@ -604,7 +605,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   actionButtonTextView: {
-    color: '#3B82F6',
+    color: '#182d49',
   },
   actionButtonTextEdit: {
     color: '#F59E0B',

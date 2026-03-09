@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, Alert, StyleSheet, useWindowDimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { Notification } from '@/services/notification.service';
@@ -306,8 +306,8 @@ export function PerfilNotificacionesTab({
               style={[styles.filterChip, tipoFilter === 'germinaciones' && styles.filterChipActiveGerminacion]}
               onPress={() => setTipoFilter(tipoFilter === 'germinaciones' ? 'todas' : 'germinaciones')}
             >
-              <Ionicons
-                name="leaf-outline"
+              <FontAwesome6
+                name="seedling"
                 size={14}
                 color={tipoFilter === 'germinaciones' ? "#22c55e" : themeColors.text.secondary}
               />
@@ -400,7 +400,7 @@ export function PerfilNotificacionesTab({
             <Ionicons
               name="checkmark-circle-outline"
               size={14}
-              color={estadoFilter === 'finalizado' ? "#10b981" : themeColors.text.secondary}
+              color={estadoFilter === 'finalizado' ? themeColors.status.success : themeColors.text.secondary}
             />
             <Text style={[
               styles.filterChipText,

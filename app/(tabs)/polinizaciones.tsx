@@ -162,6 +162,10 @@ export default function PolinizacionesScreen() {
   };
 
   const handleDownloadPDF = async () => {
+    if (!fechaDesde || !fechaHasta) {
+      showToast('Debes seleccionar las fechas "Desde" y "Hasta" antes de descargar el PDF', 'error');
+      return;
+    }
     try {
       setDownloading(true);
 

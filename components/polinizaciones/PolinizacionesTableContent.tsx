@@ -69,7 +69,7 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
 
   // Función para obtener color de fondo del estado
   const getEstadoBgColor = (estado: string, fechamad: any, prediccionFecha: any) => {
-    if (fechamad) return '#D1FAE5'; // Completado
+    if (fechamad) return themeColors.status.successLight; // Completado
     if (prediccionFecha && new Date(prediccionFecha) <= new Date()) return '#FEF3C7'; // En Proceso
     return '#F3F4F6'; // Pendiente/Ingresado
   };
@@ -172,7 +172,7 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
                       {diasFaltantes !== null && (
                         <Text style={{
                           fontSize: 10, fontWeight: '700',
-                          color: diasFaltantes > 0 ? '#F59E0B' : diasFaltantes === 0 ? '#10B981' : '#EF4444'
+                          color: diasFaltantes > 0 ? '#F59E0B' : diasFaltantes === 0 ? themeColors.status.success : '#EF4444'
                         }}>
                           {diasFaltantes > 0 ? `${diasFaltantes}d` : diasFaltantes === 0 ? 'Hoy' : 'Venc.'}
                         </Text>
@@ -304,7 +304,7 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
                                   {diasFaltantes}d restantes
                                 </Text>
                               ) : diasFaltantes === 0 ? (
-                                <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
+                                <Text style={{ fontSize: 9, color: themeColors.status.success, fontWeight: '600' }}>
                                   Hoy
                                 </Text>
                               ) : (
@@ -333,7 +333,7 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
                         onPress={() => onItemPress?.(item)}
                         style={styles.actionIconButton}
                       >
-                        <Ionicons name="eye-outline" size={20} color="#3B82F6" />
+                        <Ionicons name="eye-outline" size={20} color="#182d49" />
                       </TouchableOpacity>
                     </View>
                   </View>

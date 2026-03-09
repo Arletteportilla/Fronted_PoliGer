@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface MetricCardProps {
@@ -23,7 +23,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   const getIconColor = () => {
     if (icon === 'flower-outline') return themeColors.module.polinizacion.primary;
-    if (icon === 'leaf-outline') return themeColors.module.germinacion.primary;
+    if (icon === 'leaf-outline' || icon === 'seedling') return themeColors.module.germinacion.primary;
     if (icon === 'grid-outline') return themeColors.primary.main;
     if (icon === 'alert-circle-outline') return themeColors.status.error;
     return themeColors.module.germinacion.primary;
@@ -31,7 +31,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   const getIconBg = () => {
     if (icon === 'flower-outline') return themeColors.module.polinizacion.light;
-    if (icon === 'leaf-outline') return themeColors.module.germinacion.light;
+    if (icon === 'leaf-outline' || icon === 'seedling') return themeColors.module.germinacion.light;
     if (icon === 'grid-outline') return themeColors.status.warningLight;
     if (icon === 'alert-circle-outline') return themeColors.status.errorLight;
     return themeColors.module.germinacion.light;
@@ -52,19 +52,21 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <View style={styles.card}>
       <View style={styles.header}>
+        <Text style={styles.title}>{title}</Text>
         <View style={[styles.iconContainer, { backgroundColor: getIconBg() }]}>
-          <Ionicons name={icon as any} size={24} color={getIconColor()} />
+          {icon === 'seedling'
+            ? <FontAwesome6 name="seedling" size={20} color={getIconColor()} />
+            : <Ionicons name={icon as any} size={20} color={getIconColor()} />}
         </View>
-        {change && (
-          <View style={[styles.changeContainer, { backgroundColor: `${getChangeColor()}20` }]}>
-            <Ionicons name={getChangeIcon() as any} size={14} color={getChangeColor()} />
-            <Text style={[styles.changeText, { color: getChangeColor() }]}>{change}</Text>
-          </View>
-        )}
       </View>
-      
-      <Text style={styles.title}>{title}</Text>
+
       <Text style={styles.value}>{value}</Text>
+      {change && (
+        <View style={styles.changeContainer}>
+          <Ionicons name={getChangeIcon() as any} size={14} color={getChangeColor()} />
+          <Text style={[styles.changeText, { color: getChangeColor() }]}>{change}</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -87,13 +89,13 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 16,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -101,9 +103,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    marginTop: 4,
   },
   changeText: {
     fontSize: 12,
@@ -115,7 +115,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     color: colors.text.tertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    flex: 1,
   },
   value: {
     fontSize: 32,

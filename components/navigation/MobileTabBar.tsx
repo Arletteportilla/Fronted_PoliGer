@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -51,11 +51,19 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({ currentTab }) => {
             activeOpacity={0.7}
           >
             <View style={[styles.iconWrapper, isActive && styles.iconWrapperActive]}>
-              <Ionicons
-                name={(isActive ? tab.activeIcon : tab.icon) as any}
-                size={22}
-                color={isActive ? themeColors.accent.primary : themeColors.text.tertiary}
-              />
+              {tab.id === 'germinaciones' ? (
+                <FontAwesome6
+                  name="seedling"
+                  size={22}
+                  color={isActive ? themeColors.accent.primary : themeColors.text.tertiary}
+                />
+              ) : (
+                <Ionicons
+                  name={(isActive ? tab.activeIcon : tab.icon) as any}
+                  size={22}
+                  color={isActive ? themeColors.accent.primary : themeColors.text.tertiary}
+                />
+              )}
             </View>
             <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>
               {tab.label}

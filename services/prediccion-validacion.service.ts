@@ -166,7 +166,7 @@ class PrediccionValidacionService {
       case 'Excelente':
         return '#10B981'; // Verde
       case 'Buena':
-        return '#3B82F6'; // Azul
+        return '#182d49'; // Azul
       case 'Aceptable':
         return '#F59E0B'; // Amarillo
       case 'Pobre':

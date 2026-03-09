@@ -627,7 +627,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       fontWeight: '600',
     },
     debugButton: {
-      backgroundColor: '#3b82f6',
+      backgroundColor: '#182d49',
       paddingVertical: 8,
       paddingHorizontal: 16,
       borderRadius: 8,
@@ -1865,7 +1865,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
 
     roleSelectorText: {
       fontSize: 14,
-      color: '#3B82F6',
+      color: '#182d49',
       fontWeight: '500',
     },
 
@@ -1874,7 +1874,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       paddingVertical: 12,
       paddingHorizontal: 16,
       borderRadius: 8,
-      backgroundColor: '#3B82F6',
+      backgroundColor: '#182d49',
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -1911,7 +1911,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
 
     roleSelectorRoleOptionSelected: {
       backgroundColor: '#F0F9FF',
-      borderBottomColor: '#3B82F6',
+      borderBottomColor: '#182d49',
     },
 
     roleSelectorRoleOptionText: {
@@ -1921,7 +1921,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
     },
 
     roleSelectorRoleOptionTextSelected: {
-      color: '#3B82F6',
+      color: '#182d49',
       fontWeight: '600',
     },
 
@@ -2293,7 +2293,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       textAlign: 'center',
     },
     accionButtonPrimary: {
-      backgroundColor: '#3B82F6',
+      backgroundColor: '#182d49',
     },
     accionButtonSuccess: {
       backgroundColor: '#10B981',
@@ -2342,9 +2342,9 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
     },
     roleOptionSelected: {
       backgroundColor: '#F0F9FF',
-      borderColor: '#3B82F6',
+      borderColor: '#182d49',
       borderWidth: 2,
-      shadowColor: '#3B82F6',
+      shadowColor: '#182d49',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -2367,8 +2367,8 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       justifyContent: 'center',
     },
     roleRadioButtonSelected: {
-      borderColor: '#3B82F6',
-      backgroundColor: '#3B82F6',
+      borderColor: '#182d49',
+      backgroundColor: '#182d49',
     },
     roleRadioButtonInner: {
       width: 8,
@@ -2383,7 +2383,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       flex: 1,
     },
     roleOptionLabelSelected: {
-      color: '#3B82F6',
+      color: '#182d49',
       fontWeight: '700',
     },
     roleOptionDescription: {

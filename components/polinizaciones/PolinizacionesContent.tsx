@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import SimpleCalendarPicker from '@/components/common/SimpleCalendarPicker';
 
@@ -39,7 +39,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
       <View style={styles.metricHeader}>
         <Text style={styles.metricTitle}>{title}</Text>
         <View style={[styles.metricIcon, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon as any} size={20} color={iconColor} />
+          {icon === 'seedling'
+            ? <FontAwesome6 name="seedling" size={20} color={iconColor} />
+            : <Ionicons name={icon as any} size={20} color={iconColor} />}
         </View>
       </View>
       
@@ -107,8 +109,8 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           title="POLINIZACIONES ACTIVAS"
           value={totalPolinizaciones}
           icon="flower-outline"
-          iconColor={themeColors.primary.main}
-          iconBg={themeColors.primary.light}
+          iconColor={themeColors.module.polinizacion.primary}
+          iconBg={themeColors.module.polinizacion.light}
           styles={styles}
         />
 
@@ -116,15 +118,15 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
           title="TASA DE ÉXITO (MES)"
           value={`${tasaExito}%`}
           icon="checkmark-circle-outline"
-          iconColor={themeColors.accent.primary}
-          iconBg={themeColors.accent.tertiary}
+          iconColor={themeColors.primary.main}
+          iconBg={themeColors.primary.light}
           styles={styles}
         />
 
         <MetricCard
           title="COSECHAS REALIZADAS"
           value={cosechasRealizadas}
-          icon="leaf-outline"
+          icon="seedling"
           iconColor={themeColors.status.warning}
           iconBg={themeColors.status.warningLight}
           styles={styles}
@@ -203,7 +205,7 @@ export const PolinizacionesContent: React.FC<PolinizacionesContentProps> = ({
             </>
           ) : (
             <>
-              <Ionicons name="document-text" size={18} color="#ffffff" />
+              <FontAwesome6 name="file-pdf" size={18} color="#ffffff" />
               <Text style={styles.downloadButtonText}>Descargar PDF</Text>
             </>
           )}
@@ -311,7 +313,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   metricHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 16,
   },
   metricTitle: {
@@ -325,7 +327,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   metricIcon: {
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },

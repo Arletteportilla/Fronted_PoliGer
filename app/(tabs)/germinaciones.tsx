@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { View, Modal, StyleSheet, ScrollView, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/navigation';
 import { ResponsiveLayout } from '@/components/layout';
@@ -133,6 +133,10 @@ export default function GerminacionesScreen() {
 
   // Handle PDF download with date filters
   const handleDownloadPDF = async () => {
+    if (!fechaDesde || !fechaHasta) {
+      showToast('Debes seleccionar las fechas "Desde" y "Hasta" antes de descargar el PDF', 'error');
+      return;
+    }
     try {
       setDownloading(true);
       const filtros: any = {};
@@ -173,8 +177,8 @@ export default function GerminacionesScreen() {
             <View style={styles.metricCard}>
               <View style={styles.metricHeader}>
                 <Text style={styles.metricLabel}>Total en Proceso</Text>
-                <View style={[styles.metricIcon, { backgroundColor: '#d1fae5' }]}>
-                  <Ionicons name="leaf" size={20} color="#10b981" />
+                <View style={[styles.metricIcon, { backgroundColor: themeColors.status.successLight }]}>
+                  <FontAwesome6 name="seedling" size={20} color={themeColors.status.success} />
                 </View>
               </View>
               <View style={styles.metricValueContainer}>
@@ -185,8 +189,8 @@ export default function GerminacionesScreen() {
             <View style={styles.metricCard}>
               <View style={styles.metricHeader}>
                 <Text style={styles.metricLabel}>Éxito Promedio</Text>
-                <View style={[styles.metricIcon, { backgroundColor: '#dbeafe' }]}>
-                  <Ionicons name="checkmark-circle" size={20} color="#3b82f6" />
+                <View style={[styles.metricIcon, { backgroundColor: themeColors.primary.light }]}>
+                  <Ionicons name="checkmark-circle" size={20} color={themeColors.primary.main} />
                 </View>
               </View>
               <View style={styles.metricValueContainer}>
@@ -197,8 +201,8 @@ export default function GerminacionesScreen() {
             <View style={styles.metricCard}>
               <View style={styles.metricHeader}>
                 <Text style={styles.metricLabel}>Finalizados</Text>
-                <View style={[styles.metricIcon, { backgroundColor: '#fef3c7' }]}>
-                  <Ionicons name="checkmark-done" size={20} color="#f59e0b" />
+                <View style={[styles.metricIcon, { backgroundColor: themeColors.status.warningLight }]}>
+                  <Ionicons name="checkmark-done" size={20} color={themeColors.status.warning} />
                 </View>
               </View>
               <View style={styles.metricValueContainer}>
@@ -279,7 +283,7 @@ export default function GerminacionesScreen() {
                 </>
               ) : (
                 <>
-                  <Ionicons name="document-text" size={18} color="#ffffff" />
+                  <FontAwesome6 name="file-pdf" size={18} color="#ffffff" />
                   <Text style={styles.downloadButtonText}>Descargar PDF</Text>
                 </>
               )}

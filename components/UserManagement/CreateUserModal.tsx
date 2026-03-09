@@ -15,7 +15,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ROLES, RolePermissionsCard } from './RolePermissionsCard';
-import { Colors } from '@/constants/Colors';
+import { PRIMARY, MODULE } from '@/utils/colors';
+const BRAND = { navy: PRIMARY.main, gold: MODULE.germinacion.primary, white: PRIMARY.contrast, dark: '#121212' };
 
 // Helper function to convert hex to rgba
 const hexToRgba = (hex: string, alpha: number): string => {
@@ -281,7 +282,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             <View style={styles.modalHeader}>
               <View style={styles.headerLeft}>
                 <View style={styles.headerIconCircle}>
-                  <Ionicons name="person-add" size={28} color={Colors.light.accent} />
+                  <Ionicons name="person-add" size={28} color={BRAND.gold} />
                 </View>
                 <View style={styles.headerTextContainer}>
                   <Text style={styles.modalTitle}>Crear Nuevo Usuario</Text>
@@ -296,7 +297,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 style={styles.closeButton}
                 accessibilityLabel="Cerrar modal"
               >
-                <Ionicons name="close" size={24} color={Colors.light.text} />
+                <Ionicons name="close" size={24} color={BRAND.dark} />
               </TouchableOpacity>
             </View>
 
@@ -309,7 +310,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               {/* Información Personal */}
               <View key={`form-section-${formKey}`} style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons name="person-outline" size={20} color={Colors.light.tint} />
+                  <Ionicons name="person-outline" size={20} color={BRAND.navy} />
                   <Text style={styles.sectionTitle}>Información Personal</Text>
                 </View>
 
@@ -403,7 +404,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               {/* Credenciales */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons name="key-outline" size={20} color={Colors.light.tint} />
+                  <Ionicons name="key-outline" size={20} color={BRAND.navy} />
                   <Text style={styles.sectionTitle}>Credenciales de Acceso</Text>
                 </View>
 
@@ -520,7 +521,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               {/* Rol y Permisos */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons name="shield-outline" size={20} color={Colors.light.tint} />
+                  <Ionicons name="shield-outline" size={20} color={BRAND.navy} />
                   <Text style={styles.sectionTitle}>Rol y Permisos</Text>
                 </View>
 
@@ -633,7 +634,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   modalContainer: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: BRAND.white,
     borderRadius: 20,
     width: '90%',
     maxWidth: 600,
@@ -678,7 +679,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: Colors.light.tint,
+    color: BRAND.navy,
     marginBottom: 4,
     letterSpacing: -0.5,
   },
@@ -716,7 +717,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.light.tint,
+    color: BRAND.navy,
     letterSpacing: -0.3,
   },
   row: {
@@ -732,7 +733,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.light.tint,
+    color: BRAND.navy,
     marginBottom: 10,
     letterSpacing: 0.2,
   },
@@ -742,7 +743,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: Colors.light.text,
+    color: BRAND.dark,
     borderWidth: 2,
     borderColor: '#e5e7eb',
     shadowColor: '#000',
@@ -778,7 +779,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingRight: 48,
     fontSize: 16,
-    color: Colors.light.text,
+    color: BRAND.dark,
     borderWidth: 2,
     borderColor: '#e5e7eb',
     shadowColor: '#000',
@@ -819,7 +820,7 @@ const styles = StyleSheet.create({
   roleCardSelected: {
     backgroundColor: '#fafbfc',
     borderWidth: 3,
-    shadowColor: Colors.light.accent,
+    shadowColor: BRAND.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -836,13 +837,13 @@ const styles = StyleSheet.create({
   roleName: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.light.tint,
+    color: BRAND.navy,
     textAlign: 'center',
     marginBottom: 6,
     letterSpacing: -0.2,
   },
   roleNameSelected: {
-    color: Colors.light.tint,
+    color: BRAND.navy,
     fontWeight: '800',
     fontSize: 16,
   },
@@ -896,19 +897,19 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: Colors.light.tint,
+    color: BRAND.navy,
     letterSpacing: 0.3,
   },
   createButton: {
     flex: 1,
-    backgroundColor: Colors.light.accent,
+    backgroundColor: BRAND.gold,
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    shadowColor: Colors.light.accent,
+    shadowColor: BRAND.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

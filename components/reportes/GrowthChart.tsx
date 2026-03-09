@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, LayoutChangeEvent, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, LayoutChangeEvent, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '@/contexts/ThemeContext';
 import { downloadChartAsPNG } from '@/utils/chartExport';
 
-const COLORS = {
-  polinizaciones: '#F59E0B',
-  germinaciones: '#4CAF50',
-};
 
 interface GrowthChartProps {
   data?: Array<{ mes: string; total: number }>;
@@ -24,10 +20,12 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
   subtitle = 'Comparativa de polinizaciones y germinaciones por semana',
 }) => {
   const { colors: themeColors } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobile = windowWidth < 768;
   const styles = createStyles(themeColors);
   const [containerWidth, setContainerWidth] = useState(400);
-  const chartHeight = 200;
-  const padding = 40;
+  const chartHeight = isMobile ? 160 : 200;
+  const padding = isMobile ? 30 : 40;
   const chartWidth = containerWidth - 40; // Restar padding del contenedor (20px cada lado)
 
   const formatMonthLabel = (dateStr: string): string => {
@@ -107,7 +105,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
   return (
     <View style={styles.container} onLayout={handleLayout} nativeID="growth-chart-container">
       <View style={styles.header}>
-        <View>
+        <View style={{ flex: 1, marginRight: 8 }}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
@@ -119,11 +117,11 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
       {/* Leyenda */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: COLORS.polinizaciones }]} />
+          <View style={[styles.legendDot, { backgroundColor: themeColors.chart.polinizaciones }]} />
           <Text style={styles.legendText}>Polinizaciones</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: COLORS.germinaciones }]} />
+          <View style={[styles.legendDot, { backgroundColor: themeColors.chart.germinaciones }]} />
           <Text style={styles.legendText}>Germinaciones</Text>
         </View>
       </View>
@@ -157,7 +155,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         {/* Curva de Polinizaciones (amarilla) */}
         <Path
           d={createSmoothPath(pointsPolinizaciones)}
-          stroke={COLORS.polinizaciones}
+          stroke={themeColors.chart.polinizaciones}
           strokeWidth="3"
           fill="none"
           strokeLinecap="round"
@@ -166,7 +164,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
         {/* Curva de Germinaciones (verde) */}
         <Path
           d={createSmoothPath(pointsGerminaciones)}
-          stroke={COLORS.germinaciones}
+          stroke={themeColors.chart.germinaciones}
           strokeWidth="3"
           fill="none"
           strokeLinecap="round"
@@ -179,7 +177,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
             cx={point.x}
             cy={point.y}
             r="4"
-            fill={COLORS.polinizaciones}
+            fill={themeColors.chart.polinizaciones}
           />
         ))}
 
@@ -190,7 +188,7 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
             cx={point.x}
             cy={point.y}
             r="4"
-            fill={COLORS.germinaciones}
+            fill={themeColors.chart.germinaciones}
           />
         ))}
 

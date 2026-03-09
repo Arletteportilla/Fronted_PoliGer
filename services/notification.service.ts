@@ -236,7 +236,7 @@ class NotificationService {
     const colors: Record<string, string> = {
       'NUEVA_GERMINACION': '#10B981',
       'RECORDATORIO_REVISION': '#F59E0B',
-      'ESTADO_ACTUALIZADO': '#3B82F6',
+      'ESTADO_ACTUALIZADO': '#182d49',
       'NUEVA_POLINIZACION': '#8B5CF6',
       'ESTADO_POLINIZACION_ACTUALIZADO': '#06B6D4',
       'MENSAJE': '#6B7280',

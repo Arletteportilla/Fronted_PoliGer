@@ -88,15 +88,9 @@ export const ConfirmationProvider = ({ children }: { children: React.ReactNode }
     });
   }, [scaleAnim, opacityAnim]);
 
-  // Colores del botón de confirmación según variante
-  const variantColors = {
-    danger:   { bg: '#EF4444', hover: '#DC2626', iconBg: '#FEE2E2', iconColor: '#EF4444', icon: 'trash-outline' as const },
-    warning:  { bg: '#F59E0B', hover: '#D97706', iconBg: '#FEF3C7', iconColor: '#F59E0B', icon: 'warning-outline' as const },
-    info:     { bg: '#182d49', hover: '#0f1f34', iconBg: '#e0e7ff', iconColor: '#182d49', icon: 'information-circle-outline' as const },
-    download: { bg: '#10B981', hover: '#059669', iconBg: '#D1FAE5', iconColor: '#10B981', icon: 'document-text-outline' as const },
-  };
+  // Colores del botón de confirmación según variante (desde colors.ts)
   const variant = options.variant ?? 'danger';
-  const vc = variantColors[variant];
+  const vc = colors.confirmationVariants[variant];
 
   const styles = createStyles(colors);
 

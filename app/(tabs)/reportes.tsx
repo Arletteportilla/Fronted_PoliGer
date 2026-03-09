@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Text, View, ScrollView, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native';
+import { Text, View, ScrollView, ActivityIndicator, StyleSheet, RefreshControl, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { reportesService } from '@/services/reportes.service';
 import { polinizacionService } from '@/services/polinizacion.service';
@@ -11,6 +11,8 @@ import { logger } from '@/services/logger';
 
 export default function ReportesScreen() {
   const { colors: themeColors } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobile = windowWidth < 768;
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [gStats, setGStats] = useState<any>(null);
@@ -124,7 +126,7 @@ export default function ReportesScreen() {
   const cambioEficienciaGer = gStats?.tasa_exito && gStats.tasa_exito > 60 ? '+5%' : '0%';
   const cambioPerdidas = perdidas > 0 ? '-2%' : '0%';
 
-  const reportesStyles = createStyles(themeColors);
+  const reportesStyles = createStyles(themeColors, isMobile);
 
   if (loading && !refreshing) {
     return (
@@ -176,7 +178,7 @@ export default function ReportesScreen() {
           <MetricCard
             title="EFICIENCIA GERMINACIÓN"
             value={gStats?.tasa_exito ? `${gStats.tasa_exito}%` : '0%'}
-            icon="leaf-outline"
+            icon="seedling"
             change={cambioEficienciaGer}
             changeType={gStats?.tasa_exito && gStats.tasa_exito > 60 ? "positive" : "neutral"}
           />
@@ -216,7 +218,7 @@ export default function ReportesScreen() {
   );
 }
 
-const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>, isMobile: boolean) => StyleSheet.create({
   mainContainer: {
     backgroundColor: colors.background.secondary,
     flex: 1,
@@ -252,17 +254,17 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     marginBottom: 20,
   },
   chartsRow: {
-    flexDirection: 'row',
+    flexDirection: isMobile ? 'column' : 'row',
     gap: 16,
     paddingHorizontal: 20,
-    flexWrap: 'wrap',
+    marginBottom: 16,
   },
   chartLarge: {
-    flex: 2,
-    minWidth: 400,
+    flex: isMobile ? undefined : 2,
+    width: isMobile ? '100%' : undefined,
   },
   chartSmall: {
-    flex: 1,
-    minWidth: 300,
+    flex: isMobile ? undefined : 1,
+    width: isMobile ? '100%' : undefined,
   },
 });

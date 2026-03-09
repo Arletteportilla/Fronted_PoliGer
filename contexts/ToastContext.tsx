@@ -77,32 +77,32 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
     switch (type) {
       case 'success':
         return {
-          backgroundColor: '#10B981',
+          backgroundColor: themeColors.status.success,
           icon: 'checkmark-circle' as const,
-          borderColor: '#059669',
-          textColor: '#FFFFFF',
+          borderColor: themeColors.status.successDark,
+          textColor: themeColors.primary.contrast,
         };
       case 'error':
         return {
           backgroundColor: themeColors.status.error,
           icon: 'close-circle' as const,
-          borderColor: '#DC2626',
-          textColor: '#FFFFFF',
+          borderColor: themeColors.status.errorDark,
+          textColor: themeColors.primary.contrast,
         };
       case 'warning':
         return {
           backgroundColor: themeColors.status.warning,
           icon: 'warning' as const,
-          borderColor: '#D97706',
-          textColor: '#FFFFFF',
+          borderColor: themeColors.status.warningDark,
+          textColor: themeColors.primary.contrast,
         };
       case 'info':
       default:
         return {
           backgroundColor: themeColors.status.info,
           icon: 'information-circle' as const,
-          borderColor: '#2563EB',
-          textColor: '#FFFFFF',
+          borderColor: themeColors.status.infoDark,
+          textColor: themeColors.primary.contrast,
         };
     }
   };

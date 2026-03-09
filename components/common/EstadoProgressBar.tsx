@@ -18,31 +18,32 @@ export const EstadoProgressBar: React.FC<EstadoProgressBarProps> = ({
 }) => {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(themeColors);
-  // Definir las etapas con sus colores
+  const ps = themeColors.progressStates;
+  // Definir las etapas con sus colores desde el sistema de colores centralizado
   const etapas = [
     {
       id: 'INICIAL' as EstadoType,
       label: tipo === 'germinacion' ? 'Inicial' : 'Inicial',
       icon: 'play-circle' as const,
-      color: '#3b82f6' // Azul
+      color: ps.inicial.color,
     },
     {
       id: 'EN_PROCESO_TEMPRANO' as EstadoType,
       label: 'Proceso\nTemprano',
       icon: 'leaf' as const,
-      color: '#f59e0b' // Amarillo/Naranja
+      color: ps.enProcesoTemprano.color,
     },
     {
       id: 'EN_PROCESO_AVANZADO' as EstadoType,
       label: 'Avanzar\nProceso',
       icon: 'trending-up' as const,
-      color: '#f97316' // Naranja
+      color: ps.enProcesoAvanzado.color,
     },
     {
       id: 'FINALIZADO' as EstadoType,
       label: 'Finalizado',
       icon: 'flag' as const,
-      color: '#10b981' // Verde
+      color: ps.finalizado.color,
     }
   ];
 

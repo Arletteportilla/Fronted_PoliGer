@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, useWindowDimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { createStyles } from '@/utils/Perfil/styles';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -100,7 +100,7 @@ export function PerfilPolinizacionesTab({
               onDescargarPDF();
             }}
           >
-            <Ionicons name="download-outline" size={20} color={themeColors.primary.main} />
+            <FontAwesome6 name="file-pdf" size={20} color={themeColors.primary.main} />
             <Text style={styles.exportButtonText}>Descargar PDF</Text>
           </TouchableOpacity>
         </View>
@@ -261,7 +261,7 @@ export function PerfilPolinizacionesTab({
                                     {diasFaltantes}d restantes
                                   </Text>
                                 ) : diasFaltantes === 0 ? (
-                                  <Text style={{ fontSize: 11, color: '#10B981', fontWeight: '600' }}>
+                                  <Text style={{ fontSize: 11, color: themeColors.status.success, fontWeight: '600' }}>
                                     Hoy
                                   </Text>
                                 ) : (
@@ -287,7 +287,7 @@ export function PerfilPolinizacionesTab({
                         onPress={() => handleViewPolinizacion(item)}
                         style={styles.actionIconButton}
                       >
-                        <Ionicons name="eye-outline" size={20} color="#3B82F6" />
+                        <Ionicons name="eye-outline" size={20} color="#182d49" />
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => !isFinalized && handleEditPolinizacion(item)}
@@ -382,7 +382,7 @@ export function PerfilPolinizacionesTab({
                                   {diasFaltantes}d restantes
                                 </Text>
                               ) : diasFaltantes === 0 ? (
-                                <Text style={{ fontSize: 9, color: '#10B981', fontWeight: '600' }}>
+                                <Text style={{ fontSize: 9, color: themeColors.status.success, fontWeight: '600' }}>
                                   Hoy
                                 </Text>
                               ) : (
@@ -417,7 +417,7 @@ export function PerfilPolinizacionesTab({
                           onPress={() => handleViewPolinizacion(item)}
                           style={styles.actionIconButton}
                         >
-                          <Ionicons name="eye-outline" size={20} color="#3B82F6" />
+                          <Ionicons name="eye-outline" size={20} color="#182d49" />
                         </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => !isFinalized && handleEditPolinizacion(item)}

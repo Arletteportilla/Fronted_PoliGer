@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
+import { STATUS } from '@/utils/colors';
 import type { Germinacion } from '@/types/index';
 
 export interface GerminacionDetailsModalProps {
@@ -23,8 +24,8 @@ export interface GerminacionDetailsModalProps {
 const ESTADO_COLORS: Record<string, string> = {
   INGRESADO: '#6B7280',
   EN_PROCESO: '#F59E0B',
-  COMPLETADO: '#10B981',
-  FINALIZADO: '#10B981',
+  COMPLETADO: STATUS.success,
+  FINALIZADO: STATUS.success,
   CANCELADO: '#EF4444',
 };
 

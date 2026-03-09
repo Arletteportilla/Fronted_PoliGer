@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { STATUS } from '@/utils/colors';
 
 // Helper para calcular días faltantes
 const calcularDiasFaltantes = (fechaEstimada: string): number => {
@@ -72,7 +73,7 @@ export const PredictionDisplay: React.FC<PredictionDisplayProps> = ({
         <View style={styles.prediccionContainer}>
           <View style={styles.prediccionCard}>
             <View style={styles.prediccionHeader}>
-              <Ionicons name="calendar" size={24} color="#3B82F6" />
+              <Ionicons name="calendar" size={24} color="#182d49" />
               <Text style={styles.prediccionTitle}>{label.fechaLabel}</Text>
             </View>
             <Text style={styles.prediccionFecha}>
@@ -101,7 +102,7 @@ export const PredictionDisplay: React.FC<PredictionDisplayProps> = ({
                             diasFaltantes < 0
                               ? '#FEE2E2'
                               : diasFaltantes === 0
-                              ? '#D1FAE5'
+                              ? STATUS.successLight
                               : diasFaltantes <= 7
                               ? '#FEF3C7'
                               : '#DBEAFE',
@@ -123,10 +124,10 @@ export const PredictionDisplay: React.FC<PredictionDisplayProps> = ({
                           diasFaltantes < 0
                             ? '#EF4444'
                             : diasFaltantes === 0
-                            ? '#10B981'
+                            ? STATUS.success
                             : diasFaltantes <= 7
                             ? '#F59E0B'
-                            : '#3B82F6'
+                            : '#182d49'
                         }
                       />
                       <Text
@@ -137,10 +138,10 @@ export const PredictionDisplay: React.FC<PredictionDisplayProps> = ({
                               diasFaltantes < 0
                                 ? '#EF4444'
                                 : diasFaltantes === 0
-                                ? '#10B981'
+                                ? STATUS.success
                                 : diasFaltantes <= 7
                                 ? '#F59E0B'
-                                : '#3B82F6',
+                                : '#182d49',
                           },
                         ]}
                       >
@@ -170,11 +171,11 @@ export const PredictionDisplay: React.FC<PredictionDisplayProps> = ({
                             width: `${progreso}%`,
                             backgroundColor:
                               progreso >= 100
-                                ? '#10B981'
+                                ? STATUS.success
                                 : progreso >= 75
                                 ? '#F59E0B'
                                 : progreso >= 50
-                                ? '#3B82F6'
+                                ? '#182d49'
                                 : '#6B7280',
                           },
                         ]}
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#3B82F6',
+    borderLeftColor: '#182d49',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

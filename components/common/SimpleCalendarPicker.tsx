@@ -605,7 +605,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   confirmButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.accent.primary,
+    color: colors.primary.contrast,
   },
 });
 export default SimpleCalendarPicker;

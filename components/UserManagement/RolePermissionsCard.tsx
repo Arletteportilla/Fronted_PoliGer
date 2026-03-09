@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { STATUS, PRIMARY, MODULE } from '@/utils/colors';
 
 export interface RolePermissions {
   germinaciones: { ver: boolean; crear: boolean; editar: boolean; eliminar: boolean };
@@ -23,7 +24,7 @@ export const ROLES: RoleInfo[] = [
     code: 'TIPO_4',
     name: 'Gestor del Sistema',
     description: 'Acceso completo al sistema',
-    color: '#dc2626',
+    color: STATUS.error,
     icon: 'shield-checkmark',
     permissions: {
       germinaciones: { ver: true, crear: true, editar: true, eliminar: true },
@@ -36,7 +37,7 @@ export const ROLES: RoleInfo[] = [
     code: 'TIPO_1',
     name: 'Técnico de Laboratorio Senior',
     description: 'Gestión completa de procesos',
-    color: '#2563eb',
+    color: PRIMARY.main,
     icon: 'person',
     permissions: {
       germinaciones: { ver: true, crear: true, editar: true, eliminar: false },
@@ -49,7 +50,7 @@ export const ROLES: RoleInfo[] = [
     code: 'TIPO_2',
     name: 'Especialista en Polinización',
     description: 'Solo gestión de polinizaciones',
-    color: '#ea580c',
+    color: STATUS.orange,
     icon: 'flower',
     permissions: {
       germinaciones: { ver: true, crear: false, editar: false, eliminar: false },
@@ -62,7 +63,7 @@ export const ROLES: RoleInfo[] = [
     code: 'TIPO_3',
     name: 'Especialista en Germinación',
     description: 'Solo gestión de germinaciones',
-    color: '#16a34a',
+    color: STATUS.success,
     icon: 'leaf',
     permissions: {
       germinaciones: { ver: true, crear: true, editar: true, eliminar: false },

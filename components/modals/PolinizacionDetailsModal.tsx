@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
+import { STATUS } from '@/utils/colors';
 import type { Polinizacion } from '@/types/index';
 
 export interface PolinizacionDetailsModalProps {
@@ -19,23 +20,23 @@ export interface PolinizacionDetailsModalProps {
 }
 
 const TIPO_COLORS: Record<string, string> = {
-  self: '#3B82F6',
+  self: '#182d49',
   sibling: '#8B5CF6',
   híbrida: '#F59E0B',
   hibrida: '#F59E0B',
-  replante: '#10B981',
+  replante: STATUS.success,
 };
 
 const ESTADO_COLORS: Record<string, string> = {
   INGRESADO: '#6B7280',
   EN_PROCESO: '#F59E0B',
-  COMPLETADO: '#10B981',
-  FINALIZADO: '#10B981',
+  COMPLETADO: STATUS.success,
+  FINALIZADO: STATUS.success,
   CANCELADO: '#EF4444',
 };
 
 function getTipoColor(tipo: string) {
-  return TIPO_COLORS[tipo?.toLowerCase()] ?? '#3B82F6';
+  return TIPO_COLORS[tipo?.toLowerCase()] ?? '#182d49';
 }
 
 function getEstadoColor(estado: string) {
