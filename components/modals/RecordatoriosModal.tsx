@@ -37,6 +37,7 @@ interface Detalle {
   madreEspecie: string | null;
   padreCodigo: string | null;
   padreEspecie: string | null;
+  tipoPolinizacion: string | null;
   fechaRegistro: string | null;
   fechaEstimada: string | null;
   ubicacion: string | null;
@@ -112,6 +113,7 @@ function useDetalle(alert: Notification | undefined): { detalle: Detalle | null;
             madreEspecie: null,
             padreCodigo: null,
             padreEspecie: null,
+            tipoPolinizacion: null,
             fechaRegistro: g.fecha_siembra || g.fecha_polinizacion || null,
             fechaEstimada: g.prediccion_fecha_estimada || g.fecha_germinacion_estimada || null,
             ubicacion,
@@ -138,6 +140,7 @@ function useDetalle(alert: Notification | undefined): { detalle: Detalle | null;
             madreEspecie: p.madre_especie || p.madre_variedad || null,
             padreCodigo: p.padre_codigo || null,
             padreEspecie: p.padre_especie || p.padre_variedad || null,
+            tipoPolinizacion: p.tipo_polinizacion || null,
             fechaRegistro: p.fechapol || null,
             fechaEstimada: p.fecha_maduracion_predicha || p.fechamad || null,
             ubicacion,
@@ -153,6 +156,7 @@ function useDetalle(alert: Notification | undefined): { detalle: Detalle | null;
             nombrePlanta: alert.title,
             genero: null,
             madreCodigo: null, madreEspecie: null, padreCodigo: null, padreEspecie: null,
+            tipoPolinizacion: null,
             fechaRegistro: null, fechaEstimada: null, ubicacion: null, progreso: null,
             estadoActual: null,
           });
@@ -167,6 +171,7 @@ function useDetalle(alert: Notification | undefined): { detalle: Detalle | null;
             nombrePlanta: alert.title,
             genero: null,
             madreCodigo: null, madreEspecie: null, padreCodigo: null, padreEspecie: null,
+            tipoPolinizacion: null,
             fechaRegistro: null, fechaEstimada: null, ubicacion: null, progreso: null,
             estadoActual: null,
           });
@@ -185,10 +190,10 @@ function useDetalle(alert: Notification | undefined): { detalle: Detalle | null;
 // ─── Estilos dinámicos ─────────────────────────────────────────────────────
 function createInfoRowStyles(c: ThemeColors) {
   return StyleSheet.create({
-    row: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 10 },
+    row: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 6 },
     texts: { flex: 1 },
-    label: { fontSize: 10, color: c.text.disabled, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-    value: { fontSize: 14, color: c.text.primary, fontWeight: '600', marginTop: 1 },
+    label: { fontSize: 9, color: c.text.disabled, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+    value: { fontSize: 12, color: c.text.primary, fontWeight: '600', marginTop: 1 },
   });
 }
 
@@ -198,142 +203,139 @@ function createCardStyles(c: ThemeColors) {
       backgroundColor: c.background.primary,
       borderRadius: 20,
       overflow: 'hidden',
-      maxHeight: Dimensions.get('window').height * 0.85,
       borderWidth: 1,
       borderColor: c.border.default,
     },
-    cardHeader: {
+    topBar: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 20,
-      paddingTop: 20,
-      paddingBottom: 14,
+      paddingHorizontal: 16,
+      paddingTop: 14,
+      paddingBottom: 10,
     },
-    brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    brandIcon: {
-      width: 36, height: 36, borderRadius: 10,
-      alignItems: 'center', justifyContent: 'center',
-    },
-    brandName: { fontSize: 14, fontWeight: '700', color: c.text.primary },
-    brandSub: { fontSize: 10, color: c.text.disabled, fontWeight: '600', letterSpacing: 0.5 },
-    counter: { fontSize: 13, color: c.text.disabled, fontWeight: '600' },
-
     badge: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      alignSelf: 'flex-start',
-      marginHorizontal: 20,
-      marginBottom: 14,
-      paddingVertical: 5,
-      paddingHorizontal: 12,
+      gap: 5,
+      paddingVertical: 4,
+      paddingHorizontal: 10,
       borderRadius: 20,
     },
-    badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+    badgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
+    counter: { fontSize: 12, color: c.text.disabled, fontWeight: '600' },
 
-    loadingWrap: { alignItems: 'center', padding: 40, gap: 12 },
-    loadingText: { fontSize: 14, color: c.text.tertiary },
+    loadingWrap: { alignItems: 'center', padding: 30, gap: 10 },
+    loadingText: { fontSize: 13, color: c.text.tertiary },
 
-    scrollArea: { maxHeight: Dimensions.get('window').height * 0.45 },
+    scrollArea: { maxHeight: Dimensions.get('window').height * 0.52 },
 
     titlePrefix: {
-      fontSize: 14,
+      fontSize: 11,
       color: c.text.tertiary,
       fontWeight: '500',
-      marginHorizontal: 20,
+      marginHorizontal: 16,
+    },
+    titleName: {
+      fontSize: 16,
+      fontWeight: '700',
+      marginHorizontal: 16,
+      marginTop: 1,
+      marginBottom: 1,
+      color: c.text.primary,
     },
     titleCode: {
-      fontSize: 22,
-      fontWeight: '800',
-      marginHorizontal: 20,
-      marginBottom: 10,
+      fontSize: 11,
+      fontWeight: '600',
+      marginHorizontal: 16,
+      marginBottom: 8,
       letterSpacing: 0.3,
+      opacity: 0.55,
     },
     description: {
-      fontSize: 13,
+      fontSize: 11,
       color: c.text.tertiary,
-      lineHeight: 20,
-      marginHorizontal: 20,
-      marginBottom: 16,
+      lineHeight: 16,
+      marginHorizontal: 16,
+      marginBottom: 10,
     },
 
     panelsRow: {
       flexDirection: 'row',
-      gap: 10,
-      marginHorizontal: 20,
-      marginBottom: 14,
+      gap: 8,
+      marginHorizontal: 16,
+      marginBottom: 10,
     },
     panel: {
       flex: 1,
       backgroundColor: c.background.secondary,
-      borderRadius: 12,
-      padding: 12,
+      borderRadius: 10,
+      padding: 9,
     },
     panelTitle: {
-      fontSize: 10,
+      fontSize: 9,
       fontWeight: '800',
       letterSpacing: 1,
-      marginBottom: 10,
+      marginBottom: 6,
     },
 
     statusBar: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginHorizontal: 20,
-      marginBottom: 20,
-      borderRadius: 12,
-      padding: 16,
+      marginHorizontal: 16,
+      marginBottom: 12,
+      borderRadius: 10,
+      padding: 10,
     },
-    statusBarLabel: { fontSize: 10, color: 'rgba(255,255,255,0.8)', fontWeight: '700', letterSpacing: 0.8 },
-    statusBarValue: { fontSize: 18, color: '#fff', fontWeight: '800', marginTop: 2 },
+    statusBarLabel: { fontSize: 9, color: 'rgba(255,255,255,0.8)', fontWeight: '700', letterSpacing: 0.8 },
+    statusBarValue: { fontSize: 14, color: '#fff', fontWeight: '800', marginTop: 1 },
     statusBarRight: { alignItems: 'flex-end' },
-    progressNum: { fontSize: 28, color: 'rgba(255,255,255,0.95)', fontWeight: '900', lineHeight: 30 },
-    progressLabel: { fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: '700', letterSpacing: 0.8 },
+    progressNum: { fontSize: 22, color: 'rgba(255,255,255,0.95)', fontWeight: '900', lineHeight: 24 },
+    progressLabel: { fontSize: 9, color: 'rgba(255,255,255,0.7)', fontWeight: '700', letterSpacing: 0.8 },
 
     actions: {
-      paddingHorizontal: 20,
-      gap: 10,
-      marginBottom: 10,
+      paddingHorizontal: 16,
+      gap: 6,
+      marginBottom: 6,
     },
     btnPrimary: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      paddingVertical: 14,
-      borderRadius: 12,
+      paddingVertical: 11,
+      borderRadius: 10,
     },
-    btnPrimaryTxt: { color: '#fff', fontSize: 15, fontWeight: '700' },
+    btnPrimaryTxt: { color: '#fff', fontSize: 14, fontWeight: '700' },
     btnSecondary: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      paddingVertical: 13,
-      borderRadius: 12,
+      paddingVertical: 11,
+      borderRadius: 10,
       borderWidth: 1.5,
       borderColor: c.border.default,
       backgroundColor: c.background.secondary,
     },
-    btnSecondaryTxt: { color: c.text.tertiary, fontSize: 15, fontWeight: '600' },
+    btnSecondaryTxt: { color: c.text.tertiary, fontSize: 14, fontWeight: '600' },
     btnLink: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       gap: 5,
-      paddingVertical: 8,
+      paddingVertical: 6,
     },
-    btnLinkTxt: { color: c.text.disabled, fontSize: 13, fontWeight: '500' as const },
+    btnLinkTxt: { color: c.text.disabled, fontSize: 12, fontWeight: '500' as const },
 
     footerNote: {
-      fontSize: 11,
+      fontSize: 10,
       color: c.text.disabled,
       textAlign: 'center',
-      paddingHorizontal: 24,
-      paddingBottom: 20,
-      lineHeight: 16,
+      paddingHorizontal: 20,
+      paddingBottom: 12,
+      lineHeight: 14,
     },
   });
 }
@@ -482,26 +484,15 @@ function AlertCard({
   return (
     <View style={s.card}>
 
-      {/* ── Header de la tarjeta ── */}
-      <View style={s.cardHeader}>
-        <View style={s.brandRow}>
-          <View style={[s.brandIcon, { backgroundColor: accent }]}>
-            <Ionicons name={iconName} size={16} color="#fff" />
-          </View>
-          <View>
-            <Text style={s.brandName}>Sistema Botánico</Text>
-            <Text style={s.brandSub}>GESTIÓN DE CULTIVOS</Text>
-          </View>
+      {/* ── Header compacto: badge + contador ── */}
+      <View style={s.topBar}>
+        <View style={[s.badge, { backgroundColor: accentLight }]}>
+          <Ionicons name="alarm" size={11} color={accentDark} />
+          <Text style={[s.badgeText, { color: accentDark }]}>{badgeLabel}</Text>
         </View>
         {total > 1 && (
           <Text style={s.counter}>{index + 1}/{total}</Text>
         )}
-      </View>
-
-      {/* ── Badge tipo ── */}
-      <View style={[s.badge, { backgroundColor: accentLight }]}>
-        <Ionicons name="alarm" size={12} color={accentDark} />
-        <Text style={[s.badgeText, { color: accentDark }]}>{badgeLabel}</Text>
       </View>
 
       {loading ? (
@@ -512,8 +503,11 @@ function AlertCard({
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} style={s.scrollArea}>
 
-          {/* ── Título + código ── */}
+          {/* ── Título + nombre + código ── */}
           <Text style={s.titlePrefix}>Recordatorio de {tipoLabel}:</Text>
+          <Text style={s.titleName} numberOfLines={2}>
+            {detalle?.nombrePlanta || detalle?.codigo || '—'}
+          </Text>
           <Text style={[s.titleCode, { color: accent }]} numberOfLines={1}>
             {detalle?.codigo || '—'}
           </Text>
@@ -540,6 +534,9 @@ function AlertCard({
                 </>
               ) : (
                 <>
+                  {detalle?.tipoPolinizacion && (
+                    <InfoRow icon="git-branch-outline" label="Tipo" value={detalle.tipoPolinizacion} accent={accent} />
+                  )}
                   <InfoRow
                     icon="arrow-up-circle-outline"
                     label="Planta Madre"
@@ -614,7 +611,7 @@ function AlertCard({
 
       {/* ── Nota footer ── */}
       <Text style={s.footerNote}>
-        Esta acción marcará la notificación como leída y la removerá del panel de recordatorios.
+        El recordatorio desaparecerá automáticamente cuando cambies el estado del registro.
       </Text>
 
     </View>
@@ -722,7 +719,7 @@ export const RecordatoriosModal: React.FC<RecordatoriosModalProps> = ({
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={onDismissAll}>
-                  <Text style={s.limpiarTxt}>Marcar todas como leídas</Text>
+                  <Text style={s.limpiarTxt}>Cerrar por ahora</Text>
                 </TouchableOpacity>
               </View>
             </>

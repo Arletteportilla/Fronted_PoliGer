@@ -245,22 +245,55 @@ export const notificacionesService = {
   },
 
   /**
-   * Obtiene recordatorios de 5 días no leídos (para banner persistente)
+   * Obtiene recordatorios de registros en INICIAL con 5+ días (para banner persistente).
+   * Basado en el estado actual del registro, NO en si la notificación fue leída.
+   * Así persiste hasta que el registro cambie de estado.
    */
   getRecordatorios5Dias: async (): Promise<Notification[]> => {
     try {
-      const response = await api.get('notifications/?tipo=RECORDATORIO_5_DIAS&solo_no_leidas=true');
-      let results = response.data;
+      const response = await api.get('notifications/registros-pendientes/');
+      const data = response.data;
+      const now = new Date().toISOString();
+      const notifications: Notification[] = [];
 
-      if (response.data.notificaciones) {
-        results = response.data.notificaciones;
-      } else if (response.data.results) {
-        results = response.data.results;
-      } else if (!Array.isArray(response.data)) {
-        results = [];
+      for (const g of (data.germinaciones || [])) {
+        notifications.push({
+          id: `germ_${g.id}`,
+          title: `Revisa la germinación ${g.codigo}`,
+          message: `Han pasado ${g.dias_transcurridos} días desde la siembra. Revisa el estado del registro.`,
+          timestamp: now,
+          isRead: false,
+          type: 'warning',
+          tipo: 'RECORDATORIO_5_DIAS',
+          tipoDisplay: 'Recordatorio 5 días',
+          germinacion_id: g.id,
+          detalles: {
+            germinacion_id: g.id,
+            codigo: g.codigo,
+            dias_transcurridos: g.dias_transcurridos,
+          },
+        });
       }
 
-      const notifications = Array.isArray(results) ? results.map(mapNotification) : [];
+      for (const p of (data.polinizaciones || [])) {
+        notifications.push({
+          id: `pol_${p.numero}`,
+          title: `Revisa la polinización ${p.codigo}`,
+          message: `Han pasado ${p.dias_transcurridos} días desde la polinización. Revisa el estado del registro.`,
+          timestamp: now,
+          isRead: false,
+          type: 'warning',
+          tipo: 'RECORDATORIO_5_DIAS',
+          tipoDisplay: 'Recordatorio 5 días',
+          polinizacion_id: p.numero,
+          detalles: {
+            polinizacion_id: p.numero,
+            codigo: p.codigo,
+            dias_transcurridos: p.dias_transcurridos,
+          },
+        });
+      }
+
       return notifications;
     } catch (error) {
       logger.error(' Error obteniendo recordatorios 5 días:', error);

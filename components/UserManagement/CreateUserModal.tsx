@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { logger } from '@/services/logger';
 import {
   View,
@@ -15,8 +15,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ROLES, RolePermissionsCard } from './RolePermissionsCard';
-import { PRIMARY, MODULE } from '@/utils/colors';
-const BRAND = { navy: PRIMARY.main, gold: MODULE.germinacion.primary, white: PRIMARY.contrast, dark: '#121212' };
+import { MODULE } from '@/utils/colors';
+import { useTheme } from '@/contexts/ThemeContext';
+const BRAND_GOLD = MODULE.germinacion.primary; // #e9ad14 - mismo en ambos temas
 
 // Helper function to convert hex to rgba
 const hexToRgba = (hex: string, alpha: number): string => {
@@ -47,6 +48,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   onClose,
   onCreateUser
 }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = useMemo(() => createStyles(themeColors), [themeColors]);
+
   const [formData, setFormData] = useState<UserFormData>({
     username: '',
     email: '',
@@ -80,7 +84,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       setShowPassword(false);
       setShowPasswordConfirm(false);
       setLoading(false);
-      
+
       // Forzar re-render completo cambiando la key después de un pequeño delay
       // Esto asegura que los inputs se recreen completamente
       const timer = setTimeout(() => {
@@ -98,7 +102,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const resetForm = () => {
     // Incrementar key para forzar re-render
     setFormKey(prev => prev + 1);
-    
+
     setFormData({
       username: '',
       email: '',
@@ -117,7 +121,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const validateForm = (): boolean => {
     logger.debug(' Iniciando validación del formulario...');
     logger.info(' Datos a validar:', formData);
-    
+
     const newErrors: Partial<Record<keyof UserFormData, string>> = {};
 
     // Validar campos requeridos
@@ -183,16 +187,16 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     logger.info(' CreateUserModal.handleSubmit - Botón presionado');
     logger.info(' Datos del formulario:', formData);
     logger.start(' Loading actual:', loading);
-    
+
     if (!validateForm()) {
       logger.error(' Validación falló, mostrando errores al usuario');
       const errorMessages = Object.entries(errors)
         .map(([field, message]) => `${field}: ${message}`)
         .join('\n');
       logger.info(' Mensajes de error:', errorMessages);
-      
+
       Alert.alert(
-        'Errores en el formulario', 
+        'Errores en el formulario',
         'Por favor corrige los siguientes errores:\n\n' + errorMessages
       );
       return;
@@ -200,7 +204,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
     logger.success(' Validación exitosa, iniciando creación...');
     setLoading(true);
-    
+
     try {
       logger.info(' Llamando a onCreateUser...');
       await onCreateUser(formData);
@@ -211,29 +215,33 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       onClose();
     } catch (error: any) {
       logger.error(' Error en handleSubmit:', error);
-      
-      let errorMessage = 'Error al crear usuario';
 
-      if (error.response?.data) {
-        // Si hay errores específicos por campo
-        if (typeof error.response.data === 'object') {
-          const errorDetails = Object.entries(error.response.data)
-            .map(([field, messages]) => {
-              if (Array.isArray(messages)) {
-                return `${field}: ${messages.join(', ')}`;
-              }
-              return `${field}: ${messages}`;
-            })
-            .join('\n');
-          errorMessage = errorDetails || errorMessage;
-        } else if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
+      if (error.response?.data && typeof error.response.data === 'object') {
+        const data = error.response.data;
+        const fieldErrors: Partial<Record<keyof UserFormData, string>> = {};
+        const nonFieldMessages: string[] = [];
+
+        Object.entries(data).forEach(([field, messages]) => {
+          const msg = Array.isArray(messages) ? messages[0] : String(messages);
+          if (field in formData) {
+            fieldErrors[field as keyof UserFormData] = msg;
+          } else {
+            nonFieldMessages.push(msg);
+          }
+        });
+
+        if (Object.keys(fieldErrors).length > 0) {
+          setErrors(prev => ({ ...prev, ...fieldErrors }));
         }
-      } else if (error.message) {
-        errorMessage = error.message;
+        if (nonFieldMessages.length > 0) {
+          Alert.alert('Error al crear usuario', nonFieldMessages.join('\n'));
+        }
+      } else {
+        const errorMessage = error.response?.data
+          ? String(error.response.data)
+          : error.message || 'Error al crear usuario';
+        Alert.alert('Error al crear usuario', errorMessage);
       }
-
-      Alert.alert('Error al crear usuario', errorMessage);
     } finally {
       logger.info(' Finalizando handleSubmit, setting loading to false');
       setLoading(false);
@@ -282,22 +290,22 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             <View style={styles.modalHeader}>
               <View style={styles.headerLeft}>
                 <View style={styles.headerIconCircle}>
-                  <Ionicons name="person-add" size={28} color={BRAND.gold} />
+                  <Ionicons name="person-add" size={28} color={BRAND_GOLD} />
                 </View>
                 <View style={styles.headerTextContainer}>
                   <Text style={styles.modalTitle}>Crear Nuevo Usuario</Text>
                   <Text style={styles.modalSubtitle}>Complete la información del usuario</Text>
                 </View>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => {
                   resetForm();
                   onClose();
-                }} 
+                }}
                 style={styles.closeButton}
                 accessibilityLabel="Cerrar modal"
               >
-                <Ionicons name="close" size={24} color={BRAND.dark} />
+                <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </TouchableOpacity>
             </View>
 
@@ -310,7 +318,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               {/* Información Personal */}
               <View key={`form-section-${formKey}`} style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons name="person-outline" size={20} color={BRAND.navy} />
+                  <Ionicons name="person-outline" size={20} color={themeColors.interactive.primary} />
                   <Text style={styles.sectionTitle}>Información Personal</Text>
                 </View>
 
@@ -321,9 +329,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     key={`first_name-${formKey}`}
                     style={[styles.input, errors.first_name && styles.inputError]}
                     placeholder="Juan"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={themeColors.text.disabled}
                     value={formData.first_name || ''}
-                    defaultValue=""
+
                     onChangeText={(value) => updateField('first_name', value)}
                     editable={!loading}
                     autoComplete="off"
@@ -349,9 +357,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     key={`last_name-${formKey}`}
                     style={[styles.input, errors.last_name && styles.inputError]}
                     placeholder="Pérez"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={themeColors.text.disabled}
                     value={formData.last_name || ''}
-                    defaultValue=""
+
                     onChangeText={(value) => updateField('last_name', value)}
                     editable={!loading}
                     autoComplete="off"
@@ -377,7 +385,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   key={`email-${formKey}`}
                   style={[styles.input, errors.email && styles.inputError]}
                   placeholder="usuario@ejemplo.com"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={themeColors.text.disabled}
                   value={formData.email || ''}
                   defaultValue=""
                   onChangeText={(value) => updateField('email', value.toLowerCase())}
@@ -404,7 +412,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               {/* Credenciales */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons name="key-outline" size={20} color={BRAND.navy} />
+                  <Ionicons name="key-outline" size={20} color={themeColors.interactive.primary} />
                   <Text style={styles.sectionTitle}>Credenciales de Acceso</Text>
                 </View>
 
@@ -414,7 +422,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   key={`username-${formKey}`}
                   style={[styles.input, errors.username && styles.inputError]}
                   placeholder="usuario123"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={themeColors.text.disabled}
                   value={formData.username || ''}
                   defaultValue=""
                   onChangeText={(value) => updateField('username', value.toLowerCase())}
@@ -443,9 +451,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     key={`password-${formKey}`}
                     style={[styles.passwordInput, errors.password && styles.inputError]}
                     placeholder="••••••••"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={themeColors.text.disabled}
                     value={formData.password || ''}
-                    defaultValue=""
+
                     onChangeText={(value) => updateField('password', value)}
                     secureTextEntry={!showPassword}
                     autoComplete="new-password"
@@ -467,7 +475,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <Ionicons
                       name={showPassword ? 'eye-off' : 'eye'}
                       size={20}
-                      color="#6B7280"
+                      color={themeColors.text.tertiary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -484,9 +492,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     key={`password_confirm-${formKey}`}
                     style={[styles.passwordInput, errors.password_confirm && styles.inputError]}
                     placeholder="••••••••"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={themeColors.text.disabled}
                     value={formData.password_confirm || ''}
-                    defaultValue=""
+
                     onChangeText={(value) => updateField('password_confirm', value)}
                     secureTextEntry={!showPasswordConfirm}
                     autoComplete="new-password"
@@ -508,7 +516,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <Ionicons
                       name={showPasswordConfirm ? 'eye-off' : 'eye'}
                       size={20}
-                      color="#6B7280"
+                      color={themeColors.text.tertiary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -521,7 +529,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               {/* Rol y Permisos */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Ionicons name="shield-outline" size={20} color={BRAND.navy} />
+                  <Ionicons name="shield-outline" size={20} color={themeColors.interactive.primary} />
                   <Text style={styles.sectionTitle}>Rol y Permisos</Text>
                 </View>
 
@@ -532,14 +540,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     style={[
                       styles.roleCard,
                       formData.rol === role.code && styles.roleCardSelected,
-                      { borderColor: formData.rol === role.code ? role.color : '#E5E7EB' }
+                      { borderColor: formData.rol === role.code ? role.color : themeColors.border.default }
                     ]}
                     onPress={() => updateField('rol', role.code as any)}
                     disabled={loading}
                   >
                     <View style={[
                       styles.roleIcon,
-                      formData.rol === role.code 
+                      formData.rol === role.code
                         ? { backgroundColor: hexToRgba(role.color, 0.15) }
                         : { backgroundColor: hexToRgba(role.color, 0.08) }
                     ]}>
@@ -611,7 +619,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -634,7 +642,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   modalContainer: {
-    backgroundColor: BRAND.white,
+    backgroundColor: colors.background.primary,
     borderRadius: 20,
     width: '90%',
     maxWidth: 600,
@@ -654,8 +662,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     borderBottomWidth: 2,
-    borderBottomColor: '#f1f5f9',
-    backgroundColor: '#fafbfc',
+    borderBottomColor: colors.border.light,
+    backgroundColor: colors.background.secondary,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -679,13 +687,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: BRAND.navy,
+    color: colors.text.primary,
     marginBottom: 4,
     letterSpacing: -0.5,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.text.tertiary,
     fontWeight: '500',
   },
   closeButton: {
@@ -694,9 +702,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.background.tertiary,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
   },
   modalContent: {
     paddingHorizontal: 24,
@@ -712,12 +720,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 12,
     borderBottomWidth: 2,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: colors.border.light,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: BRAND.navy,
+    color: colors.text.primary,
     letterSpacing: -0.3,
   },
   row: {
@@ -733,19 +741,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: BRAND.navy,
+    color: colors.text.primary,
     marginBottom: 10,
     letterSpacing: 0.2,
   },
   input: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: BRAND.dark,
+    color: colors.text.primary,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -765,7 +773,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 12,
-    color: '#6b7280',
+    color: colors.text.tertiary,
     marginTop: 6,
     fontStyle: 'italic',
   },
@@ -773,15 +781,15 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   passwordInput: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     paddingRight: 48,
     fontSize: 16,
-    color: BRAND.dark,
+    color: colors.text.primary,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -804,11 +812,11 @@ const styles = StyleSheet.create({
   roleCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     alignItems: 'center',
     position: 'relative',
     shadowColor: '#000',
@@ -818,9 +826,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   roleCardSelected: {
-    backgroundColor: '#fafbfc',
+    backgroundColor: colors.background.secondary,
     borderWidth: 3,
-    shadowColor: BRAND.gold,
+    shadowColor: BRAND_GOLD,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -837,19 +845,19 @@ const styles = StyleSheet.create({
   roleName: {
     fontSize: 15,
     fontWeight: '600',
-    color: BRAND.navy,
+    color: colors.text.primary,
     textAlign: 'center',
     marginBottom: 6,
     letterSpacing: -0.2,
   },
   roleNameSelected: {
-    color: BRAND.navy,
+    color: colors.text.primary,
     fontWeight: '800',
     fontSize: 16,
   },
   roleDesc: {
     fontSize: 12,
-    color: '#6b7280',
+    color: colors.text.tertiary,
     textAlign: 'center',
     lineHeight: 16,
   },
@@ -876,18 +884,18 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 24,
     borderTopWidth: 2,
-    borderTopColor: '#f1f5f9',
-    backgroundColor: '#fafbfc',
+    borderTopColor: colors.border.light,
+    backgroundColor: colors.background.secondary,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border.default,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -897,19 +905,19 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: BRAND.navy,
+    color: colors.text.primary,
     letterSpacing: 0.3,
   },
   createButton: {
     flex: 1,
-    backgroundColor: BRAND.gold,
+    backgroundColor: BRAND_GOLD,
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    shadowColor: BRAND.gold,
+    shadowColor: BRAND_GOLD,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
