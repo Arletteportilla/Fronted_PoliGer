@@ -418,11 +418,11 @@ export const UserManagementTable: React.FC<UserManagementTableProps> = ({
                 : user.username.substring(0, 2).toUpperCase();
 
               const avatarColors = [
-                themeColors.accent.tertiary,
-                themeColors.primary.light,
-                themeColors.accent.secondary,
-                themeColors.status.warningLight,
-                themeColors.primary.dark
+                '#3b82f6',  // Azul
+                '#10B981',  // Verde
+                '#F59E0B',  // Ámbar
+                '#8B5CF6',  // Púrpura
+                '#EF4444',  // Rojo
               ];
               const avatarColor = avatarColors[user.id % avatarColors.length];
 
@@ -839,7 +839,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   avatarText: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.text.primary,
+    color: colors.primary.contrast,
   },
   statusBadge: {
     position: 'absolute',

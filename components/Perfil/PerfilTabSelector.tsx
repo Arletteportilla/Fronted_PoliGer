@@ -108,9 +108,9 @@ const createResponsiveStyles = (colors: ReturnType<typeof import('@/utils/colors
     justifyContent: 'center',
   },
   activeTab: {
-    backgroundColor: colors.primary.main,
-    borderColor: colors.accent.primary,
-    shadowColor: colors.primary.main,
+    backgroundColor: colors.interactive.primary,
+    borderColor: colors.interactive.primary,
+    shadowColor: colors.interactive.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -124,7 +124,7 @@ const createResponsiveStyles = (colors: ReturnType<typeof import('@/utils/colors
     lineHeight: isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16,
   },
   activeTabText: {
-    color: colors.background.primary,
+    color: colors.primary.contrast,
     fontWeight: '700' as const,
   },
 });

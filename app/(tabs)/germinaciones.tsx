@@ -263,9 +263,9 @@ export default function GerminacionesScreen() {
               disabled={refreshing}
             >
               {refreshing ? (
-                <ActivityIndicator size="small" color={themeColors.primary.main} />
+                <ActivityIndicator size="small" color={themeColors.interactive.primary} />
               ) : (
-                <Ionicons name="refresh" size={20} color={themeColors.primary.main} />
+                <Ionicons name="refresh" size={20} color={themeColors.interactive.primary} />
               )}
               <Text style={styles.refreshButtonText}>Actualizar</Text>
             </TouchableOpacity>
@@ -278,12 +278,12 @@ export default function GerminacionesScreen() {
             >
               {downloading ? (
                 <>
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color={themeColors.text.primary} />
                   <Text style={styles.downloadButtonText}>Descargando...</Text>
                 </>
               ) : (
                 <>
-                  <FontAwesome6 name="file-pdf" size={18} color="#ffffff" />
+                  <FontAwesome6 name="file-pdf" size={18} color={themeColors.text.primary} />
                   <Text style={styles.downloadButtonText}>Descargar PDF</Text>
                 </>
               )}
@@ -610,8 +610,8 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   },
 
   filterTypeButtonActive: {
-    backgroundColor: colors.primary.main,
-    borderColor: colors.primary.main,
+    backgroundColor: colors.interactive.primary,
+    borderColor: colors.interactive.primary,
   },
 
   filterTypeButtonText: {
@@ -621,7 +621,7 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   },
 
   filterTypeButtonTextActive: {
-    color: colors.text.inverse,
+    color: colors.primary.contrast,
     fontWeight: '600',
   },
   actionBadge: {
@@ -795,42 +795,37 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
     backgroundColor: colors.background.secondary,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.primary.main,
+    borderColor: colors.border.default,
     minHeight: 48,
     flexShrink: 0,
   },
   refreshButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.primary.main,
+    color: colors.text.primary,
   },
   downloadButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    backgroundColor: colors.primary.main,
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
-    shadowColor: colors.primary.main,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: colors.border.default,
     minHeight: 48,
     flexShrink: 0,
   },
 
   downloadButtonDisabled: {
-    opacity: 0.6,
-    backgroundColor: colors.text.disabled,
-    shadowOpacity: 0.1,
+    opacity: 0.5,
   },
 
   downloadButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#ffffff',
-    marginLeft: 8,
+    color: colors.text.primary,
   },
 });

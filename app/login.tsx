@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { logger } from '@/services/logger';
@@ -9,6 +10,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const toast = useToast();
 
@@ -61,18 +63,30 @@ const LoginScreen = () => {
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Contraseña</Text>
-          <TextInput
-            style={[styles.input, hasError && styles.inputError]}
-            placeholder="Ingresa tu contraseña"
-            placeholderTextColor="#999"
-            secureTextEntry
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              setHasError(false);
-            }}
-            editable={!isLoading}
-          />
+          <View style={styles.passwordWrapper}>
+            <TextInput
+              style={[styles.input, styles.passwordInput, hasError && styles.inputError]}
+              placeholder="Ingresa tu contraseña"
+              placeholderTextColor="#999"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setHasError(false);
+              }}
+              editable={!isLoading}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(prev => !prev)}
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={22}
+                color="#6b7280"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {hasError && (
@@ -175,6 +189,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 2,
+  },
+  passwordWrapper: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 46,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 12,
+    top: 13,
+    padding: 2,
   },
   inputError: {
     borderColor: '#EF4444',

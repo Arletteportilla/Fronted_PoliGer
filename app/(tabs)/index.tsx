@@ -108,15 +108,18 @@ export default function HomeScreen() {
   }, []);
 
   const getPolinizacionStatusLabel = useCallback((polinizacion: any) => {
-    if (polinizacion.fechamad) return 'Completado';
-    if (polinizacion.fechapol) return 'En Proceso';
+    if (polinizacion.estado_polinizacion === 'FINALIZADO') return 'Completado';
+    if (polinizacion.estado_polinizacion === 'EN_PROCESO_AVANZADO') return 'En Proceso Avanzado';
+    if (polinizacion.estado_polinizacion === 'EN_PROCESO_TEMPRANO') return 'En Proceso';
+    if (polinizacion.estado_polinizacion === 'INICIAL') return 'Ingresado';
     return 'Ingresado';
   }, []);
 
   const getPolinizacionStatusColor = useCallback((polinizacion: any) => {
-    if (polinizacion.fechamad) return themeColors.status.success;
-    if (polinizacion.fechapol) return '#182d49';
-    return '#F59E0B';
+    if (polinizacion.estado_polinizacion === 'FINALIZADO') return themeColors.status.success;
+    if (polinizacion.estado_polinizacion === 'EN_PROCESO_AVANZADO') return '#f97316';
+    if (polinizacion.estado_polinizacion === 'EN_PROCESO_TEMPRANO') return '#F59E0B';
+    return '#6B7280';
   }, []);
 
   const calculatePolinizacionStats = useCallback((polinizaciones: Polinizacion[]): StatusCounts => {

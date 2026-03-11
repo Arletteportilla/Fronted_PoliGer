@@ -84,14 +84,14 @@ export function PerfilGerminacionesTab({
             style={styles.newItemButton}
             onPress={() => onNewGerminacion ? onNewGerminacion() : router.push('/(tabs)/addGerminacion')}
           >
-            <Ionicons name="add-circle" size={20} color={themeColors.background.primary} />
+            <Ionicons name="add-circle" size={20} color={themeColors.primary.contrast} />
             <Text style={styles.newItemButtonText}>Nueva Germinación</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.exportButton}
             onPress={() => fetchData()}
           >
-            <Ionicons name="refresh-outline" size={20} color={themeColors.primary.main} />
+            <Ionicons name="refresh-outline" size={20} color={themeColors.interactive.primary} />
             <Text style={styles.exportButtonText}>Actualizar</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -101,7 +101,7 @@ export function PerfilGerminacionesTab({
               onDescargarPDF();
             }}
           >
-            <FontAwesome6 name="file-pdf" size={20} color={themeColors.primary.main} />
+            <FontAwesome6 name="file-pdf" size={20} color={themeColors.interactive.primary} />
             <Text style={styles.exportButtonText}>Descargar PDF</Text>
           </TouchableOpacity>
         </View>
@@ -265,7 +265,7 @@ export function PerfilGerminacionesTab({
                         onPress={() => handleViewGerminacion(item)}
                         style={styles.actionIconButton}
                       >
-                        <Ionicons name="eye-outline" size={20} color="#182d49" />
+                        <Ionicons name="eye-outline" size={20} color={themeColors.interactive.primary} />
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => !isFinalized && handleEditGerminacion(item)}
@@ -373,7 +373,7 @@ export function PerfilGerminacionesTab({
                           onPress={() => handleViewGerminacion(item)}
                           style={styles.actionIconButton}
                         >
-                          <Ionicons name="eye-outline" size={20} color="#182d49" />
+                          <Ionicons name="eye-outline" size={20} color={themeColors.interactive.primary} />
                         </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => !isFinalized && handleEditGerminacion(item)}

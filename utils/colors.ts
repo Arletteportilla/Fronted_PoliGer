@@ -21,10 +21,10 @@ const BACKGROUND_LIGHT = {
 
 // Colores de fondo y superficie - Tema Oscuro
 const BACKGROUND_DARK = {
-  primary: '#1e293b',    // Fondo principal (slate-800)
-  secondary: '#0f172a',  // Fondo secundario (slate-900)
-  tertiary: '#334155',   // Fondo terciario (slate-700)
-  modal: 'rgba(0, 0, 0, 0.7)', // Overlay de modales
+  primary: '#111925',    // Fondo principal (página)
+  secondary: '#0b121e',  // Fondo secundario (header/sidebar)
+  tertiary: '#354458',   // Fondo de cards/superficies elevadas
+  modal: 'rgba(0, 0, 0, 0.75)', // Overlay de modales
 };
 
 // Colores de texto - Tema Claro
@@ -38,11 +38,11 @@ const TEXT_LIGHT = {
 
 // Colores de texto - Tema Oscuro
 const TEXT_DARK = {
-  primary: '#f1f5f9',    // Texto principal (slate-100)
-  secondary: '#cbd5e1',  // Texto secundario (slate-300)
-  tertiary: '#94a3b8',   // Texto terciario (slate-400)
-  disabled: '#64748b',   // Texto deshabilitado (slate-500)
-  inverse: '#121212',    // Texto inverso (sobre fondos claros)
+  primary: '#f1f5f9',    // Texto principal (alto contraste)
+  secondary: '#c8d8e8',  // Texto secundario
+  tertiary: '#abbfcd',   // Texto terciario (más legible que antes)
+  disabled: '#8a9ba7',   // Texto deshabilitado (más legible que antes)
+  inverse: '#f3f3f3',    // Texto inverso (sobre fondos claros)
 };
 
 // Colores de acento y estado (no cambian mucho con el tema)
@@ -72,6 +72,7 @@ export const STATUS = {
 
 // Colores de botones y elementos interactivos - Tema Claro
 const INTERACTIVE_LIGHT = {
+  primary: '#182d49',    // Color primario de botones
   hover: '#f0f0f0',      // Hover general
   pressed: '#e0e0e0',    // Pressed general
   disabled: '#e5e7eb',   // Deshabilitado
@@ -80,9 +81,10 @@ const INTERACTIVE_LIGHT = {
 
 // Colores de botones y elementos interactivos - Tema Oscuro
 const INTERACTIVE_DARK = {
-  hover: '#334155',      // Hover general
-  pressed: '#475569',    // Pressed general
-  disabled: '#475569',   // Deshabilitado
+  primary: '#4a9eda',    // Color primario de botones en dark (azul cielo vibrante)
+  hover: '#2d4460',      // Hover general
+  pressed: '#3d5878',    // Pressed general
+  disabled: '#2d3f55',   // Deshabilitado
   focus: '#60A5FA',      // Focus
 };
 
@@ -95,11 +97,12 @@ const BORDER_LIGHT = {
 };
 
 // Colores de bordes - Tema Oscuro
+// IMPORTANTE: default NO puede ser igual a background.tertiary (#263548)
 const BORDER_DARK = {
-  light: '#475569',      // Borde claro
-  default: '#334155',    // Borde por defecto
-  medium: '#475569',     // Borde medio
-  dark: '#64748b',       // Borde oscuro
+  light: '#263548',      // Borde sutil (matches tertiary, para separaciones internas)
+  default: '#3a5270',    // Borde por defecto (visible sobre cards)
+  medium: '#4d6882',     // Borde medio
+  dark: '#6a8299',       // Borde fuerte
 };
 
 // Colores de sombras
@@ -110,31 +113,51 @@ export const SHADOW = {
   dark: 'rgba(0, 0, 0, 0.25)',
 };
 
-// Colores específicos de módulos
+// Colores específicos de módulos - Tema Claro
 export const MODULE = {
-  // Germinaciones
   germinacion: {
     primary: '#e9ad14',    // Amarillo/dorado
     light: '#fef3c7',
     icon: '#d97706',
   },
-  // Polinizaciones
   polinizacion: {
     primary: '#182d49',    // Azul oscuro
     light: '#e0e7ff',
     icon: '#1e40af',
   },
-  // Reportes
   reporte: {
     primary: '#182d49',    // Azul oscuro
     light: '#e0e7ff',
     icon: '#1e40af',
   },
-  // Notificaciones
   notificacion: {
     primary: '#e9ad14',    // Amarillo/dorado
     light: '#fef3c7',
     icon: '#d97706',
+  },
+};
+
+// Colores específicos de módulos - Tema Oscuro
+const MODULE_DARK = {
+  germinacion: {
+    primary: '#e9ad14',    // Amarillo/dorado (visible en dark)
+    light: '#2d2200',      // Tint oscuro
+    icon: '#f0c04a',       // Ícono más brillante
+  },
+  polinizacion: {
+    primary: '#4a9eda',    // Azul claro (visible en dark, reemplaza navy oscuro)
+    light: '#1a3352',      // Tint oscuro
+    icon: '#60a5fa',       // Ícono azul claro
+  },
+  reporte: {
+    primary: '#4a9eda',    // Azul claro
+    light: '#1a3352',
+    icon: '#60a5fa',
+  },
+  notificacion: {
+    primary: '#e9ad14',
+    light: '#2d2200',
+    icon: '#f0c04a',
   },
 };
 
@@ -170,7 +193,7 @@ export const CONFIRMATION_VARIANTS = {
   },
 };
 
-// Colores de la barra de progreso de estados
+// Colores de la barra de progreso de estados - Tema Claro
 export const PROGRESS_STATES = {
   inicial:           { color: '#182d49', light: '#e8edf3' },
   enProcesoTemprano: { color: '#F59E0B', light: '#FEF3C7' },
@@ -178,14 +201,29 @@ export const PROGRESS_STATES = {
   finalizado:        { color: '#10B981', light: '#d1fae5' },
 };
 
-// Colores de estados de cápsula
+// Colores de la barra de progreso de estados - Tema Oscuro
+const PROGRESS_STATES_DARK = {
+  inicial:           { color: '#4a9eda', light: '#1a3352' }, // Azul claro visible
+  enProcesoTemprano: { color: '#F59E0B', light: '#2d2600' },
+  enProcesoAvanzado: { color: '#f97316', light: '#2d1a00' },
+  finalizado:        { color: '#10B981', light: '#062a1a' },
+};
+
+// Colores de estados de cápsula - Tema Claro
 export const CAPSULA_STATES = {
   CERRADA: '#6B7280',
   ABIERTA: '#28e86e',
   SEMIABIERTA: '#F59E0B',
 };
 
-// Colores de climas
+// Colores de estados de cápsula - Tema Oscuro
+const CAPSULA_STATES_DARK = {
+  CERRADA: '#94a3b8',    // Más visible en dark
+  ABIERTA: '#28e86e',
+  SEMIABIERTA: '#F59E0B',
+};
+
+// Colores de climas - Tema Claro
 export const CLIMA = {
   I: '#182d49',    // Intermedio - Azul
   IW: '#8B5CF6',   // Intermedio-Cálido - Púrpura
@@ -194,10 +232,19 @@ export const CLIMA = {
   C: '#0EA5E9',    // Frío - Azul claro
 };
 
-// Colores para gráficos y visualizaciones
+// Colores de climas - Tema Oscuro
+const CLIMA_DARK = {
+  I: '#4a9eda',    // Azul claro (navy oscuro es invisible en dark)
+  IW: '#a78bfa',   // Púrpura más claro
+  IC: '#22d3ee',   // Cyan más claro
+  W: '#f87171',    // Rojo más claro
+  C: '#38bdf8',    // Azul más claro
+};
+
+// Colores para gráficos y visualizaciones - Tema Claro
 export const CHART = {
-  polinizaciones: STATUS.warning,    // Naranja/ámbar para polinizaciones
-  germinaciones: PRIMARY.main,       // Azul navy oscuro para germinaciones
+  polinizaciones: STATUS.warning,
+  germinaciones: PRIMARY.main,
   colors: [
     '#e9ad14',  // Amarillo/dorado principal
     '#182d49',  // Azul oscuro
@@ -212,7 +259,25 @@ export const CHART = {
   axisColor: '#6b7280',
 };
 
-// Colores especiales
+// Colores para gráficos y visualizaciones - Tema Oscuro
+const CHART_DARK = {
+  polinizaciones: STATUS.warning,
+  germinaciones: '#4a9eda',   // Azul claro (navy es invisible en dark)
+  colors: [
+    '#e9ad14',  // Amarillo/dorado
+    '#4a9eda',  // Azul claro (reemplaza navy)
+    '#F59E0B',  // Naranja
+    '#f87171',  // Rojo claro
+    '#a78bfa',  // Púrpura claro
+    '#f472b6',  // Rosa claro
+    '#22d3ee',  // Cyan claro
+    '#a3e635',  // Lima claro
+  ],
+  gridColor: '#334155',
+  axisColor: '#94a3b8',
+};
+
+// Colores especiales - Tema Claro
 export const SPECIAL = {
   star: '#fbbf24',       // Estrella/favorito
   link: '#182d49',       // Enlaces
@@ -220,24 +285,33 @@ export const SPECIAL = {
   overlay: 'rgba(0, 0, 0, 0.5)', // Overlay general
 };
 
+// Colores especiales - Tema Oscuro
+const SPECIAL_DARK = {
+  star: '#fbbf24',
+  link: '#60a5fa',       // Azul claro para enlaces en dark
+  highlight: '#2d2600',  // Resaltado oscuro
+  overlay: 'rgba(0, 0, 0, 0.65)',
+};
+
 // Función para obtener colores según el tema
 export function getColors(theme: 'light' | 'dark' = 'light') {
+  const isDark = theme === 'dark';
   return {
     primary: PRIMARY,
-    background: theme === 'dark' ? BACKGROUND_DARK : BACKGROUND_LIGHT,
-    text: theme === 'dark' ? TEXT_DARK : TEXT_LIGHT,
+    background: isDark ? BACKGROUND_DARK : BACKGROUND_LIGHT,
+    text: isDark ? TEXT_DARK : TEXT_LIGHT,
     accent: ACCENT,
     status: STATUS,
-    interactive: theme === 'dark' ? INTERACTIVE_DARK : INTERACTIVE_LIGHT,
-    border: theme === 'dark' ? BORDER_DARK : BORDER_LIGHT,
+    interactive: isDark ? INTERACTIVE_DARK : INTERACTIVE_LIGHT,
+    border: isDark ? BORDER_DARK : BORDER_LIGHT,
     shadow: SHADOW,
-    module: MODULE,
+    module: isDark ? MODULE_DARK : MODULE,
     confirmationVariants: CONFIRMATION_VARIANTS,
-    progressStates: PROGRESS_STATES,
-    capsulaStates: CAPSULA_STATES,
-    clima: CLIMA,
-    chart: CHART,
-    special: SPECIAL,
+    progressStates: isDark ? PROGRESS_STATES_DARK : PROGRESS_STATES,
+    capsulaStates: isDark ? CAPSULA_STATES_DARK : CAPSULA_STATES,
+    clima: isDark ? CLIMA_DARK : CLIMA,
+    chart: isDark ? CHART_DARK : CHART,
+    special: isDark ? SPECIAL_DARK : SPECIAL,
   };
 }
 

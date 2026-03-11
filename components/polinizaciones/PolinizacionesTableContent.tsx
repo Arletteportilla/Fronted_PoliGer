@@ -68,23 +68,27 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
   };
 
   // Función para obtener color de fondo del estado
-  const getEstadoBgColor = (estado: string, fechamad: any, prediccionFecha: any) => {
-    if (fechamad) return themeColors.status.successLight; // Completado
-    if (prediccionFecha && new Date(prediccionFecha) <= new Date()) return '#FEF3C7'; // En Proceso
-    return '#F3F4F6'; // Pendiente/Ingresado
+  const getEstadoBgColor = (estado: string, _fechamad: any, _prediccionFecha: any) => {
+    if (estado === 'Completado') return themeColors.status.successLight;
+    if (estado === 'En Proceso Avanzado') return '#FFEDD5';
+    if (estado === 'En Proceso') return '#FEF3C7';
+    return '#F3F4F6';
   };
 
   // Función para obtener color de texto del estado
-  const getEstadoTextColor = (estado: string, fechamad: any, prediccionFecha: any) => {
-    if (fechamad) return '#065F46'; // Completado
-    if (prediccionFecha && new Date(prediccionFecha) <= new Date()) return '#92400E'; // En Proceso
-    return '#374151'; // Pendiente
+  const getEstadoTextColor = (estado: string, _fechamad: any, _prediccionFecha: any) => {
+    if (estado === 'Completado') return '#065F46';
+    if (estado === 'En Proceso Avanzado') return '#9A3412';
+    if (estado === 'En Proceso') return '#92400E';
+    return '#374151';
   };
 
   // Función para obtener etiqueta del estado
   const getEstadoLabel = (item: any) => {
-    if (item.fechamad) return 'Completado';
-    if (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) return 'En Proceso';
+    if (item.estado_polinizacion === 'FINALIZADO') return 'Completado';
+    if (item.estado_polinizacion === 'EN_PROCESO_AVANZADO') return 'En Proceso Avanzado';
+    if (item.estado_polinizacion === 'EN_PROCESO_TEMPRANO') return 'En Proceso';
+    if (item.estado_polinizacion === 'INICIAL') return 'Ingresado';
     return 'Ingresado';
   };
 
@@ -333,7 +337,7 @@ export const PolinizacionesTableContent: React.FC<PolinizacionesTableContentProp
                         onPress={() => onItemPress?.(item)}
                         style={styles.actionIconButton}
                       >
-                        <Ionicons name="eye-outline" size={20} color="#182d49" />
+                        <Ionicons name="eye-outline" size={20} color={themeColors.interactive.primary} />
                       </TouchableOpacity>
                     </View>
                   </View>

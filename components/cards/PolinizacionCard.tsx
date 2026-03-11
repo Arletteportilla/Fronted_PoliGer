@@ -295,15 +295,10 @@ export const PolinizacionCard: React.FC<PolinizacionCardProps> = ({
   // Determinar el estado actual de la polinización usando los campos de workflow
   const getCurrentStatus = () => {
     // Usar estado_polinizacion si existe
-    if (item.estado_polinizacion) {
-      if (item.estado_polinizacion === 'FINALIZADO') return 'Finalizado';
-      if (item.estado_polinizacion === 'EN_PROCESO') return 'En Proceso';
-      if (item.estado_polinizacion === 'INICIAL') return 'Inicial';
-    }
-
-    // Fallback a lógica legacy si no existe estado_polinizacion
-    if (item.fechamad) return 'Completado';
-    if (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) return 'En Proceso';
+    if (item.estado_polinizacion === 'FINALIZADO') return 'Finalizado';
+    if (item.estado_polinizacion === 'EN_PROCESO_AVANZADO') return 'En Proceso Avanzado';
+    if (item.estado_polinizacion === 'EN_PROCESO_TEMPRANO') return 'En Proceso';
+    if (item.estado_polinizacion === 'INICIAL') return 'Ingresado';
     return 'Ingresado';
   };
 

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { STATUS, PRIMARY, MODULE } from '@/utils/colors';
+import { STATUS } from '@/utils/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export interface RolePermissions {
   germinaciones: { ver: boolean; crear: boolean; editar: boolean; eliminar: boolean };
@@ -37,7 +38,7 @@ export const ROLES: RoleInfo[] = [
     code: 'TIPO_1',
     name: 'Técnico de Laboratorio Senior',
     description: 'Gestión completa de procesos',
-    color: PRIMARY.main,
+    color: '#3b82f6',    // Azul-500: visible en light y dark mode
     icon: 'person',
     permissions: {
       germinaciones: { ver: true, crear: true, editar: true, eliminar: false },
@@ -80,6 +81,9 @@ interface RolePermissionsCardProps {
 }
 
 export const RolePermissionsCard: React.FC<RolePermissionsCardProps> = ({ role, compact = false }) => {
+  const { colors: themeColors } = useTheme();
+  const styles = useMemo(() => createStyles(themeColors), [themeColors]);
+
   const roleInfo = ROLES.find(r => r.code === role);
 
   if (!roleInfo) {
@@ -152,9 +156,9 @@ export const RolePermissionsCard: React.FC<RolePermissionsCardProps> = ({ role, 
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColors>) => StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: 20,
     borderLeftWidth: 4,
@@ -184,12 +188,12 @@ const styles = StyleSheet.create({
   roleName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text.primary,
     marginBottom: 4,
   },
   roleDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.text.tertiary,
   },
   permissionsContainer: {
     gap: 12,
@@ -197,11 +201,11 @@ const styles = StyleSheet.create({
   permissionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text.secondary,
     marginBottom: 8,
   },
   permissionItem: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background.tertiary,
     borderRadius: 12,
     padding: 12,
   },
@@ -214,7 +218,7 @@ const styles = StyleSheet.create({
   permissionModule: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text.primary,
     textTransform: 'capitalize',
   },
   permissionActions: {
@@ -235,7 +239,7 @@ const styles = StyleSheet.create({
   compactCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.primary,
     borderRadius: 12,
     padding: 12,
     borderLeftWidth: 3,
@@ -252,11 +256,11 @@ const styles = StyleSheet.create({
   compactName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text.primary,
   },
   compactDescription: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.text.tertiary,
     marginTop: 2,
   },
 });

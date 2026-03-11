@@ -47,9 +47,9 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       justifyContent: 'center',
     },
     activeTab: {
-      backgroundColor: colors.primary.main,
-      borderColor: colors.accent.primary,
-      shadowColor: colors.primary.main,
+      backgroundColor: colors.interactive.primary,
+      borderColor: colors.interactive.primary,
+      shadowColor: colors.interactive.primary,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.2,
       shadowRadius: 12,
@@ -63,7 +63,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       lineHeight: isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16,
     },
     activeTabText: {
-      color: colors.background.primary,
+      color: colors.primary.contrast,
       fontWeight: '700',
     },
     contentContainer: {
@@ -2433,12 +2433,12 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
     newItemButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.primary.main,
+      backgroundColor: colors.interactive.primary,
       paddingHorizontal: 16,
       paddingVertical: 10,
       borderRadius: 8,
       gap: 8,
-      shadowColor: colors.primary.main,
+      shadowColor: colors.interactive.primary,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.2,
       shadowRadius: 4,
@@ -2446,7 +2446,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
     },
 
     newItemButtonText: {
-      color: colors.background.primary,
+      color: colors.primary.contrast,
       fontSize: 14,
       fontWeight: '600',
     },
@@ -2460,12 +2460,12 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       backgroundColor: colors.background.primary,
       borderRadius: 8,
       borderWidth: 1,
-      borderColor: colors.primary.main,
+      borderColor: colors.border.default,
     },
     refreshButtonText: {
       fontSize: 14,
       fontWeight: '600',
-      color: colors.primary.main,
+      color: colors.text.primary,
     },
     exportButton: {
       flexDirection: 'row',
@@ -2476,7 +2476,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       borderRadius: 8,
       gap: 8,
       borderWidth: 1,
-      borderColor: colors.primary.main,
+      borderColor: colors.border.default,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.05,
@@ -2485,7 +2485,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
     },
 
     exportButtonText: {
-      color: colors.primary.main,
+      color: colors.text.primary,
       fontSize: 14,
       fontWeight: '600',
     },
@@ -3009,7 +3009,7 @@ export function createStyles(colors: ReturnType<typeof getColors>) {
       alignItems: 'center',
     },
     viewHistoryText: {
-      color: colors.primary.main,
+      color: colors.interactive.primary,
       fontSize: 12,
       fontWeight: '700',
       letterSpacing: 1,

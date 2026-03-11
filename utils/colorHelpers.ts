@@ -19,10 +19,11 @@ export const getEstadoColor = (estado?: string): string => {
     'listo': '#10B981',          // Green
 
     // Estados en proceso
-    'en proceso': '#F59E0B',     // Orange
-    'en_proceso': '#F59E0B',     // Orange
-    'en desarrollo': '#fbbf24',  // Yellow
-    'pendiente': '#f59e0b',      // Orange
+    'en proceso': '#F59E0B',            // Orange
+    'en proceso avanzado': '#f97316',   // Orange más intenso
+    'en_proceso': '#F59E0B',            // Orange
+    'en desarrollo': '#fbbf24',         // Yellow
+    'pendiente': '#f59e0b',             // Orange
 
     // Estados iniciales
     'ingresado': '#6B7280',      // Gray

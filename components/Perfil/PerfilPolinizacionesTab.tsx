@@ -83,14 +83,14 @@ export function PerfilPolinizacionesTab({
             style={styles.newItemButton}
             onPress={() => onNewPolinizacion ? onNewPolinizacion() : router.push('/(tabs)/addPolinizacion')}
           >
-            <Ionicons name="add-circle" size={20} color={themeColors.background.primary} />
+            <Ionicons name="add-circle" size={20} color={themeColors.primary.contrast} />
             <Text style={styles.newItemButtonText}>Nueva Polinización</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.refreshButton}
             onPress={fetchData}
           >
-            <Ionicons name="refresh" size={18} color={themeColors.primary.main} />
+            <Ionicons name="refresh" size={18} color={themeColors.interactive.primary} />
             <Text style={styles.refreshButtonText}>Actualizar</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -100,7 +100,7 @@ export function PerfilPolinizacionesTab({
               onDescargarPDF();
             }}
           >
-            <FontAwesome6 name="file-pdf" size={20} color={themeColors.primary.main} />
+            <FontAwesome6 name="file-pdf" size={20} color={themeColors.interactive.primary} />
             <Text style={styles.exportButtonText}>Descargar PDF</Text>
           </TouchableOpacity>
         </View>
@@ -187,9 +187,11 @@ export function PerfilPolinizacionesTab({
               const fechaFormateada = item.fechapol
                 ? new Date(item.fechapol).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
                 : 'Sin fecha';
-              const estadoActual = item.fechamad ? 'Completado' :
-                (item.prediccion_fecha_estimada && new Date(item.prediccion_fecha_estimada) <= new Date()) ? 'En Proceso' :
-                  'Ingresado';
+              const estadoActual = item.estado_polinizacion === 'FINALIZADO' ? 'Completado' :
+                item.estado_polinizacion === 'EN_PROCESO_AVANZADO' ? 'En Proceso Avanzado' :
+                item.estado_polinizacion === 'EN_PROCESO_TEMPRANO' ? 'En Proceso' :
+                item.estado_polinizacion === 'INICIAL' ? 'Ingresado' :
+                'Ingresado';
 
               const tipo = item.tipo_polinizacion || item.tipo || 'SELF';
               const itemKey = item.numero?.toString() || item.id?.toString() || `pol-${index}`;
@@ -287,7 +289,7 @@ export function PerfilPolinizacionesTab({
                         onPress={() => handleViewPolinizacion(item)}
                         style={styles.actionIconButton}
                       >
-                        <Ionicons name="eye-outline" size={20} color="#182d49" />
+                        <Ionicons name="eye-outline" size={20} color={themeColors.interactive.primary} />
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => !isFinalized && handleEditPolinizacion(item)}
@@ -417,7 +419,7 @@ export function PerfilPolinizacionesTab({
                           onPress={() => handleViewPolinizacion(item)}
                           style={styles.actionIconButton}
                         >
-                          <Ionicons name="eye-outline" size={20} color="#182d49" />
+                          <Ionicons name="eye-outline" size={20} color={themeColors.interactive.primary} />
                         </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => !isFinalized && handleEditPolinizacion(item)}

@@ -278,7 +278,7 @@ export function PerfilNotificacionesTab({
             <Ionicons
               name="apps-outline"
               size={14}
-              color={tipoFilter === 'todas' ? themeColors.accent.secondary : themeColors.text.secondary}
+              color={tipoFilter === 'todas' ? themeColors.interactive.primary : themeColors.text.secondary}
             />
             <Text style={[styles.filterChipText, tipoFilter === 'todas' && styles.filterChipTextActive]}>
               Todas
@@ -361,7 +361,7 @@ export function PerfilNotificacionesTab({
             <Ionicons
               name="funnel-outline"
               size={14}
-              color={showOnlyUnread ? themeColors.accent.secondary : themeColors.text.secondary}
+              color={showOnlyUnread ? themeColors.interactive.primary : themeColors.text.secondary}
             />
             <Text style={[styles.filterChipText, showOnlyUnread && styles.filterChipTextActive]}>
               {isVerySmallScreen ? 'No leídas' : 'Solo no leídas'}
@@ -556,11 +556,11 @@ function NotificationCard({
   // Determinar tipo de notificación para mostrar categoría
   const getCategoryInfo = () => {
     if ((notification.tipo as string) === 'ESTADO_GERMINACION_ACTUALIZADO' || (notification.tipo as string) === 'ESTADO_POLINIZACION_ACTUALIZADO') {
-      return { label: 'ESTADO ACTUALIZADO', color: themeColors.status.success, bgColor: themeColors.status.successLight };
+      return { label: 'ESTADO ACTUALIZADO', color: themeColors.status.success, bgColor: `${themeColors.status.success}25` };
     } else if ((notification.tipo as string) === 'REVISION_GERMINACION' || (notification.tipo as string) === 'REVISION_POLINIZACION') {
-      return { label: 'ACTUALIZACIÓN GENERAL', color: themeColors.status.warning, bgColor: themeColors.status.warningLight };
+      return { label: 'ACTUALIZACIÓN GENERAL', color: themeColors.status.warning, bgColor: `${themeColors.status.warning}25` };
     } else if ((notification.tipo as string) === 'ALERTA_IMPORTADA') {
-      return { label: 'HISTORIAL', color: themeColors.status.info, bgColor: themeColors.status.infoLight };
+      return { label: 'HISTORIAL', color: themeColors.interactive.primary, bgColor: `${themeColors.interactive.primary}25` };
     }
     return { label: typeLabel.toUpperCase(), color: color, bgColor: `${color}20` };
   };
@@ -585,7 +585,7 @@ function NotificationCard({
             <Ionicons name={iconName as any} size={18} color={categoryInfo.color} />
           </View>
           <View style={[styles.categoryBadge, { backgroundColor: categoryInfo.bgColor }]}>
-            <Text style={[styles.categoryText, { color: themeColors.text.primary }]}>
+            <Text style={[styles.categoryText, { color: categoryInfo.color }]}>
               {categoryInfo.label}
             </Text>
           </View>
@@ -781,7 +781,7 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     borderRadius: 10,
     backgroundColor: colors.background.secondary,
     borderWidth: 1,
-    borderColor: colors.primary.main,
+    borderColor: colors.border.default,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -791,12 +791,12 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     gap: isSmallScreen ? 4 : 6,
     paddingHorizontal: isSmallScreen ? 10 : 16,
     paddingVertical: isSmallScreen ? 8 : 10,
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.interactive.primary,
     borderRadius: 10,
     minWidth: isVerySmallScreen ? 36 : 'auto',
   },
   markAllReadText: {
-    color: colors.background.primary,
+    color: colors.primary.contrast,
     fontSize: isSmallScreen ? 12 : 14,
     fontWeight: '600',
   },
@@ -827,8 +827,8 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     borderColor: colors.border.default,
   },
   filterChipActive: {
-    backgroundColor: colors.accent.secondary + '20',
-    borderColor: colors.accent.secondary,
+    backgroundColor: colors.interactive.primary + '30',
+    borderColor: colors.interactive.primary,
   },
   filterChipText: {
     fontSize: isSmallScreen ? 11 : 13,
@@ -836,7 +836,7 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     fontWeight: '500',
   },
   filterChipTextActive: {
-    color: colors.accent.secondary,
+    color: colors.interactive.primary,
   },
   filterChipActivePendiente: {
     backgroundColor: colors.status.warningLight,
@@ -937,7 +937,7 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     top: 0,
     bottom: 0,
     width: 4,
-    backgroundColor: colors.accent.secondary,
+    backgroundColor: colors.interactive.primary,
     borderTopLeftRadius: 16,
     borderBottomLeftRadius: 16,
   },
@@ -981,13 +981,13 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     flexShrink: 0,
   },
   newBadge: {
-    backgroundColor: colors.accent.secondary,
+    backgroundColor: colors.interactive.primary,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
   },
   newBadgeText: {
-    color: colors.background.primary,
+    color: colors.primary.contrast,
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -1046,17 +1046,17 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
   },
   actionLinkText: {
     fontSize: 13,
-    color: colors.accent.secondary,
+    color: colors.interactive.primary,
     fontWeight: '500',
   },
   actionButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: colors.primary.main,
+    backgroundColor: colors.interactive.primary,
     borderRadius: 8,
   },
   actionButtonText: {
-    color: colors.background.primary,
+    color: colors.primary.contrast,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -1076,7 +1076,7 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
   },
   cardRefValue: {
     fontSize: 11,
-    color: colors.accent.secondary,
+    color: colors.interactive.primary,
     fontWeight: '500',
   },
   finalizadoContainer: {
@@ -1105,12 +1105,12 @@ const createLocalStyles = (colors: any, isSmallScreen: boolean, isVerySmallScree
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: colors.accent.secondary + '20',
+    backgroundColor: colors.interactive.primary + '20',
     borderRadius: 6,
   },
   fechaMaduracionText: {
     fontSize: 12,
-    color: colors.accent.secondary,
+    color: colors.interactive.primary,
     fontWeight: '500',
   },
 });

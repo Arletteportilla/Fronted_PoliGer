@@ -305,7 +305,7 @@ export const GerminacionesContent: React.FC<GerminacionesContentProps> = ({
                         onPress={() => onItemPress?.(item)}
                         style={styles.actionIconButton}
                       >
-                        <Ionicons name="eye-outline" size={20} color="#182d49" />
+                        <Ionicons name="eye-outline" size={20} color={themeColors.interactive.primary} />
                       </TouchableOpacity>
                     </View>
                   </View>

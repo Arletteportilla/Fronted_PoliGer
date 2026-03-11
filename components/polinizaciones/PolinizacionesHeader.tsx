@@ -42,7 +42,7 @@ export const PolinizacionesHeader: React.FC<PolinizacionesHeaderProps> = ({
           onPress={onShowForm}
           style={styles.newButton}
         >
-          <Ionicons name="add" size={18} color="#fff" />
+          <Ionicons name="add" size={18} color={themeColors.primary.contrast} />
           <Text style={styles.newButtonText}>Nueva Polinización</Text>
         </ProtectedButton>
       </View>
@@ -97,19 +97,19 @@ const createStyles = (colors: ReturnType<typeof import('@/utils/colors').getColo
   newButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary.main,
+    backgroundColor: colors.interactive.primary,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,
     gap: 6,
-    shadowColor: colors.primary.main,
+    shadowColor: colors.interactive.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   newButtonText: {
-    color: colors.text.inverse,
+    color: colors.primary.contrast,
     fontSize: 13,
     fontWeight: '700',
   },

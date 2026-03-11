@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '@/hooks/useResponsive';
 import { STATUS } from '@/utils/colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { calcularDiasRestantes, getEstadoPrediccion } from '@/utils/prediccionHelpers';
 import { ValidarPrediccionGerminacionModal } from '../modals/ValidarPrediccionGerminacionModal';
 import { EstadoProgressBar } from '@/components/common/EstadoProgressBar';
@@ -28,6 +29,7 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
   onValidacionExitosa,
 }) => {
   const responsive = useResponsive();
+  const { colors: themeColors } = useTheme();
   const [showValidarModal, setShowValidarModal] = useState(false);
 
   const diasRestantes = item.prediccion_fecha_estimada || item.fecha_germinacion_estimada
@@ -308,7 +310,7 @@ export const GerminacionCard: React.FC<GerminacionCardProps> = ({
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="eye-outline" size={18} color="#182d49" />
+            <Ionicons name="eye-outline" size={18} color={themeColors.interactive.primary} />
             <Text style={[styles.actionButtonText, styles.actionButtonTextView]}>
               Ver
             </Text>
