@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { logger } from '@/services/logger';
 import {
   View,
@@ -62,6 +62,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   });
 
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({});
@@ -184,9 +185,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
     logger.info(' CreateUserModal.handleSubmit - Botón presionado');
     logger.info(' Datos del formulario:', formData);
-    logger.start(' Loading actual:', loading);
 
     if (!validateForm()) {
       logger.error(' Validación falló, mostrando errores al usuario');
@@ -203,6 +204,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     }
 
     logger.success(' Validación exitosa, iniciando creación...');
+    submittingRef.current = true;
     setLoading(true);
 
     try {
@@ -222,7 +224,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         const nonFieldMessages: string[] = [];
 
         Object.entries(data).forEach(([field, messages]) => {
-          const msg = Array.isArray(messages) ? messages[0] : String(messages);
+          const msg = Array.isArray(messages) ? messages[0] : (typeof messages === 'object' ? JSON.stringify(messages) : String(messages));
           if (field in formData) {
             fieldErrors[field as keyof UserFormData] = msg;
           } else {
@@ -243,7 +245,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         Alert.alert('Error al crear usuario', errorMessage);
       }
     } finally {
-      logger.info(' Finalizando handleSubmit, setting loading to false');
+      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -387,7 +389,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   placeholder="usuario@ejemplo.com"
                   placeholderTextColor={themeColors.text.disabled}
                   value={formData.email || ''}
-                  defaultValue=""
                   onChangeText={(value) => updateField('email', value.toLowerCase())}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -424,7 +425,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   placeholder="usuario123"
                   placeholderTextColor={themeColors.text.disabled}
                   value={formData.username || ''}
-                  defaultValue=""
                   onChangeText={(value) => updateField('username', value.toLowerCase())}
                   autoCapitalize="none"
                   autoComplete="off"
