@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { logger } from '@/services/logger';
@@ -13,6 +14,7 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const toast = useToast();
+  const router = useRouter();
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -97,7 +99,7 @@ const LoginScreen = () => {
           </View>
         )}
         
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={handleLogin}
           disabled={isLoading}
@@ -107,6 +109,14 @@ const LoginScreen = () => {
           ) : (
             <Text style={styles.buttonText}>Iniciar Sesión</Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.forgotButton}
+          onPress={() => router.push('/forgot-password')}
+          disabled={isLoading}
+        >
+          <Text style={styles.forgotButtonText}>¿Olvidaste tu contraseña?</Text>
         </TouchableOpacity>
 
       </View>
@@ -242,6 +252,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1,
     textAlign: 'center',
+  },
+  forgotButton: {
+    marginTop: 14,
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  forgotButtonText: {
+    color: '#182d49',
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });
 

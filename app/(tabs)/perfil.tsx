@@ -30,6 +30,7 @@ import {
   PerfilPolinizacionesTab,
   PerfilGerminacionesTab,
   PerfilUsuariosTab,
+  PerfilConfiguracionTab,
   type TabType
 } from '@/components/Perfil';
 import { createStyles } from '@/utils/Perfil/styles';
@@ -1060,6 +1061,9 @@ export default function PerfilScreen() {
             <View style={{ marginTop: 10 }}>
               <PerfilUsuariosTab />
             </View>
+          )}
+          {tab === 'configuracion' && (
+            <PerfilConfiguracionTab />
           )}</View>
 
         {/* Modal de creación de usuario */}

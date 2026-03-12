@@ -22,8 +22,21 @@ const RootLayoutNav = memo(() => {
   const handleNavigation = useCallback(() => {
     if (isLoading) return;
 
-    // Sin token → login
-    if (!token && currentPath !== 'login') {
+    // Sin token → login (excepto pantallas públicas)
+    const publicPaths = ['login', 'forgot-password'];
+    if (!token && !publicPaths.includes(currentPath)) {
+      // Si hay un reset en curso (localStorage), ir a forgot-password
+      try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('poliger_reset_state') : null;
+        if (raw) {
+          const { ts } = JSON.parse(raw);
+          if (Date.now() - ts <= 15 * 60 * 1000) {
+            router.replace('/forgot-password' as any);
+            return;
+          }
+          localStorage.removeItem('poliger_reset_state');
+        }
+      } catch {}
       router.replace('/login');
       return;
     }
@@ -43,8 +56,8 @@ const RootLayoutNav = memo(() => {
         return;
       }
 
-      // Login con sesión válida → tabs
-      if (currentPath === 'login' || currentPath === 'root') {
+      // Login/forgot-password con sesión válida → tabs
+      if (currentPath === 'login' || currentPath === 'root' || currentPath === 'forgot-password') {
         router.replace('/(tabs)');
       }
     }
@@ -73,6 +86,7 @@ const RootLayoutNav = memo(() => {
       <Stack.Screen name="(tabs)" options={screenOptions} />
       <Stack.Screen name="login" options={screenOptions} />
       <Stack.Screen name="cambiar-password" options={screenOptions} />
+      <Stack.Screen name="forgot-password" options={screenOptions} />
       <Stack.Screen name="diagnostic" options={screenOptions} />
       <Stack.Screen name="+not-found" options={screenOptions} />
     </Stack>

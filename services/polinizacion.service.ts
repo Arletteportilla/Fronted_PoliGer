@@ -232,14 +232,50 @@ export const polinizacionService = {
     tipo_registro?: 'historicos' | 'nuevos' | undefined;
     ordering?: string | undefined;
   } = {}) => {
-    // Para simplificar, usar getMisPolinizacionesPaginated que ya maneja el filtro tipo_registro
-    return await polinizacionService.getMisPolinizacionesPaginated({
-      page: params.page,
-      page_size: params.page_size,
-      search: params.search,
-      dias_recientes: 0, // Mostrar todas las polinizaciones sin filtro de fecha
-      tipo_registro: params.tipo_registro
+    const page = params.page || 1;
+    const page_size = params.page_size || 20;
+
+    const response = await api.get('polinizaciones/', {
+      params: {
+        page,
+        page_size,
+        ...(params.search && { search: params.search }),
+        ...(params.estado && { estado: params.estado }),
+        ...(params.tipo_polinizacion && { tipo_polinizacion: params.tipo_polinizacion }),
+        ...(params.responsable && { responsable: params.responsable }),
+        ...(params.fechapol_desde && { fechapol_desde: params.fechapol_desde }),
+        ...(params.fechapol_hasta && { fechapol_hasta: params.fechapol_hasta }),
+        ...(params.fechamad_desde && { fechamad_desde: params.fechamad_desde }),
+        ...(params.fechamad_hasta && { fechamad_hasta: params.fechamad_hasta }),
+        ...(params.madre_codigo && { madre_codigo: params.madre_codigo }),
+        ...(params.madre_genero && { madre_genero: params.madre_genero }),
+        ...(params.madre_especie && { madre_especie: params.madre_especie }),
+        ...(params.padre_codigo && { padre_codigo: params.padre_codigo }),
+        ...(params.padre_genero && { padre_genero: params.padre_genero }),
+        ...(params.padre_especie && { padre_especie: params.padre_especie }),
+        ...(params.nueva_codigo && { nueva_codigo: params.nueva_codigo }),
+        ...(params.nueva_genero && { nueva_genero: params.nueva_genero }),
+        ...(params.nueva_especie && { nueva_especie: params.nueva_especie }),
+        ...(params.ubicacion_tipo && { ubicacion_tipo: params.ubicacion_tipo }),
+        ...(params.ubicacion_nombre && { ubicacion_nombre: params.ubicacion_nombre }),
+        ...(params.ordering && { ordering: params.ordering }),
+      },
     });
+    const totalPages = response.data?.count
+      ? Math.ceil(response.data.count / page_size)
+      : 0;
+
+    return {
+      results: (response.data?.results || []).map(normalizarPolinizacion),
+      count: response.data?.count || 0,
+      totalPages,
+      currentPage: page,
+      pageSize: page_size,
+      hasNext: !!response.data?.next,
+      hasPrevious: !!response.data?.previous,
+      next: response.data?.next || null,
+      previous: response.data?.previous || null,
+    };
   },
 
 

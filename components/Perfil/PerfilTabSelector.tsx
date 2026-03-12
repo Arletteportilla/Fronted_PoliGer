@@ -5,7 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 // Eliminado constantes estáticas
 
-export type TabType = 'resumen' | 'polinizaciones' | 'germinaciones' | 'usuarios' | 'notificaciones';
+export type TabType = 'resumen' | 'polinizaciones' | 'germinaciones' | 'usuarios' | 'notificaciones' | 'configuracion';
 
 export interface PerfilTabSelectorProps {
   currentTab: TabType;
@@ -33,7 +33,8 @@ export function PerfilTabSelector({
     { key: 'polinizaciones', label: isVerySmallScreen ? 'Polin.' : 'Polinizaciones', show: canViewPolinizaciones },
     { key: 'germinaciones', label: isVerySmallScreen ? 'Germ.' : 'Germinaciones', show: canViewGerminaciones },
     { key: 'notificaciones', label: isVerySmallScreen ? 'Notif.' : 'Notificaciones', show: true },
-    { key: 'usuarios', label: 'Usuarios', show: isAdmin }
+    { key: 'usuarios', label: 'Usuarios', show: isAdmin },
+    { key: 'configuracion', label: isVerySmallScreen ? 'Config.' : 'Configuración', show: isAdmin },
   ].filter(tab => tab.show);
 
   return (

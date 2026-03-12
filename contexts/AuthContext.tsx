@@ -284,6 +284,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (loginData.access && loginData.refresh) {
         await tokenManager.setTokens(loginData.access, loginData.refresh);
+        // Limpiar cache del token anterior para que loadUserData use el token nuevo
+        const clearCache = await getApiClearCache();
+        clearCache();
         setToken(loginData.access);
 
         const userDataLoaded = await loadUserData();
@@ -313,9 +316,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Continuar aunque falle la limpieza
       }
 
-      const errorMessage = error?.response?.data?.detail ||
-        error?.message ||
-        'Error al iniciar sesión';
+      const errorMessage = error?.response?.data?.error ||
+        error?.response?.data?.detail ||
+        'Verifica tu usuario y/o contraseña';
       toast.error(errorMessage);
       throw error;
     }

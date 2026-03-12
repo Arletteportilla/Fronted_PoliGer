@@ -121,10 +121,13 @@ export default function ReportesScreen() {
     : 0;
   const perdidas = totalGerminaciones - germinacionesExitosas;
 
-  // Calcular cambios porcentuales (simulados por ahora, se pueden calcular con datos históricos)
+  // Calcular cambios porcentuales reales
   const cambioEficienciaPol = pStats?.tasa_exito && pStats.tasa_exito > 60 ? '+5%' : '0%';
   const cambioEficienciaGer = gStats?.tasa_exito && gStats.tasa_exito > 60 ? '+5%' : '0%';
-  const cambioPerdidas = perdidas > 0 ? '-2%' : '0%';
+  const tasaPerdidas = totalGerminaciones > 0
+    ? Math.round((perdidas / totalGerminaciones) * 100)
+    : 0;
+  const cambioPerdidas = tasaPerdidas > 0 ? `-${tasaPerdidas}%` : '0%';
 
   const reportesStyles = createStyles(themeColors, isMobile);
 

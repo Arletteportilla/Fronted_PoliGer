@@ -26,4 +26,18 @@ export const authService = {
     });
     return response.data;
   },
+
+  solicitarResetPassword: async (email: string): Promise<{ message: string }> => {
+    const response = await api.post('auth/solicitar-reset-password/', { email });
+    return response.data;
+  },
+
+  confirmarResetPassword: async (email: string, code: string, passwordNuevo: string) => {
+    const response = await api.post('auth/confirmar-reset-password/', {
+      email,
+      code,
+      password_nuevo: passwordNuevo,
+    });
+    return response.data;
+  },
 };

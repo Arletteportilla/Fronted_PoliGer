@@ -111,7 +111,11 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Si el error es 401 y no es un reintento y NO es la petición de refresh y NO estamos en logout
-    if (error.response.status === 401 && originalRequest && !(originalRequest as any)._retry && !originalRequest.url?.includes('token/refresh/') && !isLoggingOut) {
+    const isPublicAuthEndpoint = originalRequest?.url?.includes('login/') ||
+      originalRequest?.url?.includes('solicitar-reset-password/') ||
+      originalRequest?.url?.includes('confirmar-reset-password/');
+
+    if (error.response.status === 401 && originalRequest && !(originalRequest as any)._retry && !originalRequest.url?.includes('token/refresh/') && !isLoggingOut && !isPublicAuthEndpoint) {
       (originalRequest as any)._retry = true;
 
       try {

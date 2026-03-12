@@ -5,4 +5,5 @@ export { PerfilUsuariosTab } from './PerfilUsuariosTab';
 export { PerfilNotificacionesTab } from './PerfilNotificacionesTab';
 export { PerfilPolinizacionesTab } from './PerfilPolinizacionesTab';
 export { PerfilGerminacionesTab } from './PerfilGerminacionesTab';
+export { PerfilConfiguracionTab } from './PerfilConfiguracionTab';
 export type { TabType } from './PerfilTabSelector';

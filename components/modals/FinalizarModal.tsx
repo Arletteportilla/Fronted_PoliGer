@@ -68,33 +68,61 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
 
   // Calcular predicción on-the-fly cuando el modal abre y no hay predicción guardada
   useEffect(() => {
-    if (!visible || !item || tipo !== 'germinacion') return;
+    if (!visible || !item) return;
 
-    const tienePrediccionGuardada = !!(
-      item.prediccion_fecha_estimada || item.fecha_germinacion_estimada
-    );
-    if (tienePrediccionGuardada) return;
+    if (tipo === 'germinacion') {
+      const tienePrediccionGuardada = !!(
+        item.prediccion_fecha_estimada || item.fecha_germinacion_estimada
+      );
+      if (tienePrediccionGuardada) return;
 
-    const { especie_variedad, genero, fecha_siembra, clima } = item;
-    if (!especie_variedad || !fecha_siembra) return;
+      const { especie_variedad, genero, fecha_siembra, clima } = item;
+      if (!especie_variedad || !fecha_siembra) return;
 
-    setLoadingPrediccion(true);
-    import('@/services/germinacion.service').then(({ germinacionService }) => {
-      germinacionService.calcularPrediccionMejorada({
-        especie: especie_variedad,
-        genero: genero || '',
-        fecha_siembra,
-        clima: (clima || 'I') as any,
-      }).then(resultado => {
-        if (isMountedRef.current && resultado?.prediccion?.fecha_estimada) {
-          setPrediccionCalculada(resultado.prediccion.fecha_estimada);
-        }
-      }).catch(() => {
-        // Sin predicción disponible
-      }).finally(() => {
-        if (isMountedRef.current) setLoadingPrediccion(false);
+      setLoadingPrediccion(true);
+      import('@/services/germinacion.service').then(({ germinacionService }) => {
+        germinacionService.calcularPrediccionMejorada({
+          especie: especie_variedad,
+          genero: genero || '',
+          fecha_siembra,
+          clima: (clima || 'I') as any,
+        }).then(resultado => {
+          if (isMountedRef.current && resultado?.prediccion?.fecha_estimada) {
+            setPrediccionCalculada(resultado.prediccion.fecha_estimada);
+          }
+        }).catch(() => {
+          // Sin predicción disponible
+        }).finally(() => {
+          if (isMountedRef.current) setLoadingPrediccion(false);
+        });
       });
-    });
+    } else if (tipo === 'polinizacion') {
+      const tienePrediccionGuardada = !!(
+        item.fecha_maduracion_predicha || item.prediccion_fecha_estimada
+      );
+      if (tienePrediccionGuardada) return;
+
+      const especie = item.nueva_especie || item.especie;
+      const fechapol = item.fechapol;
+      if (!especie || !fechapol) return;
+
+      setLoadingPrediccion(true);
+      import('@/services/polinizacion-prediccion.service').then(({ polinizacionPrediccionService }) => {
+        polinizacionPrediccionService.generarPrediccionInicial({
+          especie,
+          ...(item.clima && { clima: item.clima }),
+          fecha_polinizacion: fechapol,
+        }).then(resultado => {
+          if (isMountedRef.current && resultado?.fecha_estimada_semillas) {
+            setPrediccionCalculada(resultado.fecha_estimada_semillas);
+          }
+        }).catch(() => {
+          // Sin predicción disponible
+        }).finally(() => {
+          if (isMountedRef.current) setLoadingPrediccion(false);
+        });
+      });
+    }
   }, [visible, item, tipo]);
 
   if (!item) return null;
@@ -109,7 +137,7 @@ export const FinalizarModal: React.FC<FinalizarModalProps> = ({
   // Intentar múltiples campos de predicción (guardada en DB o calculada al vuelo)
   const fechaPredicha = tipo === 'germinacion'
     ? (item.prediccion_fecha_estimada || item.fecha_germinacion_estimada || prediccionCalculada)
-    : (item.fecha_maduracion_predicha || item.prediccion_fecha_estimada);
+    : (item.fecha_maduracion_predicha || item.prediccion_fecha_estimada || prediccionCalculada);
 
   const titulo = tipo === 'germinacion'
     ? 'Finalizar Germinación'
