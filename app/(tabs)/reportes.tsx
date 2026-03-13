@@ -127,7 +127,7 @@ export default function ReportesScreen() {
   const tasaPerdidas = totalGerminaciones > 0
     ? Math.round((perdidas / totalGerminaciones) * 100)
     : 0;
-  const cambioPerdidas = tasaPerdidas > 0 ? `-${tasaPerdidas}%` : '0%';
+  const cambioPerdidas = tasaPerdidas > 0 ? `${tasaPerdidas}% del total` : '0%';
 
   const reportesStyles = createStyles(themeColors, isMobile);
 

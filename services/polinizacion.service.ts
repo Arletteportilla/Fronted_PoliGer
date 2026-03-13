@@ -259,6 +259,7 @@ export const polinizacionService = {
         ...(params.ubicacion_tipo && { ubicacion_tipo: params.ubicacion_tipo }),
         ...(params.ubicacion_nombre && { ubicacion_nombre: params.ubicacion_nombre }),
         ...(params.ordering && { ordering: params.ordering }),
+        ...(params.tipo_registro && { tipo_registro: params.tipo_registro }),
       },
     });
     const totalPages = response.data?.count
@@ -494,8 +495,7 @@ export const polinizacionService = {
   getCodigosConEspecies: async (): Promise<{codigo: string, especie: string, genero: string, clima: string}[]> => {
 
     try {
-      // Obtener códigos desde el endpoint de germinaciones
-      const response = await api.get('germinaciones/codigos-disponibles/');
+      const response = await api.get('polinizaciones/codigos-con-especies/');
 
       return response.data || [];
     } catch (error: any) {

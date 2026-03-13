@@ -316,9 +316,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Continuar aunque falle la limpieza
       }
 
-      const errorMessage = error?.response?.data?.error ||
-        error?.response?.data?.detail ||
-        'Verifica tu usuario y/o contraseña';
+      const errorMessage = error?.response?.status === 401
+        ? 'Verifica tu usuario y/o contraseña'
+        : (error?.response?.data?.error || error?.response?.data?.detail || 'Verifica tu usuario y/o contraseña');
       toast.error(errorMessage);
       throw error;
     }
